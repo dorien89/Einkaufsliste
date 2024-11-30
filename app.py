@@ -42,6 +42,29 @@ def add_recipe():
     return render_template('add_recipe.html', zutaten_liste=zutaten_liste)
 
 
+@app.route('/get_ingredients/<int:rezept_id>', methods=['GET'])
+def get_ingredients(rezept_id):
+    connection = sqlite3.connect('einkaufsliste.db')
+    cursor = connection.cursor()
+
+    # Zutaten für das Rezept abrufen
+    cursor.execute('SELECT z.name, r.menge, r.einheit '
+                   'FROM rezeptliste r JOIN zutaten z ON r.zutat_id = z.id '
+                   'WHERE r.rezept_id = ?', (rezept_id,))
+    zutaten = cursor.fetchall()
+    connection.close()
+
+    # Zutaten als HTML-Liste zurückgeben
+    if zutaten:
+        zutaten_html = '<ul>'
+        for zutat in zutaten:
+            zutaten_html += f'<li>{zutat[0]}: {zutat[1]} {zutat[2]}</li>'
+        zutaten_html += '</ul>'
+        return zutaten_html
+    else:
+        return '<p>Keine Zutaten gefunden.</p>'
+
+
 
 @app.route('/delete_recipe/<int:rezept_id>', methods=['POST'])
 def delete_recipe(rezept_id):

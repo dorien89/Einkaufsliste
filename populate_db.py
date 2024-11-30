@@ -4,41 +4,97 @@ def populate_database():
     connection = sqlite3.connect('einkaufsliste.db')
     cursor = connection.cursor()
 
-    # Beispiel-Daten für die Tabelle "zutaten"
+    # Realistische Daten für die Tabelle "zutaten"
     zutaten_data = [
-        ('Mehl',),
-        ('Zucker',),
-        ('Eier',),
-        ('Milch',),
-        ('Butter',),
+        ('Pasta',),
+        ('Reis',),
+        ('Hähnchenbrust',),
+        ('Lachsfilet',),
+        ('Knoblauch',),
+        ('Zwiebel',),
         ('Tomaten',),
-        ('Käse',),
-        ('Hefe',),
-        ('Salz',)
+        ('Paprika',),
+        ('Brokkoli',),
+        ('Kokosmilch',),
+        ('Currypaste',),
+        ('Chili',),
+        ('Kreuzkümmel',),
+        ('Basilikum',),
+        ('Rucola',),
+        ('Butter',),
+        ('Olivenöl',),
+        ('Salz',),
+        ('Pfeffer',),
+        ('Parmesan',),
+        ('Schlagsahne',),
+        ('Senf',),
+        ('Honig',),
+        ('Brot',),
+        ('Cheddar',),
+        ('Salat',),
+        ('Ketchup',),
+        ('Mayonnaise',),
+        ('Zitronensaft',)
     ]
 
-    # Beispiel-Daten für die Tabelle "rezepte"
+    # Realistische Daten für die Tabelle "rezepte"
     rezepte_data = [
-        ('Pfannkuchen', 'Leckere Pfannkuchen aus der Pfanne.', 'Dessert'),
-        ('Pizza', 'Klassische italienische Pizza.', 'Hauptgericht'),
-        ('Kuchen', 'Ein einfacher Kuchen.', 'Dessert')
+        ('Pasta mit Tomatensauce', 'Ein einfaches Pasta-Gericht mit frischer Tomatensauce.', 'Hauptgericht'),
+        ('Hähnchen Curry mit Reis', 'Ein aromatisches Curry mit zartem Hähnchen und Reis.', 'Hauptgericht'),
+        ('Tomaten-Risotto', 'Ein schmackhaftes Risotto mit frischen Tomaten und Parmesan.', 'Hauptgericht'),
+        ('Cheeseburger', 'Ein saftiger Burger mit Cheddar-Käse, Salat und Tomate.', 'Snack'),
+        ('Honig-Senf-Nudeln mit Rucola und Lachs', 'Nudeln in einer Honig-Senf-Sauce, serviert mit frischem Rucola und gegrilltem Lachs.', 'Hauptgericht')
     ]
 
-    # Beispiel-Daten für die Tabelle "rezeptliste"
+    # Realistische Daten für die Tabelle "rezeptliste"
     rezeptliste_data = [
-        (1, 1, 200, 'g'),  # Pfannkuchen: 200g Mehl
-        (1, 2, 50, 'g'),   # Pfannkuchen: 50g Zucker
-        (1, 3, 2, 'Stück'), # Pfannkuchen: 2 Eier
-        (1, 4, 250, 'ml'),  # Pfannkuchen: 250ml Milch
-        (2, 1, 300, 'g'),  # Pizza: 300g Mehl
-        (2, 6, 200, 'g'),  # Pizza: 200g Tomaten
-        (2, 7, 150, 'g'),  # Pizza: 150g Käse
-        (2, 8, 1, 'Päckchen'),  # Pizza: 1 Päckchen Hefe
-        (2, 9, 1, 'TL'),   # Pizza: 1 TL Salz
-        (3, 1, 200, 'g'),  # Kuchen: 200g Mehl
-        (3, 2, 100, 'g'),  # Kuchen: 100g Zucker
-        (3, 3, 3, 'Stück'), # Kuchen: 3 Eier
-        (3, 5, 100, 'g')   # Kuchen: 100g Butter
+        # Pasta mit Tomatensauce
+        (1, 1, 100, 'g'),  # Pasta: 100g
+        (1, 7, 150, 'g'),  # Tomaten: 150g
+        (1, 6, 1, 'Stück'),  # Zwiebel: 1
+        (1, 15, 2, 'EL'),  # Olivenöl: 2 EL
+        (1, 18, 1, 'Prise'),  # Salz: 1 Prise
+        (1, 19, 1, 'Prise'),  # Pfeffer: 1 Prise
+        (1, 20, 30, 'g'),  # Parmesan: 30g
+
+        # Hähnchen Curry mit Reis
+        (2, 3, 150, 'g'),  # Hähnchenbrust: 150g
+        (2, 2, 100, 'g'),  # Reis: 100g
+        (2, 5, 1, 'Zehe'),  # Knoblauch: 1 Zehe
+        (2, 10, 50, 'ml'),  # Kokosmilch: 50ml
+        (2, 11, 1, 'EL'),  # Currypaste: 1 EL
+        (2, 14, 1, 'EL'),  # Basilikum: 1 EL
+        (2, 18, 1, 'Prise'),  # Salz: 1 Prise
+        (2, 19, 1, 'Prise'),  # Pfeffer: 1 Prise
+        (2, 13, 1, 'Prise'),  # Kreuzkümmel: 1 Prise
+
+        # Tomaten-Risotto
+        (3, 1, 100, 'g'),  # Reis: 100g
+        (3, 7, 150, 'g'),  # Tomaten: 150g
+        (3, 5, 1, 'Zehe'),  # Knoblauch: 1 Zehe
+        (3, 6, 1, 'Stück'),  # Zwiebel: 1
+        (3, 15, 2, 'EL'),  # Olivenöl: 2 EL
+        (3, 20, 30, 'g'),  # Parmesan: 30g
+        (3, 18, 1, 'Prise'),  # Salz: 1 Prise
+        (3, 19, 1, 'Prise'),  # Pfeffer: 1 Prise
+
+        # Cheeseburger
+        (4, 24, 1, 'Stück'),  # Burger-Brötchen: 1
+        (4, 23, 100, 'g'),  # Cheddar: 100g
+        (4, 15, 1, 'EL'),  # Mayonnaise: 1 EL
+        (4, 7, 2, 'Scheiben'),  # Tomate: 2 Scheiben
+        (4, 22, 50, 'g'),  # Salat: 50g
+        (4, 21, 1, 'Stück'),  # Ketchup: 1 EL
+
+        # Honig-Senf-Nudeln mit Rucola und Lachs
+        (5, 1, 100, 'g'),  # Nudeln: 100g
+        (5, 15, 1, 'EL'),  # Olivenöl: 1 EL
+        (5, 16, 1, 'TL'),  # Senf: 1 TL
+        (5, 17, 1, 'EL'),  # Honig: 1 EL
+        (5, 14, 30, 'g'),  # Rucola: 30g
+        (5, 4, 150, 'g'),  # Lachsfilet: 150g
+        (5, 18, 1, 'Prise'),  # Salz: 1 Prise
+        (5, 19, 1, 'Prise')   # Pfeffer: 1 Prise
     ]
 
     # Tabellen mit Daten befüllen
@@ -53,7 +109,7 @@ def populate_database():
         cursor.executemany('INSERT INTO rezeptliste (rezept_id, zutat_id, menge, einheit) VALUES (?, ?, ?, ?)', rezeptliste_data)
 
         connection.commit()
-        print("Tabellen erfolgreich mit Beispiel-Daten befüllt.")
+        print("Tabellen erfolgreich mit realistischen Testdaten befüllt.")
     except sqlite3.Error as e:
         print("Fehler beim Einfügen der Daten:", e)
     finally:
