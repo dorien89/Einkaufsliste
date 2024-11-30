@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rezepte Liste</title>
+    <link rel="stylesheet" href="/static/style.css"> <!-- Optional: CSS -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+
+        h1 {
+            text-align: center;
+            color: #444;
+            margin-bottom: 20px;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        li {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .recipe-name {
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        a, button {
+            text-decoration: none;
+            font-size: 0.9em;
+            padding: 8px 15px;
+            color: #fff;
+            background-color: #007BFF;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        a:hover, button:hover {
+            background-color: #0056b3;
+        }
+
+        button {
+            background-color: #FF6347;
+        }
+
+        button:hover {
+            background-color: #FF4500;
+        }
+
+        p {
+            text-align: center;
+        }
+
+        p a {
+            color: #007BFF;
+            text-decoration: none;
+        }
+
+        p a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>Liste der Rezepte</h1>
+
+    {% if rezepte %}
+        <ul>
+        {% for rezept in rezepte %}
+            <li>
+                <span class="recipe-name">{{ rezept[1] }}</span> (Kategorie: {{ rezept[2] }})
+                <div class="actions">
+                    <!-- Zutaten berechnen -->
+                    <a href="{{ url_for('calculate_ingredients', rezept_id=rezept[0]) }}">Zutaten berechnen</a>
+
+                    <!-- Rezept löschen -->
+                    <form action="{{ url_for('delete_recipe', rezept_id=rezept[0]) }}" method="POST" style="display:inline;">
+                        <button type="submit">Löschen</button>
+                    </form>
+                </div>
+            </li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>Keine Rezepte gefunden. <a href="{{ url_for('add_recipe') }}">Rezept hinzufügen</a></p>
+    {% endif %}
+</body>
+</html>

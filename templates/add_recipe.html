@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rezept hinzufügen</title>
+    <link rel="stylesheet" href="/static/style.css"> <!-- Optional: CSS -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+
+        h1 {
+            text-align: center;
+            color: #444;
+            margin-bottom: 20px;
+        }
+
+        form {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        input[type="text"], textarea, input[type="number"] {
+            width: calc(100% - 10px);
+            padding: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        textarea {
+            resize: none;
+            height: 80px;
+        }
+
+        #zutaten-container {
+            margin-bottom: 15px;
+        }
+
+        .zutaten-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .zutaten-row input {
+            flex: 1;
+        }
+
+        button {
+            font-size: 0.9em;
+            padding: 10px 15px;
+            color: white;
+            background-color: #007BFF;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        button[type="submit"] {
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .add-ingredient {
+            background-color: #28a745;
+            margin-bottom: 10px;
+        }
+
+        .add-ingredient:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <h1>Rezept hinzufügen</h1>
+
+    <form method="POST">
+        <label>Rezeptname:</label>
+        <input type="text" name="name" required>
+
+        <label>Beschreibung:</label>
+        <textarea name="beschreibung" placeholder="Optional"></textarea>
+
+        <label>Kategorie:</label>
+        <input type="text" name="kategorie" placeholder="z. B. Hauptgericht, Dessert">
+
+        <div id="zutaten-container">
+            <label>Zutaten:</label>
+            <div class="zutaten-row">
+                <input type="text" name="zutaten[]" placeholder="Zutat" required>
+                <input type="number" name="mengen[]" placeholder="Menge" step="0.1" required>
+                <input type="text" name="einheiten[]" placeholder="Einheit" required>
+            </div>
+        </div>
+
+        <button type="button" class="add-ingredient" onclick="addIngredient()">Weitere Zutat hinzufügen</button>
+        <button type="button">Alle Rezepte anzeigen</button>
+        <button type="submit">Rezept speichern</button>
+        
+    </form>
+
+    <script>
+        function addIngredient() {
+            const container = document.getElementById('zutaten-container');
+            const newRow = document.createElement('div');
+            newRow.className = 'zutaten-row';
+            newRow.innerHTML = `
+                <input type="text" name="zutaten[]" placeholder="Zutat" required>
+                <input type="number" name="mengen[]" placeholder="Menge" step="0.1" required>
+                <input type="text" name="einheiten[]" placeholder="Einheit" required>
+            `;
+            container.appendChild(newRow);
+        }
+    </script>
+</body>
+</html>
