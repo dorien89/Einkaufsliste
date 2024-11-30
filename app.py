@@ -5,11 +5,20 @@ app = Flask(__name__)
 
 @app.route('/add_recipe', methods=['GET', 'POST'])
 def add_recipe():
+    connection = sqlite3.connect('einkaufsliste.db')
+    cursor = connection.cursor()
+    
+    # Zutaten aus der Datenbank abrufen (Name und zutat_id)
+    cursor.execute('SELECT id, name FROM zutaten')
+    zutaten_liste = cursor.fetchall()
+    connection.close()
+
+    # Wenn das Formular abgesendet wurde, Rezept speichern
     if request.method == 'POST':
         name = request.form['name']
         beschreibung = request.form['beschreibung']
         kategorie = request.form['kategorie']
-        zutaten = request.form.getlist('zutaten[]')
+        zutaten_ids = request.form.getlist('zutaten[]')  # Enthält die zutat_id
         mengen = request.form.getlist('mengen[]')
         einheiten = request.form.getlist('einheiten[]')
 
@@ -21,17 +30,18 @@ def add_recipe():
                        (name, beschreibung, kategorie))
         rezept_id = cursor.lastrowid
 
-        # Zutaten speichern
-        for zutat, menge, einheit in zip(zutaten, mengen, einheiten):
-            cursor.execute('INSERT INTO zutaten (rezept_id, name, menge, einheit) VALUES (?, ?, ?, ?)',
-                           (rezept_id, zutat, menge, einheit))
+        # Zutaten in die rezeptliste-Tabelle speichern
+        for zutat_id, menge, einheit in zip(zutaten_ids, mengen, einheiten):
+            cursor.execute('INSERT INTO rezeptliste (rezept_id, zutat_id, menge, einheit) VALUES (?, ?, ?, ?)',
+                           (rezept_id, zutat_id, menge, einheit))
 
         connection.commit()
         connection.close()
-
         return redirect(url_for('list_recipes'))
 
-    return render_template('add_recipe.html')
+    return render_template('add_recipe.html', zutaten_liste=zutaten_liste)
+
+
 
 @app.route('/delete_recipe/<int:rezept_id>', methods=['POST'])
 def delete_recipe(rezept_id):

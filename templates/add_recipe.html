@@ -4,8 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rezept hinzufügen</title>
-    <link rel="stylesheet" href="/static/style.css"> <!-- Optional: CSS -->
+    <link rel="stylesheet" href="/static/style.css"> <!-- Optional für Styling -->
     <style>
+        /* Füge hier dein CSS-Styling ein */
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
@@ -59,7 +60,7 @@
             margin-bottom: 10px;
         }
 
-        .zutaten-row input {
+        .zutaten-row select, .zutaten-row input[type="number"], .zutaten-row input[type="text"] {
             flex: 1;
         }
 
@@ -106,19 +107,24 @@
         <label>Kategorie:</label>
         <input type="text" name="kategorie" placeholder="z. B. Hauptgericht, Dessert">
 
+        <label>Zutaten:</label>
         <div id="zutaten-container">
-            <label>Zutaten:</label>
             <div class="zutaten-row">
-                <input type="text" name="zutaten[]" placeholder="Zutat" required>
+                <select name="zutaten[]" required>
+                    <option value="">Wählen Sie eine Zutat</option>
+                    {% for zutat in zutaten_liste %}
+                        <option value="{{ zutat[0] }}">{{ zutat[1] }}</option> <!-- zutat[0] ist die zutat_id, zutat[1] der Name -->
+                    {% endfor %}
+                </select>
                 <input type="number" name="mengen[]" placeholder="Menge" step="0.1" required>
                 <input type="text" name="einheiten[]" placeholder="Einheit" required>
             </div>
         </div>
+        
+        
 
         <button type="button" class="add-ingredient" onclick="addIngredient()">Weitere Zutat hinzufügen</button>
-        <button type="button">Alle Rezepte anzeigen</button>
         <button type="submit">Rezept speichern</button>
-        
     </form>
 
     <script>
@@ -127,7 +133,12 @@
             const newRow = document.createElement('div');
             newRow.className = 'zutaten-row';
             newRow.innerHTML = `
-                <input type="text" name="zutaten[]" placeholder="Zutat" required>
+                <select name="zutaten[]" required>
+                    <option value="">Wählen Sie eine Zutat</option>
+                        {% for zutat in zutaten_liste %}
+                            <option value="{{ zutat[0] }}">{{ zutat[1] }}</option> <!-- zutat[1] ist die zutat_id -->
+                        {% endfor %}
+                </select>
                 <input type="number" name="mengen[]" placeholder="Menge" step="0.1" required>
                 <input type="text" name="einheiten[]" placeholder="Einheit" required>
             `;
