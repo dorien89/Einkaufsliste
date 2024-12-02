@@ -1,7 +1,11 @@
-from flask import Flask, request, render_template, redirect, url_for
+from flask import Flask, request, render_template, redirect, url_for, jsonify
 import sqlite3
 
 app = Flask(__name__)
+
+@app.route('/')
+def index():
+    return render_template('index.html')
 
 @app.route('/add_recipe', methods=['GET', 'POST'])
 def add_recipe():
@@ -105,9 +109,6 @@ def list_recipes():
 
 
 
-
-
-
 @app.route('/calculate_ingredients/<int:rezept_id>', methods=['GET', 'POST'])
 def calculate_ingredients(rezept_id):
     if request.method == 'POST':
@@ -131,6 +132,34 @@ def calculate_ingredients(rezept_id):
     return render_template('input_portions.html', rezept_id=rezept_id)
 
 
+
+# Datenbankverbindung herstellen
+def get_db_connection():
+    conn = sqlite3.connect('einkaufsliste.db')
+    conn.row_factory = sqlite3.Row
+    return conn
+
+# Rezepte abrufen
+@app.route('/api/rezepte', methods=['GET'])
+def get_rezepte():
+    conn = get_db_connection()
+    rezepte = conn.execute('SELECT * FROM rezepte').fetchall()
+    conn.close()
+    return jsonify([dict(row) for row in rezepte])
+
+# Einkaufsdaten speichern
+@app.route('/api/einkaufsliste', methods=['POST'])
+def save_einkaufsliste():
+    data = request.json
+    conn = get_db_connection()
+    for item in data['items']:
+        conn.execute(
+            'INSERT INTO einkaufsliste (rezept_id, portionen, status) VALUES (?, ?, ?)',
+            (item['rezept_id'], item['portionen'], 0)
+        )
+    conn.commit()
+    conn.close()
+    return jsonify({"message": "Einkaufsliste aktualisiert"})
 
 
 if __name__ == "__main__":
