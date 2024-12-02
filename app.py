@@ -150,18 +150,18 @@ def get_db_connection():
 #     return jsonify([dict(row) for row in rezepte])
 
 # Einkaufsdaten speichern
-@app.route('/api/einkaufsliste', methods=['POST'])
-def save_einkaufsliste():
-    data = request.json
-    conn = get_db_connection()
-    for item in data['items']:
-        conn.execute(
-            'INSERT INTO einkaufsliste (rezept_id, portionen, status) VALUES (?, ?, ?)',
-            (item['rezept_id'], item['portionen'], 0)
-        )
-    conn.commit()
-    conn.close()
-    return jsonify({"message": "Einkaufsliste aktualisiert"})
+# @app.route('/api/einkaufsliste', methods=['POST'])
+# def save_einkaufsliste():
+#     data = request.json
+#     conn = get_db_connection()
+#     for item in data['items']:
+#         conn.execute(
+#             'INSERT INTO einkaufsliste (rezept_id, portionen, status) VALUES (?, ?, ?)',
+#             (item['rezept_id'], item['portionen'], 0)
+#         )
+#     conn.commit()
+#     conn.close()
+#     return jsonify({"message": "Einkaufsliste aktualisiert"})
 
 
 
@@ -187,6 +187,30 @@ def api_get_recipes():
     recipes = get_random_recipes()
     return jsonify(recipes)
 
+@app.route('/api/einkaufsliste', methods=['POST'])
+def add_to_shopping_list():
+    try:
+        # Empfange die JSON-Daten
+        data = request.get_json()
+        rezept_id = data.get('rezept_id')
+        portionen = data.get('portionen')
+
+        if rezept_id is None or portionen is None:
+            return jsonify({'error': 'Fehlende Daten'}), 400
+
+        # Daten in die einkaufsliste-Tabelle einfügen
+        connection = sqlite3.connect('einkaufsliste.db')
+        cursor = connection.cursor()
+        cursor.execute("""
+            INSERT INTO einkaufsliste (rezept_id, portionen)
+            VALUES (?, ?)
+        """, (rezept_id, portionen))
+        connection.commit()
+        connection.close()
+
+        return jsonify({'message': 'Rezept erfolgreich hinzugefügt'}), 201
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000, debug=True)

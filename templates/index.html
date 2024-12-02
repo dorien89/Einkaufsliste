@@ -41,33 +41,65 @@
             font-weight: bold;
             color: #333;
             padding: 10px;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+        .grid-item:hover {
+            background-color: #d4d4d4;
+            transform: scale(1.05);
+        }
+        .grid-item.clicked {
+            background-color: #b0b0b0; /* Farbe für den Klick-Effekt */
+            border: 2px solid #333;
+            transform: scale(1.1);
         }
     </style>
     <script>
         async function loadRecipes() {
             try {
-                // Füge einen Cache-Buster hinzu, um Caching zu vermeiden
                 const randomParam = `?nocache=${new Date().getTime()}`;
                 const response = await fetch('/api/rezepte' + randomParam);
                 const recipes = await response.json();
                 const container = document.querySelector('.grid-container');
 
-                // Clear existing items
                 container.innerHTML = '';
 
-                // Add recipes to grid
                 recipes.forEach(recipe => {
                     const div = document.createElement('div');
                     div.className = 'grid-item';
                     div.textContent = recipe.name;
-
-                    // Füge die Rezept-ID als Datenattribut hinzu
                     div.dataset.recipeId = recipe.id;
 
-                    // Optional: Event-Listener hinzufügen, um auf Klicks zu reagieren
-                    div.addEventListener('click', () => {
+                    // Event-Listener für den Klick hinzufügen
+                    div.addEventListener('click', async () => {
                         console.log('Rezept-ID:', div.dataset.recipeId);
-                        // Hier kannst du die ID für weitere Aktionen verwenden
+                        console.log('Rezept-Name:', recipe.name);
+
+                        // Klick-Effekt hinzufügen
+                        div.classList.add('clicked');
+                        setTimeout(() => {
+                            div.classList.remove('clicked');
+                        }, 500);
+
+                        try {
+                            const portionen = 1;
+                            const response = await fetch('/api/einkaufsliste', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    rezept_id: div.dataset.recipeId,
+                                    portionen: portionen
+                                })
+                            });
+                            if (response.ok) {
+                                // alert('Rezept zur Einkaufsliste hinzugefügt!');
+                            } else {
+                                console.error('Fehler beim Hinzufügen zur Einkaufsliste:', response.statusText);
+                            }
+                        } catch (error) {
+                            console.error('Fehler beim Senden der Daten:', error);
+                        }
                     });
 
                     container.appendChild(div);
@@ -76,10 +108,6 @@
                 console.error('Fehler beim Laden der Rezepte:', error);
             }
         }
-
-
-
-
 
         // Lade die Rezepte, sobald die Seite geladen ist
         window.onload = loadRecipes;
