@@ -43,8 +43,19 @@ def populate_database():
         ('Hähnchen Curry mit Reis', 'Ein aromatisches Curry mit zartem Hähnchen und Reis.', 'Hauptgericht'),
         ('Tomaten-Risotto', 'Ein schmackhaftes Risotto mit frischen Tomaten und Parmesan.', 'Hauptgericht'),
         ('Cheeseburger', 'Ein saftiger Burger mit Cheddar-Käse, Salat und Tomate.', 'Snack'),
-        ('Honig-Senf-Nudeln mit Rucola und Lachs', 'Nudeln in einer Honig-Senf-Sauce, serviert mit frischem Rucola und gegrilltem Lachs.', 'Hauptgericht')
+        ('Honig-Senf-Nudeln mit Rucola und Lachs', 'Nudeln in einer Honig-Senf-Sauce, serviert mit frischem Rucola und gegrilltem Lachs.', 'Hauptgericht'),
+        ('Vegetarische Lasagne', 'Eine Lasagne mit Zucchini, Auberginen und einer cremigen Béchamelsauce.', 'Hauptgericht'),
+        ('Quinoa-Salat mit Avocado und Feta', 'Ein leichter Salat mit Quinoa, cremiger Avocado und würzigem Feta.', 'Beilage'),
+        ('Pfannkuchen mit Apfel und Zimt', 'Fluffige Pfannkuchen mit karamellisierten Äpfeln und einer Prise Zimt.', 'Dessert'),
+        ('Sushi-Platte', 'Eine Auswahl an frischem Sushi, darunter Maki und Nigiri.', 'Snack'),
+        ('Schokoladenfondue mit Früchten', 'Geschmolzene Schokolade zum Dippen mit Erdbeeren, Bananen und Marshmallows.', 'Dessert'),
+        ('Kartoffelsuppe mit Speck', 'Eine cremige Suppe aus Kartoffeln, serviert mit knusprigem Speck.', 'Vorspeise'),
+        ('Caprese-Salat', 'Ein erfrischender Salat mit Tomaten, Mozzarella und Basilikum.', 'Vorspeise'),
+        ('Pasta Carbonara', 'Ein klassisches italienisches Nudelgericht mit Ei, Speck und Parmesan.', 'Hauptgericht'),
+        ('Gemüse-Quiche', 'Eine Quiche mit Zwiebeln, Paprika und einer herzhaften Käsefüllung.', 'Hauptgericht'),
+        ('Himbeer-Tiramisu', 'Ein sommerliches Tiramisu mit frischen Himbeeren und einer Mascarponecreme.', 'Dessert')
     ]
+
 
     # Realistische Daten für die Tabelle "rezeptliste"
     rezeptliste_data = [

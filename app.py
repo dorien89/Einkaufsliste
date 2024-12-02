@@ -1,5 +1,7 @@
 from flask import Flask, request, render_template, redirect, url_for, jsonify
 import sqlite3
+import random
+
 
 app = Flask(__name__)
 
@@ -139,13 +141,13 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row
     return conn
 
-# Rezepte abrufen
-@app.route('/api/rezepte', methods=['GET'])
-def get_rezepte():
-    conn = get_db_connection()
-    rezepte = conn.execute('SELECT * FROM rezepte').fetchall()
-    conn.close()
-    return jsonify([dict(row) for row in rezepte])
+# # Rezepte abrufen
+# @app.route('/api/rezepte', methods=['GET'])
+# def get_rezepte():
+#     conn = get_db_connection()
+#     rezepte = conn.execute('SELECT * FROM rezepte').fetchall()
+#     conn.close()
+#     return jsonify([dict(row) for row in rezepte])
 
 # Einkaufsdaten speichern
 @app.route('/api/einkaufsliste', methods=['POST'])
@@ -160,6 +162,30 @@ def save_einkaufsliste():
     conn.commit()
     conn.close()
     return jsonify({"message": "Einkaufsliste aktualisiert"})
+
+
+
+def get_random_recipes():
+    connection = sqlite3.connect('einkaufsliste.db')
+    cursor = connection.cursor()
+    # Hole zufällig 9 Rezepte direkt aus der Datenbank
+    cursor.execute("""
+        SELECT id, name
+        FROM rezepte
+        ORDER BY RANDOM()
+        LIMIT 9
+    """)
+    
+    recipes = cursor.fetchall()
+    connection.close()
+
+    return [{"id": recipe[0], "name": recipe[1]} for recipe in recipes]
+
+
+@app.route('/api/rezepte', methods=['GET'])
+def api_get_recipes():
+    recipes = get_random_recipes()
+    return jsonify(recipes)
 
 
 if __name__ == "__main__":

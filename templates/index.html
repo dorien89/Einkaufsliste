@@ -1,106 +1,83 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rezeptauswahl</title>
+    <title>Rezept App</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
             margin: 0;
-            padding: 0;
-            background-color: #f8f8f8;
-        }
-
-        #header {
-            background-color: #007BFF;
-            color: white;
-            padding: 15px;
-            text-align: center;
-            font-size: 1.5em;
-        }
-
-        .container {
+            font-family: Arial, sans-serif;
             display: flex;
-            flex-direction: column;
-            height: 100vh;
-        }
-
-        #selected-recipes, #available-recipes {
-            flex: 1;
-            overflow-y: auto;
-            padding: 10px;
-        }
-
-        .recipe-list {
-            list-style: none;
-            padding: 0;
-        }
-
-        .recipe-item {
-            background: white;
-            margin: 5px 0;
-            padding: 10px;
-            border-radius: 5px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
         }
-
-        .controls {
-            display: flex;
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
             gap: 10px;
-        }
-
-        button {
-            background: #007BFF;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            padding: 5px 10px;
-            cursor: pointer;
-            font-size: 1em;
-        }
-
-        button:hover {
-            background: #0056b3;
-        }
-
-        .large-button {
-            font-size: 1.2em;
-            padding: 10px 20px;
-        }
-
-        #footer {
+            width: 95%;
+            height: 95%;
+            max-width: 1024px;
+            max-height: 600px;
+            background-color: #fff;
             padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .grid-item {
+            background-color: #e0e0e0;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             text-align: center;
-            background-color: #f1f1f1;
+            font-size: 1em;
+            font-weight: bold;
+            color: #333;
+            padding: 10px;
         }
     </style>
+    <script>
+        async function loadRecipes() {
+            try {
+                const response = await fetch('/api/rezepte');
+                const recipes = await response.json();
+                const container = document.querySelector('.grid-container');
+
+                // Begrenze auf maximal 9 Rezepte
+                const limitedRecipes = recipes.slice(0, 9);
+
+                // Clear existing items
+                container.innerHTML = '';
+
+                // Add recipes to grid
+                limitedRecipes.forEach(recipe => {
+                    const div = document.createElement('div');
+                    div.className = 'grid-item';
+                    div.textContent = recipe.name;
+                    container.appendChild(div);
+                });
+            } catch (error) {
+                console.error('Fehler beim Laden der Rezepte:', error);
+            }
+        }
+
+
+
+
+        // Lade die Rezepte, sobald die Seite geladen ist
+        window.onload = loadRecipes;
+    </script>
 </head>
 <body>
-    <div id="header">
-        Rezeptauswahl
-        <button id="send-button" class="large-button">Senden</button>
+    <div class="grid-container">
+        <!-- Kacheln werden hier dynamisch geladen -->
     </div>
-    <div class="container">
-        <div id="selected-recipes">
-            <h3>Ausgewählte Rezepte</h3>
-            <ul class="recipe-list" id="selected-recipes-list">
-                <!-- Dynamischer Inhalt -->
-            </ul>
-        </div>
-        <div id="available-recipes">
-            <h3>Rezeptauswahl</h3>
-            <ul class="recipe-list" id="available-recipes-list">
-                <!-- Dynamischer Inhalt -->
-            </ul>
-        </div>
-    </div>
-
-    <!-- JavaScript-Datei einbinden -->
-    <script src="/static/scripts.js"></script>
-
 </body>
 </html>

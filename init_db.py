@@ -36,11 +36,8 @@ def initialize_database():
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS einkaufsliste (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        zutat_id INTEGER NOT NULL,
-        menge REAL NOT NULL,
-        einheit TEXT NOT NULL,
-        rezept_id INTEGER,
-        FOREIGN KEY (zutat_id) REFERENCES zutaten(id) ON DELETE CASCADE,
+        rezept_id INTEGER NOT NULL,
+        portionen REAL NOT NULL,
         FOREIGN KEY (rezept_id) REFERENCES rezepte(id) ON DELETE CASCADE
     )
     ''')
