@@ -147,27 +147,32 @@
             overlay.classList.toggle('hidden');
         }
 
-        // Einkaufsliste rendern
+        function addToShoppingList(recipeId, recipeName) {
+            const existingItem = shoppingList.find(item => item.id === recipeId);
+
+            if (!existingItem) {
+                // Rezept ist neu, also fügen wir es mit einer Portion hinzu.
+                shoppingList.push({ id: recipeId, name: recipeName, servings: 1 });
+                console.log(`Rezept hinzugefügt: ${recipeName} (1 Portion)`);
+            } else {
+                // Rezept ist bereits vorhanden, erhöhen wir die Anzahl der Portionen um 1.
+                existingItem.servings += 1;
+                console.log(`Portionen erhöht für: ${recipeName} (jetzt ${existingItem.servings} Portionen)`);
+            }
+
+            renderShoppingList();
+        }
+
         function renderShoppingList() {
             const listElement = document.getElementById('shopping-list-items');
             listElement.innerHTML = '';
             shoppingList.forEach(item => {
                 const li = document.createElement('li');
-                li.textContent = item.name;
+                li.textContent = `${item.name} - ${item.servings} Portion(en)`;
                 listElement.appendChild(li);
             });
         }
 
-        // Rezept zur Einkaufsliste hinzufügen
-        function addToShoppingList(recipeId, recipeName) {
-            if (!shoppingList.some(item => item.id === recipeId)) {
-                shoppingList.push({ id: recipeId, name: recipeName });
-                console.log(`Rezept hinzugefügt: ${recipeName}`);
-                renderShoppingList();
-            } else {
-                console.log(`Rezept ist bereits in der Liste: ${recipeName}`);
-            }
-        }
 
         // Liste leeren
         function clearShoppingList() {
