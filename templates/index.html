@@ -198,14 +198,30 @@
                 console.log('Einkaufsliste ist leer. Nichts zu exportieren.');
                 return;
             }
-            const data = JSON.stringify(shoppingList, null, 2);
-            const blob = new Blob([data], { type: 'application/json' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = 'einkaufsliste.json';
-            link.click();
-            console.log('Einkaufsliste exportiert.');
+
+            fetch('/api/einkaufsliste', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ items: shoppingList })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Einkaufsliste erfolgreich exportiert:', data);
+                alert('Einkaufsliste wurde erfolgreich exportiert.');
+
+                // Einkaufslisten-Array leeren
+                shoppingList = [];
+                renderShoppingList();
+            })
+            .catch(error => {
+                console.error('Fehler beim Exportieren der Einkaufsliste:', error);
+                alert('Fehler beim Exportieren der Einkaufsliste.');
+            });
         }
+
+
 
         async function loadRecipes() {
             try {
