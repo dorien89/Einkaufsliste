@@ -53,10 +53,14 @@
             border: 2px solid #333;
             transform: scale(1.1);
         }
-        #shopping-list-button {
+        .button-container {
             position: fixed;
             bottom: 20px;
             right: 20px;
+            display: flex;
+            gap: 20px;
+        }
+        .button {
             background-color: #007BFF;
             color: #fff;
             border: none;
@@ -67,8 +71,11 @@
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             cursor: pointer;
             z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
-        #shopping-list-button:hover {
+        .button:hover {
             background-color: #0056b3;
         }
         #shopping-list-overlay {
@@ -96,7 +103,7 @@
             padding: 20px;
             border-radius: 8px;
             width: 80%;
-            max-width: 400px;
+            max-width: 700px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
             text-align: center;
         }
@@ -136,32 +143,39 @@
             <button onclick="toggleShoppingList()">Schließen</button>
         </div>
     </div>
-    <button id="shopping-list-button" onclick="toggleShoppingList()">🛒</button>
+    
+    <div class="button-container">
+        <button id="shopping-list-button" class="button" onclick="toggleShoppingList()">🛒</button>
+        <button id="update-recipes-button" class="button" onclick="loadNewRecipes()">🔄</button>
+    </div>
 
     <script>
         let shoppingList = [];
 
-        // Öffnen/Schließen des Overlays
         function toggleShoppingList() {
             const overlay = document.getElementById('shopping-list-overlay');
             overlay.classList.toggle('hidden');
         }
 
         function addToShoppingList(recipeId, recipeName) {
+            if (shoppingList.length >= 20) {
+                alert('Die Einkaufsliste ist voll. Es können keine weiteren Rezepte hinzugefügt werden.');
+                return;
+            }
+
             const existingItem = shoppingList.find(item => item.id === recipeId);
 
             if (!existingItem) {
-                // Rezept ist neu, also fügen wir es mit einer Portion hinzu.
                 shoppingList.push({ id: recipeId, name: recipeName, servings: 1 });
                 console.log(`Rezept hinzugefügt: ${recipeName} (1 Portion)`);
             } else {
-                // Rezept ist bereits vorhanden, erhöhen wir die Anzahl der Portionen um 1.
                 existingItem.servings += 1;
                 console.log(`Portionen erhöht für: ${recipeName} (jetzt ${existingItem.servings} Portionen)`);
             }
 
             renderShoppingList();
         }
+
 
         function renderShoppingList() {
             const listElement = document.getElementById('shopping-list-items');
@@ -173,15 +187,12 @@
             });
         }
 
-
-        // Liste leeren
         function clearShoppingList() {
             shoppingList = [];
             renderShoppingList();
             console.log('Einkaufsliste geleert.');
         }
 
-        // Liste exportieren
         function exportShoppingList() {
             if (shoppingList.length === 0) {
                 console.log('Einkaufsliste ist leer. Nichts zu exportieren.');
@@ -196,7 +207,6 @@
             console.log('Einkaufsliste exportiert.');
         }
 
-        // Rezepte laden und Kacheln erstellen
         async function loadRecipes() {
             try {
                 const randomParam = `?nocache=${Date.now()}`;
@@ -211,7 +221,6 @@
                     div.textContent = recipe.name;
                     div.dataset.recipeId = recipe.id;
 
-                    // Klick-Event für Kacheln
                     div.addEventListener('click', () => {
                         console.log('Rezept geklickt:', recipe.name);
                         addToShoppingList(recipe.id, recipe.name);
@@ -232,7 +241,7 @@
                 const response = await fetch('/api/rezepte' + randomParam);
                 const recipes = await response.json();
                 const container = document.querySelector('.grid-container');
-                container.innerHTML = ''; // Alte Rezepte entfernen
+                container.innerHTML = '';
 
                 recipes.forEach(recipe => {
                     const div = document.createElement('div');
@@ -240,7 +249,6 @@
                     div.textContent = recipe.name;
                     div.dataset.recipeId = recipe.id;
 
-                    // Klick-Event für Kacheln
                     div.addEventListener('click', () => {
                         console.log('Rezept geklickt:', recipe.name);
                         addToShoppingList(recipe.id, recipe.name);
@@ -255,8 +263,6 @@
             }
         }
 
-
-        // Rezepte beim Laden der Seite abrufen
         window.onload = loadRecipes;
     </script>
 </body>
