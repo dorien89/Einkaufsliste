@@ -52,8 +52,149 @@
             border: 2px solid #333;
             transform: scale(1.1);
         }
+
+
+        /* Button für die Einkaufsliste */
+        #shopping-list-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 24px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            z-index: 1000;
+        }
+
+        #shopping-list-button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Overlay für die Einkaufsliste */
+        #shopping-list-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 999; /* Aktiv sichtbar */
+            opacity: 1;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .hidden {
+            visibility: hidden; /* Unsichtbar */
+            opacity: 0; /* Transparent */
+            pointer-events: none; /* Klicks blockieren */
+            z-index: -1; /* Entfernt es aus der Klick-Hierarchie */
+        }
+
+
+        .shopping-list-content {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 400px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        .shopping-list-content h2 {
+            margin-top: 0;
+        }
+
+        .shopping-list-content ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .shopping-list-content button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .shopping-list-content button:hover {
+            background-color: #0056b3;
+        }
+
     </style>
+</head>
+<body>
+    <div class="grid-container">
+        <!-- Kacheln werden hier dynamisch geladen -->
+    </div>
+
+    <!-- Shopping List Overlay -->
+    <div id="shopping-list-overlay" class="hidden">
+        <div class="shopping-list-content">
+            <h2>Einkaufsliste</h2>
+            <ul id="shopping-list-items"></ul>
+    
+            <!-- Button zum Leeren der Einkaufsliste -->
+            <button id="clear-list-button">Liste leeren</button>
+    
+            <!-- Weitere Buttons -->
+            <button id="export-list-button">Liste exportieren</button>
+    
+            <!-- Schließen-Button -->
+            <button onclick="toggleShoppingList()">Schließen</button>
+        </div>
+    </div>
+    <button id="shopping-list-button" onclick="toggleShoppingList()">🛒</button>
+    
+
+    <!-- Ihr JavaScript -->
     <script>
+        // JavaScript-Code hier einfügen
+        let shoppingList = [];
+
+        function toggleShoppingList() {
+            const overlay = document.getElementById('shopping-list-overlay');
+            
+            if (overlay.classList.contains('hidden')) {
+                overlay.classList.remove('hidden');
+                console.log('Overlay geöffnet');
+            } else {
+                overlay.classList.add('hidden');
+                console.log('Overlay geschlossen');
+            }
+        }
+
+
+        function renderShoppingList() {
+            const listElement = document.getElementById('shopping-list-items');
+            listElement.innerHTML = ''; // Liste zurücksetzen
+
+            shoppingList.forEach(item => {
+                const li = document.createElement('li');
+                li.textContent = item.name;
+                listElement.appendChild(li);
+            });
+        }
+
+
+        function closeShoppingList() {
+            const overlay = document.getElementById('shopping-list-overlay');
+            overlay.classList.add('hidden'); // Nur schließen
+            console.log('Overlay geschlossen');
+        }
+
+
         async function loadRecipes() {
             try {
                 const randomParam = `?nocache=${new Date().getTime()}`;
@@ -69,16 +210,17 @@
                     div.textContent = recipe.name;
                     div.dataset.recipeId = recipe.id;
 
-                    // Event-Listener für den Klick hinzufügen
                     div.addEventListener('click', async () => {
                         console.log('Rezept-ID:', div.dataset.recipeId);
                         console.log('Rezept-Name:', recipe.name);
 
-                        // Klick-Effekt hinzufügen
                         div.classList.add('clicked');
                         setTimeout(() => {
                             div.classList.remove('clicked');
                         }, 500);
+
+                        shoppingList.push({ id: div.dataset.recipeId, name: recipe.name });
+                        console.log('Aktuelle Einkaufsliste:', shoppingList);
 
                         try {
                             const portionen = 1;
@@ -92,9 +234,7 @@
                                     portionen: portionen
                                 })
                             });
-                            if (response.ok) {
-                                // alert('Rezept zur Einkaufsliste hinzugefügt!');
-                            } else {
+                            if (!response.ok) {
                                 console.error('Fehler beim Hinzufügen zur Einkaufsliste:', response.statusText);
                             }
                         } catch (error) {
@@ -112,10 +252,6 @@
         // Lade die Rezepte, sobald die Seite geladen ist
         window.onload = loadRecipes;
     </script>
-</head>
-<body>
-    <div class="grid-container">
-        <!-- Kacheln werden hier dynamisch geladen -->
-    </div>
 </body>
+
 </html>
