@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rezept App</title>
     <style>
+        /* Unverändertes CSS aus deinem Code */
         body {
             margin: 0;
             font-family: Arial, sans-serif;
@@ -48,13 +49,10 @@
             transform: scale(1.05);
         }
         .grid-item.clicked {
-            background-color: #b0b0b0; /* Farbe für den Klick-Effekt */
+            background-color: #b0b0b0;
             border: 2px solid #333;
             transform: scale(1.1);
         }
-
-
-        /* Button für die Einkaufsliste */
         #shopping-list-button {
             position: fixed;
             bottom: 20px;
@@ -70,12 +68,9 @@
             cursor: pointer;
             z-index: 1000;
         }
-
         #shopping-list-button:hover {
             background-color: #0056b3;
         }
-
-        /* Overlay für die Einkaufsliste */
         #shopping-list-overlay {
             position: fixed;
             top: 0;
@@ -86,19 +81,16 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 999; /* Aktiv sichtbar */
+            z-index: 999;
             opacity: 1;
             transition: opacity 0.3s ease, visibility 0.3s ease;
         }
-
         .hidden {
-            visibility: hidden; /* Unsichtbar */
-            opacity: 0; /* Transparent */
-            pointer-events: none; /* Klicks blockieren */
-            z-index: -1; /* Entfernt es aus der Klick-Hierarchie */
+            visibility: hidden;
+            opacity: 0;
+            pointer-events: none;
+            z-index: -1;
         }
-
-
         .shopping-list-content {
             background-color: #fff;
             padding: 20px;
@@ -108,16 +100,13 @@
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
             text-align: center;
         }
-
         .shopping-list-content h2 {
             margin-top: 0;
         }
-
         .shopping-list-content ul {
             list-style: none;
             padding: 0;
         }
-
         .shopping-list-content button {
             margin-top: 20px;
             padding: 10px 20px;
@@ -127,11 +116,9 @@
             border-radius: 5px;
             cursor: pointer;
         }
-
         .shopping-list-content button:hover {
             background-color: #0056b3;
         }
-
     </style>
 </head>
 <body>
@@ -144,42 +131,26 @@
         <div class="shopping-list-content">
             <h2>Einkaufsliste</h2>
             <ul id="shopping-list-items"></ul>
-    
-            <!-- Button zum Leeren der Einkaufsliste -->
-            <button id="clear-list-button">Liste leeren</button>
-    
-            <!-- Weitere Buttons -->
-            <button id="export-list-button">Liste exportieren</button>
-    
-            <!-- Schließen-Button -->
+            <button id="clear-list-button" onclick="clearShoppingList()">Liste leeren</button>
+            <button id="export-list-button" onclick="exportShoppingList()">Liste exportieren</button>
             <button onclick="toggleShoppingList()">Schließen</button>
         </div>
     </div>
     <button id="shopping-list-button" onclick="toggleShoppingList()">🛒</button>
-    
 
-    <!-- Ihr JavaScript -->
     <script>
-        // JavaScript-Code hier einfügen
         let shoppingList = [];
 
+        // Öffnen/Schließen des Overlays
         function toggleShoppingList() {
             const overlay = document.getElementById('shopping-list-overlay');
-            
-            if (overlay.classList.contains('hidden')) {
-                overlay.classList.remove('hidden');
-                console.log('Overlay geöffnet');
-            } else {
-                overlay.classList.add('hidden');
-                console.log('Overlay geschlossen');
-            }
+            overlay.classList.toggle('hidden');
         }
 
-
+        // Einkaufsliste rendern
         function renderShoppingList() {
             const listElement = document.getElementById('shopping-list-items');
-            listElement.innerHTML = ''; // Liste zurücksetzen
-
+            listElement.innerHTML = '';
             shoppingList.forEach(item => {
                 const li = document.createElement('li');
                 li.textContent = item.name;
@@ -187,21 +158,46 @@
             });
         }
 
-
-        function closeShoppingList() {
-            const overlay = document.getElementById('shopping-list-overlay');
-            overlay.classList.add('hidden'); // Nur schließen
-            console.log('Overlay geschlossen');
+        // Rezept zur Einkaufsliste hinzufügen
+        function addToShoppingList(recipeId, recipeName) {
+            if (!shoppingList.some(item => item.id === recipeId)) {
+                shoppingList.push({ id: recipeId, name: recipeName });
+                console.log(`Rezept hinzugefügt: ${recipeName}`);
+                renderShoppingList();
+            } else {
+                console.log(`Rezept ist bereits in der Liste: ${recipeName}`);
+            }
         }
 
+        // Liste leeren
+        function clearShoppingList() {
+            shoppingList = [];
+            renderShoppingList();
+            console.log('Einkaufsliste geleert.');
+        }
 
+        // Liste exportieren
+        function exportShoppingList() {
+            if (shoppingList.length === 0) {
+                console.log('Einkaufsliste ist leer. Nichts zu exportieren.');
+                return;
+            }
+            const data = JSON.stringify(shoppingList, null, 2);
+            const blob = new Blob([data], { type: 'application/json' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'einkaufsliste.json';
+            link.click();
+            console.log('Einkaufsliste exportiert.');
+        }
+
+        // Rezepte laden und Kacheln erstellen
         async function loadRecipes() {
             try {
-                const randomParam = `?nocache=${new Date().getTime()}`;
+                const randomParam = `?nocache=${Date.now()}`;
                 const response = await fetch('/api/rezepte' + randomParam);
                 const recipes = await response.json();
                 const container = document.querySelector('.grid-container');
-
                 container.innerHTML = '';
 
                 recipes.forEach(recipe => {
@@ -210,36 +206,12 @@
                     div.textContent = recipe.name;
                     div.dataset.recipeId = recipe.id;
 
-                    div.addEventListener('click', async () => {
-                        console.log('Rezept-ID:', div.dataset.recipeId);
-                        console.log('Rezept-Name:', recipe.name);
-
+                    // Klick-Event für Kacheln
+                    div.addEventListener('click', () => {
+                        console.log('Rezept geklickt:', recipe.name);
+                        addToShoppingList(recipe.id, recipe.name);
                         div.classList.add('clicked');
-                        setTimeout(() => {
-                            div.classList.remove('clicked');
-                        }, 500);
-
-                        shoppingList.push({ id: div.dataset.recipeId, name: recipe.name });
-                        console.log('Aktuelle Einkaufsliste:', shoppingList);
-
-                        try {
-                            const portionen = 1;
-                            const response = await fetch('/api/einkaufsliste', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json'
-                                },
-                                body: JSON.stringify({
-                                    rezept_id: div.dataset.recipeId,
-                                    portionen: portionen
-                                })
-                            });
-                            if (!response.ok) {
-                                console.error('Fehler beim Hinzufügen zur Einkaufsliste:', response.statusText);
-                            }
-                        } catch (error) {
-                            console.error('Fehler beim Senden der Daten:', error);
-                        }
+                        setTimeout(() => div.classList.remove('clicked'), 500);
                     });
 
                     container.appendChild(div);
@@ -249,9 +221,8 @@
             }
         }
 
-        // Lade die Rezepte, sobald die Seite geladen ist
+        // Rezepte beim Laden der Seite abrufen
         window.onload = loadRecipes;
     </script>
 </body>
-
 </html>
