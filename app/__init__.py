@@ -20,9 +20,11 @@ def create_app():
     from app.routes.main_routes import bp as main_bp
     from app.routes.recipe_routes import bp as recipe_bp
     from app.routes.api_routes import bp as api_bp
+    from app.routes.kiosk_routes import bp as kiosk_bp
    
     app.register_blueprint(main_bp)
     app.register_blueprint(recipe_bp)
     app.register_blueprint(api_bp)
+    app.register_blueprint(kiosk_bp)
    
     return app
