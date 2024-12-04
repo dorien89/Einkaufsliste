@@ -7,7 +7,31 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/kiosk.css') }}">
 </head>
 <body>
+    
+
     <div id="random-recipes"></div>
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+    <div class="grid-container">
+        <!-- Kacheln werden hier dynamisch geladen -->
+        
+    </div>
+
+    <!-- Shopping List Overlay -->
+    <div id="shopping-list-overlay" class="hidden">
+        <div class="shopping-list-content">
+            <h2>Einkaufsliste</h2>
+            <ul id="shopping-list-items"></ul>
+            <button id="clear-list-button" onclick="clearShoppingList()">Liste leeren</button>
+            <button id="export-list-button" onclick="exportShoppingList()">Liste exportieren</button>
+            <button onclick="toggleShoppingList()">Schließen</button>
+        </div>
+    </div>
+    
+    <div class="button-container">
+        <button id="shopping-list-button" class="button" onclick="toggleShoppingList()">List</button>
+        <button id="update-recipes-button" class="button" onclick="loadNewRecipes()">F5</button>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/kiosk.js') }}"></script>
 </body>
 </html>

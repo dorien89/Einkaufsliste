@@ -8,6 +8,7 @@ def list_recipes():
     recipes = RecipeService.get_all_recipes()
     return render_template('recipes.html', recipes=recipes)
 
+
 @bp.route('/add', methods=['GET', 'POST'])
 def add_recipe():
     if request.method == 'POST':

@@ -4,10 +4,15 @@ import random
 
 bp = Blueprint('api', __name__, url_prefix='/api')
 
-@bp.route('/recipes', methods=['GET'])
-def get_recipes():
-    recipes = Recipe.query.order_by(db.func.random()).limit(9).all()
-    return jsonify([{"id": r.id, "name": r.name} for r in recipes])
+@bp.route('/recipes')
+def get_random_recipes():
+    # Hier holen wir 3 zufällige Rezepte aus der Datenbank
+    recipes = Recipe.get_random(limit=9)  # Diese Methode müssen Sie in Ihrem Recipe-Model implementieren
+    return jsonify([{
+        'id': recipe.id,
+        'name': recipe.name
+    } for recipe in recipes])
+
 
 @bp.route('/shopping-list', methods=['POST'])
 def save_shopping_list():
