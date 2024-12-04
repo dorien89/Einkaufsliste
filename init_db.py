@@ -1,51 +1,52 @@
 import sqlite3
 
 def initialize_database():
-    connection = sqlite3.connect('./database/einkaufsliste.db')
-    cursor = connection.cursor()
+   connection = sqlite3.connect('./database/einkaufsliste.db')
+   cursor = connection.cursor()
+   
+   # Create tables
+   cursor.execute('''
+   CREATE TABLE IF NOT EXISTS ingredients (
+       id INTEGER PRIMARY KEY AUTOINCREMENT,
+       name TEXT NOT NULL UNIQUE
+   )
+   ''')
+   
+   cursor.execute('''
+   CREATE TABLE IF NOT EXISTS recipes (
+       id INTEGER PRIMARY KEY AUTOINCREMENT,
+       name TEXT NOT NULL,
+       description TEXT,
+       category TEXT
+   )
+   ''')
+   
+   cursor.execute('''
+   CREATE TABLE IF NOT EXISTS recipe_ingredients (
+       recipe_id INTEGER NOT NULL,
+       ingredient_id INTEGER NOT NULL,
+       amount REAL NOT NULL,
+       unit TEXT NOT NULL,
+       PRIMARY KEY (recipe_id, ingredient_id),
+       FOREIGN KEY (recipe_id) REFERENCES recipes(id) ON DELETE CASCADE,
+       FOREIGN KEY (ingredient_id) REFERENCES ingredients(id) ON DELETE CASCADE
+   )
+   ''')
+   
+   cursor.execute('''
+   CREATE TABLE IF NOT EXISTS shopping_list (
+       id INTEGER PRIMARY KEY AUTOINCREMENT,
+       recipe_id INTEGER NOT NULL,
+       servings REAL NOT NULL,
+       FOREIGN KEY (recipe_id) REFERENCES recipes(id) ON DELETE CASCADE
+   )
+   ''')
+   
+   # Close connection
+   connection.commit()
+   connection.close()
+   print("Database successfully initialized.")
 
-    # Tabellen erstellen
-    cursor.execute('''
-    CREATE TABLE IF NOT EXISTS zutaten (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL UNIQUE
-    )
-    ''')
-
-    cursor.execute('''
-    CREATE TABLE IF NOT EXISTS rezepte (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        beschreibung TEXT,
-        kategorie TEXT
-    )
-    ''')
-
-    cursor.execute('''
-    CREATE TABLE IF NOT EXISTS rezeptliste (
-        rezept_id INTEGER NOT NULL,
-        zutat_id INTEGER NOT NULL,
-        menge REAL NOT NULL,
-        einheit TEXT NOT NULL,
-        PRIMARY KEY (rezept_id, zutat_id),
-        FOREIGN KEY (rezept_id) REFERENCES rezepte(id) ON DELETE CASCADE,
-        FOREIGN KEY (zutat_id) REFERENCES zutaten(id) ON DELETE CASCADE
-    )
-    ''')
-
-    cursor.execute('''
-    CREATE TABLE IF NOT EXISTS einkaufsliste (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        rezept_id INTEGER NOT NULL,
-        portionen REAL NOT NULL,
-        FOREIGN KEY (rezept_id) REFERENCES rezepte(id) ON DELETE CASCADE
-    )
-    ''')
-
-    # Verbindung schließen
-    connection.commit()
-    connection.close()
-    print("Datenbank erfolgreich initialisiert.")
-
-# Initialisieren der Datenbank
-initialize_database()
+# Initialize the database
+if __name__ == '__main__':
+   initialize_database()

@@ -111,13 +111,13 @@ def populate_database():
     # Tabellen mit Daten befüllen
     try:
         # Zutaten einfügen
-        cursor.executemany('INSERT OR IGNORE INTO zutaten (name) VALUES (?)', zutaten_data)
+        cursor.executemany('INSERT OR IGNORE INTO ingredients (name) VALUES (?)', zutaten_data)
 
         # Rezepte einfügen
-        cursor.executemany('INSERT INTO rezepte (name, beschreibung, kategorie) VALUES (?, ?, ?)', rezepte_data)
+        cursor.executemany('INSERT INTO recipes (name, description, category) VALUES (?, ?, ?)', rezepte_data)
 
         # Rezeptliste einfügen
-        cursor.executemany('INSERT INTO rezeptliste (rezept_id, zutat_id, menge, einheit) VALUES (?, ?, ?, ?)', rezeptliste_data)
+        cursor.executemany('INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit) VALUES (?, ?, ?, ?)', rezeptliste_data)
 
         connection.commit()
         print("Tabellen erfolgreich mit realistischen Testdaten befüllt.")
