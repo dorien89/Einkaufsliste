@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+    <h1>Neues Rezept hinzufügen</h1>
+    <form method="POST">
+        <div>
+            <label>Name:</label>
+            <input type="text" name="name" required>
+        </div>
+        <div>
+            <label>Beschreibung:</label>
+            <textarea name="description"></textarea>
+        </div>
+        <div>
+            <label>Kategorie:</label>
+            <input type="text" name="category">
+        </div>
+        <div id="ingredients-container">
+            <h3>Zutaten</h3>
+            <div class="ingredient-row">
+                <select name="ingredients[]" required>
+                    {% for ingredient in ingredients %}
+                        <option value="{{ ingredient.id }}">{{ ingredient.name }}</option>
+                    {% endfor %}
+                </select>
+                <input type="number" name="amounts[]" step="0.1" required>
+                <input type="text" name="units[]" required>
+                <button type="button" onclick="removeIngredient(this)">-</button>
+            </div>
+        </div>
+        <button type="button" onclick="addIngredient()">Zutat hinzufügen</button>
+        <button type="submit">Rezept speichern</button>
+    </form>
+{% endblock %}

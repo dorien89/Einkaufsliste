@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+    <h1>Rezeptübersicht</h1>
+    <div class="recipes-grid">
+        {% for recipe in recipes %}
+            <div class="recipe-card">
+                <h3>{{ recipe.name }}</h3>
+                <p>Kategorie: {{ recipe.category }}</p>
+                <button onclick="showIngredients({{ recipe.id }})">Zutaten anzeigen</button>
+                <div id="ingredients-{{ recipe.id }}" class="ingredients-list"></div>
+                <a href="{{ url_for('recipe.calculate_ingredients', recipe_id=recipe.id) }}" class="btn">Portionen berechnen</a>
+                <form action="{{ url_for('recipe.delete_recipe', recipe_id=recipe.id) }}" method="POST">
+                    <button type="submit" class="btn-delete">Löschen</button>
+                </form>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}

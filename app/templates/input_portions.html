@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+    <h1>Portionen berechnen</h1>
+    <form method="POST">
+        <label>Anzahl Portionen:</label>
+        <input type="number" name="portions" min="1" required>
+        <button type="submit">Berechnen</button>
+    </form>
+{% endblock %}

@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+    <h1>Berechnete Zutaten für {{ portions }} Portionen</h1>
+    <ul>
+    {% for ingredient in ingredients %}
+        <li>{{ ingredient.name }}: {{ ingredient.amount }} {{ ingredient.unit }}</li>
+    {% endfor %}
+    </ul>
+    <a href="{{ url_for('recipe.list_recipes') }}" class="btn">Zurück zur Übersicht</a>
+{% endblock %}

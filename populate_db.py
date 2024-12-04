@@ -1,7 +1,7 @@
 import sqlite3
 
 def populate_database():
-    connection = sqlite3.connect('einkaufsliste.db')
+    connection = sqlite3.connect('./database/einkaufsliste.db')
     cursor = connection.cursor()
 
     # Realistische Daten für die Tabelle "zutaten"

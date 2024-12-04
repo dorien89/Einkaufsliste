@@ -1,7 +1,7 @@
 import sqlite3
 
 def initialize_database():
-    connection = sqlite3.connect('einkaufsliste.db')
+    connection = sqlite3.connect('./database/einkaufsliste.db')
     cursor = connection.cursor()
 
     # Tabellen erstellen
