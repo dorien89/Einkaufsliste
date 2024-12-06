@@ -41,33 +41,48 @@ function clearShoppingList() {
     console.log('Einkaufsliste geleert.');
 }
 
-function exportShoppingList() {
+async function exportShoppingList() {
     if (shoppingList.length === 0) {
         console.log('Einkaufsliste ist leer. Nichts zu exportieren.');
         return;
     }
 
-    fetch('/api/shopping-list', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ items: shoppingList })
-    })
-    .then(response => response.json())
-    .then(data => {
+    console.log('About to send:', { items: shoppingList });
+
+    const isValid = shoppingList.every(item => item.id && item.servings !== undefined);
+    if (!isValid) {
+        alert('Die Einkaufsliste enthält ungültige Daten.');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/shopping-list', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ items: shoppingList }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            console.error('Backend error:', data.error || response.statusText);
+            alert(`Fehler vom Server: ${data.error || response.statusText}`);
+            return;
+        }
+
         console.log('Einkaufsliste erfolgreich exportiert:', data);
         alert('Einkaufsliste wurde erfolgreich exportiert.');
 
-        // Einkaufslisten-Array leeren
         shoppingList = [];
         renderShoppingList();
-    })
-    .catch(error => {
+    } catch (error) {
         console.error('Fehler beim Exportieren der Einkaufsliste:', error);
         alert('Fehler beim Exportieren der Einkaufsliste.');
-    });
+    }
 }
+
 
 async function loadRecipes() {
     try {
