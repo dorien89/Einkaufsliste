@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-6">Einkaufsliste</h1>
+
+    {% if error %}
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+            <span class="block sm:inline">{{ error }}</span>
+        </div>
+    {% else %}
+        <!-- Consolidated Ingredients Section -->
+        <div class="bg-white shadow rounded-lg p-6">
+            {% if ingredients %}
+                <ul class="divide-y divide-gray-200">
+                {% for ingredient in ingredients %}
+                    <li class="py-4 flex justify-between items-center">
+                        <span class="font-medium text-gray-900">{{ ingredient.name }}</span>
+                        <span class="text-gray-600">
+                            {{ "%.1f"|format(ingredient.amount) }} {{ ingredient.unit }}
+                        </span>
+                    </li>
+                {% endfor %}
+                </ul>
+            {% else %}
+                <p class="text-gray-600 text-center py-4">Keine Zutaten in der Einkaufsliste.</p>
+            {% endif %}
+        </div>
+
+        <!-- Print Button -->
+        <div class="mt-6 text-center">
+            <button onclick="window.print()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
+                Liste Drucken
+            </button>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Print Styles -->
+<style>
+    @media print {
+        .container { padding: 0; }
+        button { display: none; }
+    }
+</style>
+{% endblock %}
