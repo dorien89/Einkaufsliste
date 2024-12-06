@@ -7,9 +7,6 @@ class ShoppingList(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     recipe_id = db.Column(db.Integer, db.ForeignKey('recipes.id', ondelete="CASCADE"), nullable=False)
     servings = db.Column(db.Float, nullable=False)
-    
-    # Relationships (optional, for ORM convenience)
-    recipe = db.relationship('Recipe', backref=db.backref('shopping_lists', cascade='all, delete-orphan'))
-    
-    def __repr__(self):
-        return f"<ShoppingList(id={self.id}, recipe_id={self.recipe_id}, servings={self.servings})>"
+    is_active = db.Column(db.Boolean, server_default='1', nullable=False)  # Sets default in DB
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
+    bought_at = db.Column(db.DateTime, nullable=True)

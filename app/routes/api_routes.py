@@ -6,6 +6,16 @@ import random
 
 bp = Blueprint('api', __name__, url_prefix='/api')
 
+@bp.route('/admin/shopping-list/clear', methods=['POST'])
+def clear_shopping_list():
+    try:
+        ShoppingList.query.delete()
+        db.session.commit()
+        return jsonify({'message': 'Shopping list cleared successfully'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
 @bp.route('/recipes')
 def get_random_recipes():
     # Hier holen wir 3 zufällige Rezepte aus der Datenbank
@@ -74,7 +84,7 @@ def get_shopping_list():
         print("\n=== Starting shopping list calculation ===")
         
         # Get all shopping list entries
-        shopping_items = ShoppingList.query.all()
+        shopping_items = ShoppingList.query.filter_by(is_active=True).all()
         print(f"\nShopping List Items:")
         for item in shopping_items:
             print(f"ID: {item.id}, Recipe ID: {item.recipe_id}, Servings: {item.servings}")
@@ -138,3 +148,15 @@ def get_shopping_list():
             'success': False,
             'error': str(e)
         }), 500
+    
+@bp.route('/shopping-list/<int:item_id>/mark-bought', methods=['POST'])
+def mark_item_bought(item_id):
+    try:
+        item = ShoppingList.query.get_or_404(item_id)
+        item.is_active = False
+        item.bought_at = datetime.utcnow()
+        db.session.commit()
+        return jsonify({'message': 'Item marked as bought'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
