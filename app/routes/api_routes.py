@@ -3,6 +3,7 @@ from flask import Blueprint, jsonify, request
 from app.models.recipe import Recipe, RecipeIngredient, Ingredient
 from app.models.shopping_list import ShoppingList
 import random
+from datetime import datetime
 
 bp = Blueprint('api', __name__, url_prefix='/api')
 
@@ -70,93 +71,51 @@ def save_shopping_list():
 @bp.route('/shopping-list', methods=['GET'])
 def get_shopping_list():
     try:
-        
-        print("\n=== Checking Database State ===")
-        
-        # Check recipe_ingredients table
-        all_recipe_ingredients = RecipeIngredient.query.all()
-        print(f"\nTotal recipe_ingredients entries: {len(all_recipe_ingredients)}")
-        print("\nSample of recipe_ingredients:")
-        for ri in all_recipe_ingredients[:5]:  # Show first 5
-            print(f"Recipe {ri.recipe_id}: {ri.ingredient.name}, {ri.amount} {ri.unit}")
-            
-        
-        print("\n=== Starting shopping list calculation ===")
-        
-        # Get all shopping list entries
         shopping_items = ShoppingList.query.filter_by(is_active=True).all()
-        print(f"\nShopping List Items:")
-        for item in shopping_items:
-            print(f"ID: {item.id}, Recipe ID: {item.recipe_id}, Servings: {item.servings}")
-        
         consolidated = {}
-
+        
         for item in shopping_items:
-            print(f"\n--- Processing Recipe ID {item.recipe_id} ---")
-            
-            # Debug: Check if recipe exists
-            recipe = Recipe.query.get(item.recipe_id)
-            if recipe:
-                print(f"Recipe found: {recipe}")
-            else:
-                print(f"WARNING: Recipe {item.recipe_id} not found!")
-            
-            # Get all ingredients for this recipe
             recipe_ingredients = RecipeIngredient.query.filter_by(recipe_id=item.recipe_id).all()
-            print(f"Ingredients found for recipe {item.recipe_id}:")
-            for ri in recipe_ingredients:
-                print(f"  - ID: {ri.ingredient_id}, Amount: {ri.amount} {ri.unit}")
             
             for ri in recipe_ingredients:
+                ingredient = Ingredient.query.get(ri.ingredient_id)
                 key = f"{ri.ingredient_id}_{ri.unit}"
-                scaled_amount = ri.amount * item.servings
-                
-                # Debug: Print ingredient details
-                print(f"\nProcessing ingredient:")
-                print(f"  Key: {key}")
-                print(f"  Name: {ri.ingredient.name}")
-                print(f"  Original amount: {ri.amount}")
-                print(f"  Scaled amount: {scaled_amount}")
-                print(f"  Unit: {ri.unit}")
                 
                 if key in consolidated:
-                    old_amount = consolidated[key]['amount']
-                    consolidated[key]['amount'] += scaled_amount
-                    print(f"  Updated amount from {old_amount} to {consolidated[key]['amount']}")
+                    consolidated[key]['amount'] += ri.amount * item.servings
                 else:
                     consolidated[key] = {
-                        'name': ri.ingredient.name,
-                        'amount': scaled_amount,
-                        'unit': ri.unit
+                        'id': ri.ingredient_id,
+                        'name': ingredient.name,
+                        'amount': ri.amount * item.servings,
+                        'unit': ri.unit,
+                        'shopping_list_id': item.id
                     }
-                    print(f"  Added new ingredient to consolidated list")
-
-        print("\n=== Final consolidated ingredients ===")
-        for key, value in consolidated.items():
-            print(f"Key: {key}")
-            print(f"  Name: {value['name']}")
-            print(f"  Amount: {value['amount']} {value['unit']}")
         
         return jsonify({
             'success': True,
             'ingredients': list(consolidated.values())
         })
-
     except Exception as e:
-        print(f"ERROR in get_shopping_list: {str(e)}")
         return jsonify({
             'success': False,
             'error': str(e)
         }), 500
     
-@bp.route('/shopping-list/<int:item_id>/mark-bought', methods=['POST'])
-def mark_item_bought(item_id):
+@bp.route('/shopping-list/mark-bought', methods=['POST'])  # /api is already in the blueprint prefix
+def mark_items_bought():
     try:
-        item = ShoppingList.query.get_or_404(item_id)
-        item.is_active = False
-        item.bought_at = datetime.utcnow()
+        # Mark all active items as bought
+        items = ShoppingList.query.filter_by(is_active=True).all()
+        print(f"Found {len(items)} active items") # Debug log
+        
+        for item in items:
+            item.is_active = False
+            item.bought_at = datetime.utcnow()
+        
         db.session.commit()
-        return jsonify({'message': 'Item marked as bought'})
+        return jsonify({'success': True, 'message': 'All items marked as bought'})
     except Exception as e:
+        print(f"Error: {str(e)}") # Debug log
         db.session.rollback()
         return jsonify({'error': str(e)}), 500

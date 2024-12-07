@@ -1,46 +1,89 @@
 {% extends "base.html" %}
-
 {% block content %}
-<div class="container mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold mb-6">Einkaufsliste</h1>
 
-    {% if error %}
-        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-            <span class="block sm:inline">{{ error }}</span>
-        </div>
-    {% else %}
-        <!-- Consolidated Ingredients Section -->
-        <div class="bg-white shadow rounded-lg p-6">
-            {% if ingredients %}
-                <ul class="divide-y divide-gray-200">
-                {% for ingredient in ingredients %}
-                    <li class="py-4 flex justify-between items-center">
-                        <span class="font-medium text-gray-900">{{ ingredient.name }}</span>
-                        <span class="text-gray-600">
-                            {{ "%.1f"|format(ingredient.amount) }} {{ ingredient.unit }}
-                        </span>
-                    </li>
-                {% endfor %}
-                </ul>
-            {% else %}
-                <p class="text-gray-600 text-center py-4">Keine Zutaten in der Einkaufsliste.</p>
-            {% endif %}
-        </div>
+<div class="shopping-list-container">
+    <h1 class="shopping-list-header">Einkaufsliste</h1>
 
-        <!-- Print Button -->
-        <div class="mt-6 text-center">
-            <button onclick="window.print()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
-                Liste Drucken
-            </button>
-        </div>
-    {% endif %}
+    <div class="main-content">
+        {% if error %}
+            <div class="error-message">{{ error }}</div>
+        {% else %}
+            <div class="shopping-list-items">
+                {% if ingredients %}
+                    {% for ingredient in ingredients %}
+                        <div class="shopping-list-item">
+                            <span class="item-name">{{ ingredient.name }}</span>
+                            <span class="item-amount">{{ "%.1f"|format(ingredient.amount) }} {{ ingredient.unit }}</span>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="shopping-list-item">
+                        <p>Keine aktiven Zutaten in der Einkaufsliste.</p>
+                    </div>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="button-container">
+        <button onclick="markAllAsBought()" class="action-button button-buy">
+            Alles gekauft
+        </button>
+        <button onclick="clearShoppingList()" class="action-button button-clear">
+            Leeren
+        </button>
+        <button onclick="window.print()" class="action-button button-print">
+            Drucken
+        </button>
+    </div>
 </div>
 
-<!-- Print Styles -->
-<style>
-    @media print {
-        .container { padding: 0; }
-        button { display: none; }
+<!-- Add JavaScript for the buttons -->
+<script>
+function markAllAsBought() {
+    if (confirm('Alle Artikel als gekauft markieren?')) {
+        fetch('/api/shopping-list/mark-bought', {  // Make sure URL matches your route
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Server response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Success:', data); // Debug log
+            if (data.success) {
+                location.reload();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error); // Debug log
+            alert('Fehler beim Markieren der Artikel: ' + error.message);
+        });
     }
-</style>
+}
+
+function clearShoppingList() {
+    if (confirm('Wirklich die gesamte Einkaufsliste löschen?')) {
+        fetch('/api/admin/shopping-list/clear', {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.message) {
+                location.reload();
+            }
+        })
+        .catch(error => alert('Fehler beim Löschen der Liste'));
+    }
+}
+
+function printList() {
+    window.print();
+}
+</script>
 {% endblock %}
