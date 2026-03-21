@@ -31,5 +31,14 @@ def create_app():
     app.register_blueprint(api_bp)
     app.register_blueprint(kiosk_bp)
     app.register_blueprint(shopping_bp)
-   
+
+    with app.app_context():
+        db.create_all()
+        from app.models.recipe import Recipe
+        if Recipe.query.count() == 0:
+            import sys
+            sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+            from populate_db import populate_database
+            populate_database()
+
     return app
