@@ -33,6 +33,29 @@ function renderShoppingList() {
         li.textContent = `${item.name} - ${item.servings} Portion(en)`;
         listElement.appendChild(li);
     });
+
+    // Update badge on List button
+    const badge = document.getElementById('list-badge');
+    const total = shoppingList.reduce((sum, item) => sum + item.servings, 0);
+    if (total > 0) {
+        badge.textContent = total;
+        badge.classList.remove('hidden');
+    } else {
+        badge.classList.add('hidden');
+    }
+
+    // Update tile highlights
+    document.querySelectorAll('.grid-item').forEach(tile => {
+        const id = parseInt(tile.dataset.recipeId);
+        const item = shoppingList.find(i => i.id === id);
+        if (item) {
+            tile.classList.add('in-list');
+            tile.dataset.portions = item.servings;
+        } else {
+            tile.classList.remove('in-list');
+            delete tile.dataset.portions;
+        }
+    });
 }
 
 function clearShoppingList() {

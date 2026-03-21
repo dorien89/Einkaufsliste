@@ -45,6 +45,37 @@ body {
     border: 2px solid #333;
     transform: scale(1.1);
 }
+.grid-item.in-list {
+    background-color: #4caf50;
+    color: #fff;
+    border: 2px solid #2e7d32;
+}
+.grid-item.in-list::after {
+    content: attr(data-portions) "x";
+    display: block;
+    font-size: 0.75em;
+    font-weight: normal;
+    margin-top: 4px;
+    opacity: 0.9;
+}
+#list-badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background-color: #e53935;
+    color: #fff;
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    font-size: 13px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none;
+}
+#shopping-list-button {
+    position: relative;
+}
 .button-container {
     position: fixed;
     bottom: 20px;
