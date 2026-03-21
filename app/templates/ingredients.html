@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/recipe_manage.css') }}">
+{% endblock %}
+{% block content %}
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+    <h1 style="margin:0">Zutaten verwalten</h1>
+    <a href="{{ url_for('recipe.list_recipes') }}" class="rm-btn rm-btn-cancel" style="text-decoration:none;padding:10px 16px;">← Rezepte</a>
+</div>
+<ul class="ing-manage-list" id="ing-list">
+    {% for ingredient in ingredients %}
+    <li class="ing-manage-item" id="ing-{{ ingredient.id }}">
+        <span>{{ ingredient.name }}</span>
+        <input type="text" value="{{ ingredient.name }}">
+        <button class="ing-small-btn ing-btn-edit" onclick="editIng({{ ingredient.id }})">Umbenennen</button>
+        <button class="ing-small-btn ing-btn-save" onclick="saveIng({{ ingredient.id }})">Speichern</button>
+        <button class="ing-small-btn ing-btn-delete" onclick="deleteIng({{ ingredient.id }}, '{{ ingredient.name }}')">Löschen</button>
+    </li>
+    {% endfor %}
+</ul>
+<div class="ing-add-form">
+    <input type="text" id="new-ing-name" placeholder="Neue Zutat...">
+    <button onclick="addIng()">+ Hinzufügen</button>
+</div>
+<script>
+function editIng(id) {
+    document.getElementById('ing-' + id).classList.add('editing');
+    document.querySelector('#ing-' + id + ' input').focus();
+}
+async function saveIng(id) {
+    const input = document.querySelector('#ing-' + id + ' input');
+    const name = input.value.trim();
+    if (!name) return;
+    const res = await fetch('/api/ingredients/' + id, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name })
+    });
+    if (res.ok) {
+        document.querySelector('#ing-' + id + ' span').textContent = name;
+        document.getElementById('ing-' + id).classList.remove('editing');
+    } else {
+        alert('Fehler beim Speichern.');
+    }
+}
+async function deleteIng(id, name) {
+    if (!confirm(`"${name}" wirklich löschen?`)) return;
+    const res = await fetch('/api/ingredients/' + id, { method: 'DELETE' });
+    const data = await res.json();
+    if (res.ok) {
+        document.getElementById('ing-' + id).remove();
+    } else {
+        alert(data.error || 'Fehler beim Löschen.');
+    }
+}
+async function addIng() {
+    const input = document.getElementById('new-ing-name');
+    const name = input.value.trim();
+    if (!name) return;
+    const res = await fetch('/api/ingredients', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name })
+    });
+    const data = await res.json();
+    if (res.ok) {
+        const li = document.createElement('li');
+        li.className = 'ing-manage-item';
+        li.id = 'ing-' + data.id;
+        li.innerHTML = `
+            <span>${data.name}</span>
+            <input type="text" value="${data.name}">
+            <button class="ing-small-btn ing-btn-edit" onclick="editIng(${data.id})">Umbenennen</button>
+            <button class="ing-small-btn ing-btn-save" onclick="saveIng(${data.id})">Speichern</button>
+            <button class="ing-small-btn ing-btn-delete" onclick="deleteIng(${data.id}, '${data.name}')">Löschen</button>
+        `;
+        document.getElementById('ing-list').appendChild(li);
+        input.value = '';
+    } else {
+        alert('Fehler: ' + (data.error || 'Unbekannt'));
+    }
+}
+</script>
+{% endblock %}

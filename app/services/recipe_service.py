@@ -24,6 +24,42 @@ class RecipeService:
         return recipe
     
     @staticmethod
+    def save_recipe(recipe_id, name, description, category, ingredients_data):
+        """Create or update a recipe. Pass recipe_id=None to create."""
+        if recipe_id:
+            recipe = Recipe.query.get_or_404(recipe_id)
+            recipe.name = name
+            recipe.description = description
+            recipe.category = category
+            RecipeIngredient.query.filter_by(recipe_id=recipe_id).delete()
+        else:
+            recipe = Recipe(name=name, description=description, category=category)
+            db.session.add(recipe)
+            db.session.flush()
+
+        for ing_data in ingredients_data:
+            ingredient_id = ing_data.get('ingredient_id')
+            if not ingredient_id:
+                existing = Ingredient.query.filter(Ingredient.name.ilike(ing_data['name'].strip())).first()
+                if existing:
+                    ingredient_id = existing.id
+                else:
+                    ingredient = Ingredient(name=ing_data['name'].strip())
+                    db.session.add(ingredient)
+                    db.session.flush()
+                    ingredient_id = ingredient.id
+            ri = RecipeIngredient(
+                recipe_id=recipe.id,
+                ingredient_id=ingredient_id,
+                amount=ing_data['amount'],
+                unit=ing_data['unit']
+            )
+            db.session.add(ri)
+
+        db.session.commit()
+        return recipe
+
+    @staticmethod
     def delete_recipe(recipe_id):
         recipe = Recipe.query.get_or_404(recipe_id)
         db.session.delete(recipe)

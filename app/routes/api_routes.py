@@ -2,10 +2,108 @@ from app import db
 from flask import Blueprint, jsonify, request
 from app.models.recipe import Recipe, RecipeIngredient, Ingredient
 from app.models.shopping_list import ShoppingList
+from app.services.recipe_service import RecipeService
 import random
 from datetime import datetime
 
 bp = Blueprint('api', __name__, url_prefix='/api')
+
+@bp.route('/ingredients', methods=['GET'])
+def search_ingredients():
+    q = request.args.get('q', '').strip()
+    query = Ingredient.query
+    if q:
+        query = query.filter(Ingredient.name.ilike(f'%{q}%'))
+    ingredients = query.order_by(Ingredient.name).all()
+    return jsonify([{'id': i.id, 'name': i.name} for i in ingredients])
+
+@bp.route('/ingredients', methods=['POST'])
+def create_ingredient():
+    data = request.get_json()
+    name = data.get('name', '').strip()
+    if not name:
+        return jsonify({'error': 'Name required'}), 400
+    existing = Ingredient.query.filter(Ingredient.name.ilike(name)).first()
+    if existing:
+        return jsonify({'id': existing.id, 'name': existing.name})
+    ingredient = Ingredient(name=name)
+    db.session.add(ingredient)
+    db.session.commit()
+    return jsonify({'id': ingredient.id, 'name': ingredient.name}), 201
+
+@bp.route('/ingredients/<int:ingredient_id>', methods=['PUT'])
+def update_ingredient(ingredient_id):
+    ingredient = Ingredient.query.get_or_404(ingredient_id)
+    data = request.get_json()
+    name = data.get('name', '').strip()
+    if not name:
+        return jsonify({'error': 'Name required'}), 400
+    ingredient.name = name
+    db.session.commit()
+    return jsonify({'id': ingredient.id, 'name': ingredient.name})
+
+@bp.route('/ingredients/<int:ingredient_id>', methods=['DELETE'])
+def delete_ingredient(ingredient_id):
+    ingredient = Ingredient.query.get_or_404(ingredient_id)
+    in_use = RecipeIngredient.query.filter_by(ingredient_id=ingredient_id).first()
+    if in_use:
+        return jsonify({'error': 'Ingredient is used in recipes'}), 400
+    db.session.delete(ingredient)
+    db.session.commit()
+    return jsonify({'success': True})
+
+@bp.route('/recipe/<int:recipe_id>', methods=['GET'])
+def get_recipe(recipe_id):
+    recipe = Recipe.query.get_or_404(recipe_id)
+    ingredients = []
+    for ri in recipe.recipe_ingredients:
+        ingredient = Ingredient.query.get(ri.ingredient_id)
+        ingredients.append({
+            'ingredient_id': ri.ingredient_id,
+            'name': ingredient.name,
+            'amount': ri.amount,
+            'unit': ri.unit
+        })
+    return jsonify({
+        'id': recipe.id,
+        'name': recipe.name,
+        'description': recipe.description or '',
+        'category': recipe.category or '',
+        'ingredients': ingredients
+    })
+
+@bp.route('/recipe', methods=['POST'])
+def create_recipe_api():
+    data = request.get_json()
+    try:
+        recipe = RecipeService.save_recipe(
+            None, data['name'], data.get('description', ''), data.get('category', ''), data['ingredients']
+        )
+        return jsonify({'id': recipe.id, 'name': recipe.name}), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@bp.route('/recipe/<int:recipe_id>', methods=['PUT'])
+def update_recipe_api(recipe_id):
+    data = request.get_json()
+    try:
+        recipe = RecipeService.save_recipe(
+            recipe_id, data['name'], data.get('description', ''), data.get('category', ''), data['ingredients']
+        )
+        return jsonify({'id': recipe.id, 'name': recipe.name})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@bp.route('/recipe/<int:recipe_id>', methods=['DELETE'])
+def delete_recipe_api(recipe_id):
+    try:
+        RecipeService.delete_recipe(recipe_id)
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
 
 @bp.route('/admin/shopping-list/clear', methods=['POST'])
 def clear_shopping_list():
@@ -16,6 +114,11 @@ def clear_shopping_list():
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
+
+@bp.route('/recipes/all')
+def get_all_recipes():
+    recipes = Recipe.query.order_by(Recipe.name).all()
+    return jsonify([{'id': r.id, 'name': r.name, 'category': r.category} for r in recipes])
 
 @bp.route('/recipes')
 def get_random_recipes():
