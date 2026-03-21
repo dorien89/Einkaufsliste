@@ -5,65 +5,20 @@ def populate_database():
     connection = sqlite3.connect('./database/einkaufsliste.db')
     cursor = connection.cursor()
 
-    # Testdaten für die Tabelle "zutaten"
     zutaten_data = [
-        ('Pasta',),
-        ('Reis',),
-        ('Hähnchenbrust',),
-        ('Lachsfilet',),
-        ('Knoblauch',),
-        ('Zwiebel',),
-        ('Tomaten',),
-        ('Paprika',),
-        ('Brokkoli',),
-        ('Kokosmilch',),
-        ('Currypaste',),
-        ('Chili',),
-        ('Kreuzkümmel',),
-        ('Basilikum',),
-        ('Rucola',),
-        ('Butter',),
-        ('Olivenöl',),
-        ('Salz',),
-        ('Pfeffer',),
-        ('Parmesan',),
-        ('Schlagsahne',),
-        ('Senf',),
-        ('Honig',),
-        ('Brot',),
-        ('Cheddar',),
-        ('Salat',),
-        ('Ketchup',),
-        ('Mayonnaise',),
-        ('Zitronensaft',),
-        ('Zucchini',),
-        ('Aubergine',),
-        ('Quinoa',),
-        ('Avocado',),
-        ('Feta',),
-        ('Äpfel',),
-        ('Zimt',),
-        ('Mehl',),
-        ('Eier',),
-        ('Nori-Blätter',),
-        ('Wasabi',),
-        ('Sojasauce',),
-        ('Schokolade',),
-        ('Erdbeeren',),
-        ('Bananen',),
-        ('Marshmallows',),
-        ('Kartoffeln',),
-        ('Speck',),
-        ('Mozzarella',),
-        ('Mascarpone',),
-        ('Himbeeren',),
-        ('Löffelbiskuits',),
-        ('Kakao',),
-        ('Milch',),
-        ('Backpulver',)
+        'Pasta', 'Reis', 'Hähnchenbrust', 'Lachsfilet', 'Knoblauch',
+        'Zwiebel', 'Tomaten', 'Paprika', 'Brokkoli', 'Kokosmilch',
+        'Currypaste', 'Chili', 'Kreuzkümmel', 'Basilikum', 'Rucola',
+        'Butter', 'Olivenöl', 'Salz', 'Pfeffer', 'Parmesan',
+        'Schlagsahne', 'Senf', 'Honig', 'Brot', 'Cheddar',
+        'Salat', 'Ketchup', 'Mayonnaise', 'Zitronensaft', 'Zucchini',
+        'Aubergine', 'Quinoa', 'Avocado', 'Feta', 'Äpfel',
+        'Zimt', 'Mehl', 'Eier', 'Nori-Blätter', 'Wasabi',
+        'Sojasauce', 'Schokolade', 'Erdbeeren', 'Bananen', 'Marshmallows',
+        'Kartoffeln', 'Speck', 'Mozzarella', 'Mascarpone', 'Himbeeren',
+        'Löffelbiskuits', 'Kakao', 'Milch', 'Backpulver',
     ]
 
-    # Testdaten für die Tabelle "rezepte"
     rezepte_data = [
         ('Pasta mit Tomatensauce', 'Ein einfaches Pasta-Gericht mit frischer Tomatensauce.', 'Hauptgericht'),
         ('Hähnchen Curry mit Reis', 'Ein aromatisches Curry mit zartem Hähnchen und Reis.', 'Hauptgericht'),
@@ -82,174 +37,166 @@ def populate_database():
         ('Himbeer-Tiramisu', 'Ein sommerliches Tiramisu mit frischen Himbeeren und einer Mascarponecreme.', 'Dessert'),
     ]
 
+    # Recipe ingredients defined by name instead of hardcoded IDs
     rezeptliste_data = [
-        # Pasta mit Tomatensauce (ID: 1)
-        (1, 1, 100, 'g'),  # Pasta
-        (1, 7, 150, 'g'),  # Tomaten
-        (1, 6, 1, 'Stück'),  # Zwiebel
-        (1, 17, 2, 'EL'),  # Olivenöl
-        (1, 18, 1, 'Prise'),  # Salz
-        (1, 19, 1, 'Prise'),  # Pfeffer
-        (1, 20, 30, 'g'),  # Parmesan
+        # Pasta mit Tomatensauce
+        ('Pasta mit Tomatensauce', 'Pasta', 100, 'g'),
+        ('Pasta mit Tomatensauce', 'Tomaten', 150, 'g'),
+        ('Pasta mit Tomatensauce', 'Zwiebel', 1, 'Stück'),
+        ('Pasta mit Tomatensauce', 'Olivenöl', 2, 'EL'),
+        ('Pasta mit Tomatensauce', 'Salz', 1, 'Prise'),
+        ('Pasta mit Tomatensauce', 'Pfeffer', 1, 'Prise'),
+        ('Pasta mit Tomatensauce', 'Parmesan', 30, 'g'),
 
-        # Hähnchen Curry mit Reis (ID: 2)
-        (2, 3, 150, 'g'),  # Hähnchenbrust
-        (2, 2, 100, 'g'),  # Reis
-        (2, 5, 1, 'Zehe'),  # Knoblauch
-        (2, 10, 50, 'ml'),  # Kokosmilch
-        (2, 11, 1, 'EL'),  # Currypaste
-        (2, 14, 1, 'EL'),  # Basilikum
-        (2, 18, 1, 'Prise'),  # Salz
-        (2, 19, 1, 'Prise'),  # Pfeffer
-        (2, 13, 1, 'Prise'),  # Kreuzkümmel
+        # Hähnchen Curry mit Reis
+        ('Hähnchen Curry mit Reis', 'Hähnchenbrust', 150, 'g'),
+        ('Hähnchen Curry mit Reis', 'Reis', 100, 'g'),
+        ('Hähnchen Curry mit Reis', 'Knoblauch', 1, 'Zehe'),
+        ('Hähnchen Curry mit Reis', 'Kokosmilch', 50, 'ml'),
+        ('Hähnchen Curry mit Reis', 'Currypaste', 1, 'EL'),
+        ('Hähnchen Curry mit Reis', 'Basilikum', 1, 'EL'),
+        ('Hähnchen Curry mit Reis', 'Salz', 1, 'Prise'),
+        ('Hähnchen Curry mit Reis', 'Pfeffer', 1, 'Prise'),
+        ('Hähnchen Curry mit Reis', 'Kreuzkümmel', 1, 'Prise'),
 
-        # Tomaten-Risotto (ID: 3)
-        (3, 2, 100, 'g'),  # Reis
-        (3, 7, 150, 'g'),  # Tomaten
-        (3, 5, 1, 'Zehe'),  # Knoblauch
-        (3, 6, 1, 'Stück'),  # Zwiebel
-        (3, 17, 2, 'EL'),  # Olivenöl
-        (3, 20, 30, 'g'),  # Parmesan
-        (3, 18, 1, 'Prise'),  # Salz
-        (3, 19, 1, 'Prise'),  # Pfeffer
+        # Tomaten-Risotto
+        ('Tomaten-Risotto', 'Reis', 100, 'g'),
+        ('Tomaten-Risotto', 'Tomaten', 150, 'g'),
+        ('Tomaten-Risotto', 'Knoblauch', 1, 'Zehe'),
+        ('Tomaten-Risotto', 'Zwiebel', 1, 'Stück'),
+        ('Tomaten-Risotto', 'Olivenöl', 2, 'EL'),
+        ('Tomaten-Risotto', 'Parmesan', 30, 'g'),
+        ('Tomaten-Risotto', 'Salz', 1, 'Prise'),
+        ('Tomaten-Risotto', 'Pfeffer', 1, 'Prise'),
 
-        # Cheeseburger (ID: 4)
-        (4, 24, 1, 'Stück'),  # Burger-Brötchen
-        (4, 25, 100, 'g'),  # Cheddar
-        (4, 28, 1, 'EL'),  # Mayonnaise
-        (4, 7, 2, 'Scheiben'),  # Tomate
-        (4, 26, 50, 'g'),  # Salat
-        (4, 27, 1, 'EL'),  # Ketchup
+        # Cheeseburger
+        ('Cheeseburger', 'Brot', 1, 'Stück'),
+        ('Cheeseburger', 'Cheddar', 100, 'g'),
+        ('Cheeseburger', 'Mayonnaise', 1, 'EL'),
+        ('Cheeseburger', 'Tomaten', 2, 'Scheiben'),
+        ('Cheeseburger', 'Salat', 50, 'g'),
+        ('Cheeseburger', 'Ketchup', 1, 'EL'),
 
-        # Honig-Senf-Nudeln mit Rucola und Lachs (ID: 5)
-        (5, 1, 100, 'g'),   # Nudeln
-        (5, 17, 1, 'EL'),   # Olivenöl
-        (5, 22, 1, 'TL'),   # Senf
-        (5, 23, 1, 'EL'),   # Honig
-        (5, 15, 30, 'g'),   # Rucola
-        (5, 4, 150, 'g'),   # Lachsfilet
-        (5, 18, 1, 'Prise'), # Salz
-        (5, 19, 1, 'Prise'), # Pfeffer
+        # Honig-Senf-Nudeln mit Rucola und Lachs
+        ('Honig-Senf-Nudeln mit Rucola und Lachs', 'Pasta', 100, 'g'),
+        ('Honig-Senf-Nudeln mit Rucola und Lachs', 'Olivenöl', 1, 'EL'),
+        ('Honig-Senf-Nudeln mit Rucola und Lachs', 'Senf', 1, 'TL'),
+        ('Honig-Senf-Nudeln mit Rucola und Lachs', 'Honig', 1, 'EL'),
+        ('Honig-Senf-Nudeln mit Rucola und Lachs', 'Rucola', 30, 'g'),
+        ('Honig-Senf-Nudeln mit Rucola und Lachs', 'Lachsfilet', 150, 'g'),
+        ('Honig-Senf-Nudeln mit Rucola und Lachs', 'Salz', 1, 'Prise'),
+        ('Honig-Senf-Nudeln mit Rucola und Lachs', 'Pfeffer', 1, 'Prise'),
 
-        # Vegetarische Lasagne (ID: 6)
-        (6, 30, 250, 'g'),  # Zucchini
-        (6, 31, 250, 'g'),  # Aubergine
-        (6, 7, 300, 'g'),   # Tomaten
-        (6, 6, 2, 'Stück'), # Zwiebeln
-        (6, 5, 2, 'Zehen'), # Knoblauch
-        (6, 21, 200, 'ml'), # Schlagsahne
-        (6, 20, 50, 'g'),   # Parmesan
-        (6, 16, 30, 'g'),   # Butter
-        (6, 38, 2, 'Stück'), # Eier
+        # Vegetarische Lasagne
+        ('Vegetarische Lasagne', 'Zucchini', 250, 'g'),
+        ('Vegetarische Lasagne', 'Aubergine', 250, 'g'),
+        ('Vegetarische Lasagne', 'Tomaten', 300, 'g'),
+        ('Vegetarische Lasagne', 'Zwiebel', 2, 'Stück'),
+        ('Vegetarische Lasagne', 'Knoblauch', 2, 'Zehen'),
+        ('Vegetarische Lasagne', 'Schlagsahne', 200, 'ml'),
+        ('Vegetarische Lasagne', 'Parmesan', 50, 'g'),
+        ('Vegetarische Lasagne', 'Butter', 30, 'g'),
+        ('Vegetarische Lasagne', 'Eier', 2, 'Stück'),
 
-        # Quinoa-Salat (ID: 7)
-        (7, 32, 200, 'g'),  # Quinoa
-        (7, 33, 1, 'Stück'), # Avocado
-        (7, 34, 100, 'g'),  # Feta
-        (7, 15, 50, 'g'),   # Rucola
-        (7, 7, 200, 'g'),   # Tomaten
-        (7, 17, 2, 'EL'),   # Olivenöl
-        (7, 29, 2, 'EL'),   # Zitronensaft
+        # Quinoa-Salat mit Avocado und Feta
+        ('Quinoa-Salat mit Avocado und Feta', 'Quinoa', 200, 'g'),
+        ('Quinoa-Salat mit Avocado und Feta', 'Avocado', 1, 'Stück'),
+        ('Quinoa-Salat mit Avocado und Feta', 'Feta', 100, 'g'),
+        ('Quinoa-Salat mit Avocado und Feta', 'Rucola', 50, 'g'),
+        ('Quinoa-Salat mit Avocado und Feta', 'Tomaten', 200, 'g'),
+        ('Quinoa-Salat mit Avocado und Feta', 'Olivenöl', 2, 'EL'),
+        ('Quinoa-Salat mit Avocado und Feta', 'Zitronensaft', 2, 'EL'),
 
-        # Pfannkuchen (ID: 8)
-        (8, 37, 200, 'g'),  # Mehl
-        (8, 38, 2, 'Stück'), # Eier
-        (8, 53, 250, 'ml'), # Milch
-        (8, 16, 50, 'g'),   # Butter
-        (8, 35, 2, 'Stück'), # Äpfel
-        (8, 36, 1, 'TL'),   # Zimt
-        (8, 23, 2, 'EL'),   # Honig
-        (8, 54, 1, 'TL'),   # Backpulver
+        # Pfannkuchen mit Apfel und Zimt
+        ('Pfannkuchen mit Apfel und Zimt', 'Mehl', 200, 'g'),
+        ('Pfannkuchen mit Apfel und Zimt', 'Eier', 2, 'Stück'),
+        ('Pfannkuchen mit Apfel und Zimt', 'Milch', 250, 'ml'),
+        ('Pfannkuchen mit Apfel und Zimt', 'Butter', 50, 'g'),
+        ('Pfannkuchen mit Apfel und Zimt', 'Äpfel', 2, 'Stück'),
+        ('Pfannkuchen mit Apfel und Zimt', 'Zimt', 1, 'TL'),
+        ('Pfannkuchen mit Apfel und Zimt', 'Honig', 2, 'EL'),
+        ('Pfannkuchen mit Apfel und Zimt', 'Backpulver', 1, 'TL'),
 
-        # Sushi-Platte (ID: 9)
-        (9, 2, 300, 'g'),   # Reis
-        (9, 4, 200, 'g'),   # Lachsfilet
-        (9, 39, 5, 'Blatt'), # Nori-Blätter
-        (9, 40, 1, 'TL'),   # Wasabi
-        (9, 41, 50, 'ml'),  # Sojasauce
+        # Sushi-Platte
+        ('Sushi-Platte', 'Reis', 300, 'g'),
+        ('Sushi-Platte', 'Lachsfilet', 200, 'g'),
+        ('Sushi-Platte', 'Nori-Blätter', 5, 'Blatt'),
+        ('Sushi-Platte', 'Wasabi', 1, 'TL'),
+        ('Sushi-Platte', 'Sojasauce', 50, 'ml'),
 
-        # Schokoladenfondue (ID: 10)
-        (10, 42, 200, 'g'), # Schokolade
-        (10, 21, 100, 'ml'), # Schlagsahne
-        (10, 43, 200, 'g'), # Erdbeeren
-        (10, 44, 2, 'Stück'), # Bananen
-        (10, 45, 100, 'g'), # Marshmallows
+        # Schokoladenfondue mit Früchten
+        ('Schokoladenfondue mit Früchten', 'Schokolade', 200, 'g'),
+        ('Schokoladenfondue mit Früchten', 'Schlagsahne', 100, 'ml'),
+        ('Schokoladenfondue mit Früchten', 'Erdbeeren', 200, 'g'),
+        ('Schokoladenfondue mit Früchten', 'Bananen', 2, 'Stück'),
+        ('Schokoladenfondue mit Früchten', 'Marshmallows', 100, 'g'),
 
-        # Kartoffelsuppe (ID: 11)
-        (11, 46, 500, 'g'), # Kartoffeln
-        (11, 47, 100, 'g'), # Speck
-        (11, 6, 2, 'Stück'), # Zwiebeln
-        (11, 21, 200, 'ml'), # Schlagsahne
-        (11, 16, 30, 'g'),  # Butter
+        # Kartoffelsuppe mit Speck
+        ('Kartoffelsuppe mit Speck', 'Kartoffeln', 500, 'g'),
+        ('Kartoffelsuppe mit Speck', 'Speck', 100, 'g'),
+        ('Kartoffelsuppe mit Speck', 'Zwiebel', 2, 'Stück'),
+        ('Kartoffelsuppe mit Speck', 'Schlagsahne', 200, 'ml'),
+        ('Kartoffelsuppe mit Speck', 'Butter', 30, 'g'),
 
-        # Caprese-Salat (ID: 12)
-        (12, 7, 400, 'g'),  # Tomaten
-        (12, 48, 200, 'g'), # Mozzarella
-        (12, 14, 30, 'g'),  # Basilikum
-        (12, 17, 3, 'EL'),  # Olivenöl
+        # Caprese-Salat
+        ('Caprese-Salat', 'Tomaten', 400, 'g'),
+        ('Caprese-Salat', 'Mozzarella', 200, 'g'),
+        ('Caprese-Salat', 'Basilikum', 30, 'g'),
+        ('Caprese-Salat', 'Olivenöl', 3, 'EL'),
 
-        # Pasta Carbonara (ID: 13)
-        (13, 1, 400, 'g'),  # Pasta
-        (13, 47, 150, 'g'), # Speck
-        (13, 38, 3, 'Stück'), # Eier
-        (13, 20, 100, 'g'), # Parmesan
-        (13, 5, 2, 'Zehen'), # Knoblauch
+        # Pasta Carbonara
+        ('Pasta Carbonara', 'Pasta', 400, 'g'),
+        ('Pasta Carbonara', 'Speck', 150, 'g'),
+        ('Pasta Carbonara', 'Eier', 3, 'Stück'),
+        ('Pasta Carbonara', 'Parmesan', 100, 'g'),
+        ('Pasta Carbonara', 'Knoblauch', 2, 'Zehen'),
 
-        # Gemüse-Quiche (ID: 14)
-        (14, 37, 250, 'g'), # Mehl
-        (14, 16, 125, 'g'), # Butter
-        (14, 38, 4, 'Stück'), # Eier
-        (14, 21, 200, 'ml'), # Schlagsahne
-        (14, 6, 2, 'Stück'), # Zwiebeln
-        (14, 8, 2, 'Stück'), # Paprika
-        (14, 20, 50, 'g'),  # Parmesan
+        # Gemüse-Quiche
+        ('Gemüse-Quiche', 'Mehl', 250, 'g'),
+        ('Gemüse-Quiche', 'Butter', 125, 'g'),
+        ('Gemüse-Quiche', 'Eier', 4, 'Stück'),
+        ('Gemüse-Quiche', 'Schlagsahne', 200, 'ml'),
+        ('Gemüse-Quiche', 'Zwiebel', 2, 'Stück'),
+        ('Gemüse-Quiche', 'Paprika', 2, 'Stück'),
+        ('Gemüse-Quiche', 'Parmesan', 50, 'g'),
 
-        # Himbeer-Tiramisu (ID: 15)
-        (15, 49, 250, 'g'), # Mascarpone
-        (15, 21, 200, 'ml'), # Schlagsahne
-        (15, 50, 300, 'g'), # Himbeeren
-        (15, 51, 200, 'g'), # Löffelbiskuits
-        (15, 52, 2, 'EL'),  # Kakao
-        (15, 38, 3, 'Stück') # Eier
-    ]
-
-    # Beispiel-Einkaufsliste mit verschiedenen Stati
-    shopping_list_data = [
-        # Aktive Einkäufe
-        (1, 2.0, 1, datetime.now(), None),  # Pasta für 2 Portionen
-        (2, 4.0, 1, datetime.now(), None),  # Curry für 4 Portionen
-        (3, 3.0, 1, datetime.now(), None),  # Risotto für 3 Portionen
-        
-        # Bereits gekaufte Artikel (Beispielhistorie)
-        (4, 2.0, 0, datetime.now() - timedelta(days=2), datetime.now() - timedelta(days=1)),  # Cheeseburger
-        (1, 3.0, 0, datetime.now() - timedelta(days=3), datetime.now() - timedelta(days=2)),  # Pasta
-        (2, 2.0, 0, datetime.now() - timedelta(days=4), datetime.now() - timedelta(days=3))   # Curry
+        # Himbeer-Tiramisu
+        ('Himbeer-Tiramisu', 'Mascarpone', 250, 'g'),
+        ('Himbeer-Tiramisu', 'Schlagsahne', 200, 'ml'),
+        ('Himbeer-Tiramisu', 'Himbeeren', 300, 'g'),
+        ('Himbeer-Tiramisu', 'Löffelbiskuits', 200, 'g'),
+        ('Himbeer-Tiramisu', 'Kakao', 2, 'EL'),
+        ('Himbeer-Tiramisu', 'Eier', 3, 'Stück'),
     ]
 
     try:
-        # Zutaten einfügen
-        cursor.executemany('INSERT OR IGNORE INTO ingredients (name) VALUES (?)', zutaten_data)
+        # Insert ingredients
+        for name in zutaten_data:
+            cursor.execute('INSERT OR IGNORE INTO ingredients (name) VALUES (?)', (name,))
 
-        # Rezepte einfügen
-        cursor.executemany('INSERT INTO recipes (name, description, category) VALUES (?, ?, ?)', rezepte_data)
+        # Build ingredient name -> id lookup
+        cursor.execute('SELECT id, name FROM ingredients')
+        ingredient_ids = {name: id for id, name in cursor.fetchall()}
 
-        # Rezeptliste einfügen
-        cursor.executemany('''
-            INSERT INTO recipe_ingredients 
-            (recipe_id, ingredient_id, amount, unit) 
-            VALUES (?, ?, ?, ?)
-        ''', rezeptliste_data)
+        # Insert recipes
+        for name, description, category in rezepte_data:
+            cursor.execute('INSERT INTO recipes (name, description, category) VALUES (?, ?, ?)',
+                           (name, description, category))
 
-        # Einkaufsliste einfügen
-        cursor.executemany('''
-            INSERT INTO shopping_list 
-            (recipe_id, servings, is_active, created_at, bought_at) 
-            VALUES (?, ?, ?, ?, ?)
-        ''', shopping_list_data)
+        # Build recipe name -> id lookup
+        cursor.execute('SELECT id, name FROM recipes')
+        recipe_ids = {name: id for id, name in cursor.fetchall()}
+
+        # Insert recipe ingredients using looked-up IDs
+        for recipe_name, ingredient_name, amount, unit in rezeptliste_data:
+            cursor.execute('''
+                INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit)
+                VALUES (?, ?, ?, ?)
+            ''', (recipe_ids[recipe_name], ingredient_ids[ingredient_name], amount, unit))
 
         connection.commit()
         print("Tabellen erfolgreich mit Testdaten befüllt.")
-        
+
     except sqlite3.Error as e:
         print("Fehler beim Einfügen der Daten:", e)
         connection.rollback()
