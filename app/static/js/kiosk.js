@@ -1,4 +1,5 @@
 let shoppingList = [];
+let carouselIndex = 0;
 
 function toggleShoppingList() {
     const overlay = document.getElementById('shopping-list-overlay');
@@ -47,22 +48,48 @@ async function changeServings(recipeId, delta) {
     });
 }
 
+function renderCarousel() {
+    const card = document.getElementById('carousel-card');
+    const counter = document.getElementById('carousel-counter');
+    const prev = document.getElementById('carousel-prev');
+    const next = document.getElementById('carousel-next');
+
+    if (shoppingList.length === 0) {
+        card.innerHTML = '<div class="carousel-empty">Keine Rezepte gewählt</div>';
+        counter.textContent = '';
+        prev.disabled = true;
+        next.disabled = true;
+        return;
+    }
+
+    if (carouselIndex >= shoppingList.length) carouselIndex = shoppingList.length - 1;
+    if (carouselIndex < 0) carouselIndex = 0;
+
+    const item = shoppingList[carouselIndex];
+    card.innerHTML = `
+        <span class="item-name">${item.name}</span>
+        <div class="item-controls">
+            <button class="stepper-btn" onclick="changeServings(${item.id}, -1)">−</button>
+            <span class="item-servings">${item.servings}</span>
+            <button class="stepper-btn" onclick="changeServings(${item.id}, 1)">+</button>
+            <button class="remove-btn" onclick="removeFromShoppingList(${item.id})">✕</button>
+        </div>
+    `;
+    counter.textContent = `${carouselIndex + 1} / ${shoppingList.length}`;
+    prev.disabled = carouselIndex === 0;
+    next.disabled = carouselIndex === shoppingList.length - 1;
+}
+
+function carouselPrev() {
+    if (carouselIndex > 0) { carouselIndex--; renderCarousel(); }
+}
+
+function carouselNext() {
+    if (carouselIndex < shoppingList.length - 1) { carouselIndex++; renderCarousel(); }
+}
+
 function renderShoppingList() {
-    const listElement = document.getElementById('shopping-list-items');
-    listElement.innerHTML = '';
-    shoppingList.forEach(item => {
-        const li = document.createElement('li');
-        li.innerHTML = `
-            <span class="item-name">${item.name}</span>
-            <div class="item-controls">
-                <button class="stepper-btn" onclick="changeServings(${item.id}, -1)">−</button>
-                <span class="item-servings">${item.servings}</span>
-                <button class="stepper-btn" onclick="changeServings(${item.id}, 1)">+</button>
-                <button class="remove-btn" onclick="removeFromShoppingList(${item.id})">✕</button>
-            </div>
-        `;
-        listElement.appendChild(li);
-    });
+    renderCarousel();
 
     const badge = document.getElementById('list-badge');
     const total = shoppingList.reduce((sum, item) => sum + item.servings, 0);

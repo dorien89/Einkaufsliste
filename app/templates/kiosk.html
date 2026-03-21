@@ -21,6 +21,14 @@
         <div class="shopping-list-content">
             <h2>Einkaufsliste</h2>
             <ul id="shopping-list-items"></ul>
+            <div class="carousel" id="carousel">
+                <div class="carousel-nav">
+                    <button class="carousel-arrow" id="carousel-prev" onclick="carouselPrev()">‹</button>
+                    <div class="carousel-card" id="carousel-card"></div>
+                    <button class="carousel-arrow" id="carousel-next" onclick="carouselNext()">›</button>
+                </div>
+                <div class="carousel-counter" id="carousel-counter"></div>
+            </div>
             <button id="clear-list-button" onclick="clearShoppingList()">Liste leeren</button>
             <button id="export-list-button" onclick="goToShoppingList()">Einkaufsliste erstellen →</button>
             <button onclick="toggleShoppingList()">Schließen</button>
