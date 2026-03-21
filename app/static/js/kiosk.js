@@ -165,7 +165,9 @@ function renderGrid() {
         ? allRecipes.filter(r => r.category === activeCategory)
         : allRecipes;
 
-    filtered.forEach(recipe => {
+    const shuffled = [...filtered].sort(() => Math.random() - 0.5).slice(0, 9);
+
+    shuffled.forEach(recipe => {
         const div = document.createElement('div');
         div.className = 'grid-item';
         div.textContent = recipe.name;
