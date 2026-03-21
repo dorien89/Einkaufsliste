@@ -8,3 +8,16 @@ def list_recipes():
     recipes = RecipeService.get_all_recipes()
     return render_template('recipes.html', recipes=recipes)
 
+@bp.route('/<int:recipe_id>/calculate', methods=['GET', 'POST'])
+def calculate_ingredients(recipe_id):
+    if request.method == 'POST':
+        portions = float(request.form['portions'])
+        ingredients = RecipeService.calculate_portions(recipe_id, portions)
+        return render_template('calculated_ingredients.html', ingredients=ingredients, portions=portions)
+    return render_template('input_portions.html')
+
+@bp.route('/<int:recipe_id>/delete', methods=['POST'])
+def delete_recipe(recipe_id):
+    RecipeService.delete_recipe(recipe_id)
+    return redirect(url_for('recipe.list_recipes'))
+

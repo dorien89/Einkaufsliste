@@ -6,7 +6,8 @@ bp = Blueprint('shopping-list', __name__, url_prefix='/shopping-list')
 
 @bp.route('/', methods=['GET'])
 def view_shopping_list():
-    response = get_shopping_list()
+    result = get_shopping_list()
+    response = result[0] if isinstance(result, tuple) else result
     data = response.get_json()
     
     if data.get('success'):
