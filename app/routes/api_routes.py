@@ -102,6 +102,64 @@ def get_shopping_list():
             'error': str(e)
         }), 500
     
+@bp.route('/shopping-list/draft', methods=['GET'])
+def get_draft():
+    try:
+        items = ShoppingList.query.filter_by(is_active=True).all()
+        result = []
+        for item in items:
+            recipe = Recipe.query.get(item.recipe_id)
+            if recipe:
+                result.append({'id': recipe.id, 'name': recipe.name, 'servings': item.servings})
+        return jsonify({'success': True, 'items': result})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@bp.route('/shopping-list/item', methods=['POST'])
+def upsert_item():
+    try:
+        data = request.get_json()
+        recipe_id = data.get('id')
+        if not recipe_id:
+            return jsonify({'error': 'Missing recipe id'}), 400
+        item = ShoppingList.query.filter_by(recipe_id=recipe_id, is_active=True).first()
+        if item:
+            item.servings += 1
+        else:
+            db.session.add(ShoppingList(recipe_id=recipe_id, servings=1))
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@bp.route('/shopping-list/item/<int:recipe_id>/servings', methods=['PATCH'])
+def update_servings(recipe_id):
+    try:
+        data = request.get_json()
+        servings = data.get('servings')
+        if not servings or servings <= 0:
+            return jsonify({'error': 'Invalid servings'}), 400
+        item = ShoppingList.query.filter_by(recipe_id=recipe_id, is_active=True).first()
+        if not item:
+            return jsonify({'error': 'Item not found'}), 404
+        item.servings = servings
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@bp.route('/shopping-list/item/<int:recipe_id>', methods=['DELETE'])
+def delete_item(recipe_id):
+    try:
+        ShoppingList.query.filter_by(recipe_id=recipe_id, is_active=True).delete()
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
 @bp.route('/shopping-list/mark-bought', methods=['POST'])  # /api is already in the blueprint prefix
 def mark_items_bought():
     try:

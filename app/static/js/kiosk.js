@@ -5,29 +5,46 @@ function toggleShoppingList() {
     overlay.classList.toggle('hidden');
 }
 
-function addToShoppingList(recipeId, recipeName) {
-    if (shoppingList.length >= 20) {
-        alert('Die Einkaufsliste ist voll. Es können keine weiteren Rezepte hinzugefügt werden.');
+async function addToShoppingList(recipeId, recipeName) {
+    const existingItem = shoppingList.find(item => item.id === recipeId);
+    if (existingItem) {
+        existingItem.servings += 1;
+    } else {
+        shoppingList.push({ id: recipeId, name: recipeName, servings: 1 });
+    }
+    renderShoppingList();
+
+    await fetch('/api/shopping-list/item', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: recipeId }),
+    });
+}
+
+async function removeFromShoppingList(recipeId) {
+    shoppingList = shoppingList.filter(item => item.id !== recipeId);
+    renderShoppingList();
+
+    await fetch(`/api/shopping-list/item/${recipeId}`, { method: 'DELETE' });
+}
+
+async function changeServings(recipeId, delta) {
+    const item = shoppingList.find(i => i.id === recipeId);
+    if (!item) return;
+
+    if (item.servings + delta <= 0) {
+        await removeFromShoppingList(recipeId);
         return;
     }
 
-    const existingItem = shoppingList.find(item => item.id === recipeId);
-
-    if (!existingItem) {
-        shoppingList.push({ id: recipeId, name: recipeName, servings: 1 });
-        console.log(`Rezept hinzugefügt: ${recipeName} (1 Portion)`);
-    } else {
-        existingItem.servings += 1;
-        console.log(`Portionen erhöht für: ${recipeName} (jetzt ${existingItem.servings} Portionen)`);
-    }
-
+    item.servings += delta;
     renderShoppingList();
-}
 
-
-function removeFromShoppingList(recipeId) {
-    shoppingList = shoppingList.filter(item => item.id !== recipeId);
-    renderShoppingList();
+    await fetch(`/api/shopping-list/item/${recipeId}/servings`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ servings: item.servings }),
+    });
 }
 
 function renderShoppingList() {
@@ -36,13 +53,17 @@ function renderShoppingList() {
     shoppingList.forEach(item => {
         const li = document.createElement('li');
         li.innerHTML = `
-            <span>${item.name} - ${item.servings} Portion(en)</span>
-            <button class="remove-btn" onclick="removeFromShoppingList(${item.id})">✕</button>
+            <span class="item-name">${item.name}</span>
+            <div class="item-controls">
+                <button class="stepper-btn" onclick="changeServings(${item.id}, -1)">−</button>
+                <span class="item-servings">${item.servings}</span>
+                <button class="stepper-btn" onclick="changeServings(${item.id}, 1)">+</button>
+                <button class="remove-btn" onclick="removeFromShoppingList(${item.id})">✕</button>
+            </div>
         `;
         listElement.appendChild(li);
     });
 
-    // Update badge on List button
     const badge = document.getElementById('list-badge');
     const total = shoppingList.reduce((sum, item) => sum + item.servings, 0);
     if (total > 0) {
@@ -52,7 +73,6 @@ function renderShoppingList() {
         badge.classList.add('hidden');
     }
 
-    // Update tile highlights
     document.querySelectorAll('.grid-item').forEach(tile => {
         const id = parseInt(tile.dataset.recipeId);
         const item = shoppingList.find(i => i.id === id);
@@ -66,57 +86,22 @@ function renderShoppingList() {
     });
 }
 
-function clearShoppingList() {
+async function clearShoppingList() {
+    for (const item of shoppingList) {
+        await fetch(`/api/shopping-list/item/${item.id}`, { method: 'DELETE' });
+    }
     shoppingList = [];
     renderShoppingList();
-    console.log('Einkaufsliste geleert.');
 }
 
-async function exportShoppingList() {
-    if (shoppingList.length === 0) {
-        console.log('Einkaufsliste ist leer. Nichts zu exportieren.');
-        return;
-    }
-
-    console.log('About to send:', { items: shoppingList });
-
-    const isValid = shoppingList.every(item => item.id && item.servings !== undefined);
-    if (!isValid) {
-        alert('Die Einkaufsliste enthält ungültige Daten.');
-        return;
-    }
-
-    try {
-        const response = await fetch('/api/shopping-list', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ items: shoppingList }),
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            console.error('Backend error:', data.error || response.statusText);
-            alert(`Fehler vom Server: ${data.error || response.statusText}`);
-            return;
-        }
-
-        shoppingList = [];
-        renderShoppingList();
-        window.location.href = '/shopping-list/';
-    } catch (error) {
-        console.error('Fehler beim Exportieren der Einkaufsliste:', error);
-        alert('Fehler beim Exportieren der Einkaufsliste.');
-    }
+function goToShoppingList() {
+    if (shoppingList.length === 0) return;
+    window.location.href = '/shopping-list/';
 }
-
 
 async function loadRecipes() {
     try {
-        const randomParam = `?nocache=${Date.now()}`;
-        const response = await fetch('/api/recipes' + randomParam);
+        const response = await fetch(`/api/recipes?nocache=${Date.now()}`);
         const recipes = await response.json();
         const container = document.querySelector('.grid-container');
         container.innerHTML = '';
@@ -128,7 +113,6 @@ async function loadRecipes() {
             div.dataset.recipeId = recipe.id;
 
             div.addEventListener('click', () => {
-                console.log('Rezept geklickt:', recipe.name);
                 addToShoppingList(recipe.id, recipe.name);
                 div.classList.add('clicked');
                 setTimeout(() => div.classList.remove('clicked'), 500);
@@ -136,37 +120,26 @@ async function loadRecipes() {
 
             container.appendChild(div);
         });
+
+        renderShoppingList();
     } catch (error) {
         console.error('Fehler beim Laden der Rezepte:', error);
     }
 }
 
-async function loadNewRecipes() {
+async function loadDraft() {
     try {
-        const randomParam = `?nocache=${Date.now()}`;
-        const response = await fetch('/api/recipes' + randomParam);
-        const recipes = await response.json();
-        const container = document.querySelector('.grid-container');
-        container.innerHTML = '';
-
-        recipes.forEach(recipe => {
-            const div = document.createElement('div');
-            div.className = 'grid-item';
-            div.textContent = recipe.name;
-            div.dataset.recipeId = recipe.id;
-
-            div.addEventListener('click', () => {
-                console.log('Rezept geklickt:', recipe.name);
-                addToShoppingList(recipe.id, recipe.name);
-                div.classList.add('clicked');
-                setTimeout(() => div.classList.remove('clicked'), 500);
-            });
-
-            container.appendChild(div);
-        });
+        const response = await fetch('/api/shopping-list/draft');
+        const data = await response.json();
+        if (data.success) {
+            shoppingList = data.items;
+        }
     } catch (error) {
-        console.error('Fehler beim Laden der Rezepte:', error);
+        console.error('Fehler beim Laden der Einkaufsliste:', error);
     }
 }
 
-window.onload = loadRecipes;
+window.onload = async () => {
+    await loadDraft();
+    await loadRecipes();
+};

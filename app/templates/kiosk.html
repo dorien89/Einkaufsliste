@@ -22,14 +22,14 @@
             <h2>Einkaufsliste</h2>
             <ul id="shopping-list-items"></ul>
             <button id="clear-list-button" onclick="clearShoppingList()">Liste leeren</button>
-            <button id="export-list-button" onclick="exportShoppingList()">Einkaufsliste erstellen →</button>
+            <button id="export-list-button" onclick="goToShoppingList()">Einkaufsliste erstellen →</button>
             <button onclick="toggleShoppingList()">Schließen</button>
         </div>
     </div>
     
     <div class="button-container">
         <button id="shopping-list-button" class="button" onclick="toggleShoppingList()">List<span id="list-badge" class="hidden"></span></button>
-        <button id="update-recipes-button" class="button" onclick="loadNewRecipes()">F5</button>
+        <button id="update-recipes-button" class="button" onclick="loadRecipes()">↺</button>
     </div>
 
     <script src="{{ url_for('static', filename='js/kiosk.js') }}"></script>

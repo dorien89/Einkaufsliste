@@ -88,9 +88,9 @@ body {
     color: #fff;
     border: none;
     border-radius: 50%;
-    width: 60px;
-    height: 60px;
-    font-size: 24px;
+    width: 80px;
+    height: 80px;
+    font-size: 28px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     cursor: pointer;
     z-index: 1000;
@@ -141,8 +141,39 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 6px 0;
+    padding: 8px 0;
     border-bottom: 1px solid #eee;
+}
+.item-name {
+    flex: 1;
+    text-align: left;
+}
+.item-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.item-servings {
+    min-width: 24px;
+    text-align: center;
+    font-weight: bold;
+}
+.stepper-btn {
+    background-color: #007BFF;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    width: 32px;
+    height: 32px;
+    font-size: 1.2em;
+    cursor: pointer;
+    margin-top: 0 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.stepper-btn:hover {
+    background-color: #0056b3 !important;
 }
 .remove-btn {
     background: none;
