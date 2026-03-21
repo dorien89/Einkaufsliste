@@ -20,7 +20,8 @@ class Ingredient(db.Model):
     
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String, nullable=False, unique=True)
-    
+    default_unit = db.Column(db.String, nullable=True)
+
     def __repr__(self):
         return f"<Ingredient(id={self.id}, name={self.name})>"
 

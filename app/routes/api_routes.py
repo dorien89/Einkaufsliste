@@ -15,7 +15,7 @@ def search_ingredients():
     if q:
         query = query.filter(Ingredient.name.ilike(f'%{q}%'))
     ingredients = query.order_by(Ingredient.name).all()
-    return jsonify([{'id': i.id, 'name': i.name} for i in ingredients])
+    return jsonify([{'id': i.id, 'name': i.name, 'default_unit': i.default_unit or ''} for i in ingredients])
 
 @bp.route('/ingredients', methods=['POST'])
 def create_ingredient():
@@ -25,11 +25,11 @@ def create_ingredient():
         return jsonify({'error': 'Name required'}), 400
     existing = Ingredient.query.filter(Ingredient.name.ilike(name)).first()
     if existing:
-        return jsonify({'id': existing.id, 'name': existing.name})
+        return jsonify({'id': existing.id, 'name': existing.name, 'default_unit': existing.default_unit or ''})
     ingredient = Ingredient(name=name)
     db.session.add(ingredient)
     db.session.commit()
-    return jsonify({'id': ingredient.id, 'name': ingredient.name}), 201
+    return jsonify({'id': ingredient.id, 'name': ingredient.name, 'default_unit': ''}), 201
 
 @bp.route('/ingredients/<int:ingredient_id>', methods=['PUT'])
 def update_ingredient(ingredient_id):
@@ -39,8 +39,10 @@ def update_ingredient(ingredient_id):
     if not name:
         return jsonify({'error': 'Name required'}), 400
     ingredient.name = name
+    if 'default_unit' in data:
+        ingredient.default_unit = data['default_unit'].strip() or None
     db.session.commit()
-    return jsonify({'id': ingredient.id, 'name': ingredient.name})
+    return jsonify({'id': ingredient.id, 'name': ingredient.name, 'default_unit': ingredient.default_unit or ''})
 
 @bp.route('/ingredients/<int:ingredient_id>', methods=['DELETE'])
 def delete_ingredient(ingredient_id):

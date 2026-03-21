@@ -7,34 +7,37 @@
     <h1 style="margin:0">Zutaten verwalten</h1>
     <a href="{{ url_for('recipe.list_recipes') }}" class="rm-btn rm-btn-cancel" style="text-decoration:none;padding:10px 16px;">← Rezepte</a>
 </div>
+<p style="color:#666;margin-bottom:16px;">Standardeinheit wird beim Hinzufügen zu einem Rezept automatisch eingetragen.</p>
 <ul class="ing-manage-list" id="ing-list">
     {% for ingredient in ingredients %}
     <li class="ing-manage-item" id="ing-{{ ingredient.id }}">
         <span>{{ ingredient.name }}</span>
-        <input type="text" value="{{ ingredient.name }}">
-        <button class="ing-small-btn ing-btn-edit" onclick="editIng({{ ingredient.id }})">Umbenennen</button>
+        <input type="text" class="ing-name-field" value="{{ ingredient.name }}" placeholder="Name">
+        <input type="text" class="ing-unit-field" value="{{ ingredient.default_unit or '' }}" placeholder="Einheit (z.B. g, Stück, ml)">
+        <button class="ing-small-btn ing-btn-edit" onclick="editIng({{ ingredient.id }})">Bearbeiten</button>
         <button class="ing-small-btn ing-btn-save" onclick="saveIng({{ ingredient.id }})">Speichern</button>
         <button class="ing-small-btn ing-btn-delete" onclick="deleteIng({{ ingredient.id }}, '{{ ingredient.name }}')">Löschen</button>
     </li>
     {% endfor %}
 </ul>
 <div class="ing-add-form">
-    <input type="text" id="new-ing-name" placeholder="Neue Zutat...">
+    <input type="text" id="new-ing-name" placeholder="Name...">
+    <input type="text" id="new-ing-unit" placeholder="Einheit..." style="width:120px;">
     <button onclick="addIng()">+ Hinzufügen</button>
 </div>
 <script>
 function editIng(id) {
     document.getElementById('ing-' + id).classList.add('editing');
-    document.querySelector('#ing-' + id + ' input').focus();
+    document.querySelector('#ing-' + id + ' .ing-name-field').focus();
 }
 async function saveIng(id) {
-    const input = document.querySelector('#ing-' + id + ' input');
-    const name = input.value.trim();
+    const name = document.querySelector('#ing-' + id + ' .ing-name-field').value.trim();
+    const defaultUnit = document.querySelector('#ing-' + id + ' .ing-unit-field').value.trim();
     if (!name) return;
     const res = await fetch('/api/ingredients/' + id, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name })
+        body: JSON.stringify({ name, default_unit: defaultUnit })
     });
     if (res.ok) {
         document.querySelector('#ing-' + id + ' span').textContent = name;
@@ -54,8 +57,8 @@ async function deleteIng(id, name) {
     }
 }
 async function addIng() {
-    const input = document.getElementById('new-ing-name');
-    const name = input.value.trim();
+    const name = document.getElementById('new-ing-name').value.trim();
+    const defaultUnit = document.getElementById('new-ing-unit').value.trim();
     if (!name) return;
     const res = await fetch('/api/ingredients', {
         method: 'POST',
@@ -64,18 +67,28 @@ async function addIng() {
     });
     const data = await res.json();
     if (res.ok) {
+        // Set default_unit if provided
+        if (defaultUnit) {
+            await fetch('/api/ingredients/' + data.id, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, default_unit: defaultUnit })
+            });
+        }
         const li = document.createElement('li');
         li.className = 'ing-manage-item';
         li.id = 'ing-' + data.id;
         li.innerHTML = `
-            <span>${data.name}</span>
-            <input type="text" value="${data.name}">
-            <button class="ing-small-btn ing-btn-edit" onclick="editIng(${data.id})">Umbenennen</button>
+            <span>${name}</span>
+            <input type="text" class="ing-name-field" value="${name}" placeholder="Name">
+            <input type="text" class="ing-unit-field" value="${defaultUnit}" placeholder="Einheit">
+            <button class="ing-small-btn ing-btn-edit" onclick="editIng(${data.id})">Bearbeiten</button>
             <button class="ing-small-btn ing-btn-save" onclick="saveIng(${data.id})">Speichern</button>
-            <button class="ing-small-btn ing-btn-delete" onclick="deleteIng(${data.id}, '${data.name}')">Löschen</button>
+            <button class="ing-small-btn ing-btn-delete" onclick="deleteIng(${data.id}, '${name}')">Löschen</button>
         `;
         document.getElementById('ing-list').appendChild(li);
-        input.value = '';
+        document.getElementById('new-ing-name').value = '';
+        document.getElementById('new-ing-unit').value = '';
     } else {
         alert('Fehler: ' + (data.error || 'Unbekannt'));
     }

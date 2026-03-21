@@ -194,8 +194,8 @@ function onTypeahead(input, rowId) {
         items.slice(0, 8).forEach(item => {
             const div = document.createElement('div');
             div.className = 'typeahead-option';
-            div.textContent = item.name;
-            div.onmousedown = () => selectIngredient(rowId, item.id, item.name);
+            div.textContent = item.name + (item.default_unit ? ` (${item.default_unit})` : '');
+            div.onmousedown = () => selectIngredient(rowId, item.id, item.name, item.default_unit);
             dropdown.appendChild(div);
         });
 
@@ -204,7 +204,7 @@ function onTypeahead(input, rowId) {
             const div = document.createElement('div');
             div.className = 'typeahead-option create-new';
             div.textContent = `+ Neu anlegen: "${q}"`;
-            div.onmousedown = () => selectIngredient(rowId, null, q);
+            div.onmousedown = () => selectIngredient(rowId, null, q, null);
             dropdown.appendChild(div);
         }
 
@@ -212,11 +212,14 @@ function onTypeahead(input, rowId) {
     }, 200);
 }
 
-function selectIngredient(rowId, ingredientId, name) {
+function selectIngredient(rowId, ingredientId, name, defaultUnit) {
     const row = document.querySelector(`[data-row-id="${rowId}"]`);
     row.dataset.ingredientId = ingredientId || '';
     row.querySelector('.ing-name-input').value = name;
     document.getElementById(`dropdown-${rowId}`).style.display = 'none';
+    if (defaultUnit) {
+        row.querySelector('.ing-unit').value = defaultUnit;
+    }
     row.querySelector('.ing-amount').focus();
 }
 
