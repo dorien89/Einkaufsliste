@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for
 from app.services.recipe_service import RecipeService
-from app.models.recipe import Ingredient
+from app.models.recipe import Ingredient, Category
 
 bp = Blueprint('recipe', __name__, url_prefix='/recipe')
 
@@ -26,4 +26,9 @@ def delete_recipe(recipe_id):
 def manage_ingredients():
     ingredients = Ingredient.query.order_by(Ingredient.name).all()
     return render_template('ingredients.html', ingredients=ingredients)
+
+@bp.route('/categories')
+def manage_categories():
+    categories = Category.query.order_by(Category.name).all()
+    return render_template('categories.html', categories=categories)
 

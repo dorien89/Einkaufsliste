@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/recipe_manage.css') }}">
+{% endblock %}
+{% block content %}
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+    <h1 style="margin:0">Kategorien verwalten</h1>
+    <a href="{{ url_for('recipe.list_recipes') }}" class="rm-btn rm-btn-cancel" style="text-decoration:none;padding:10px 16px;">← Rezepte</a>
+</div>
+<p style="color:#666;margin-bottom:16px;">Kategorien können Rezepten zugewiesen werden. Löschen ist nur möglich wenn keine Rezepte diese Kategorie verwenden.</p>
+<ul class="ing-manage-list" id="cat-list">
+    {% for category in categories %}
+    <li class="ing-manage-item" id="cat-{{ category.id }}">
+        <span>{{ category.name }}</span>
+        <input type="text" class="ing-name-field" value="{{ category.name }}" placeholder="Name">
+        <button class="ing-small-btn ing-btn-edit" onclick="editCat({{ category.id }})">Bearbeiten</button>
+        <button class="ing-small-btn ing-btn-save" onclick="saveCat({{ category.id }})">Speichern</button>
+        <button class="ing-small-btn ing-btn-delete" onclick="deleteCat({{ category.id }}, '{{ category.name }}')">Löschen</button>
+    </li>
+    {% endfor %}
+</ul>
+<div class="ing-add-form">
+    <input type="text" id="new-cat-name" placeholder="Neue Kategorie...">
+    <button onclick="addCat()">+ Hinzufügen</button>
+</div>
+<script>
+function editCat(id) {
+    document.getElementById('cat-' + id).classList.add('editing');
+    document.querySelector('#cat-' + id + ' .ing-name-field').focus();
+}
+async function saveCat(id) {
+    const name = document.querySelector('#cat-' + id + ' .ing-name-field').value.trim();
+    if (!name) return;
+    const res = await fetch('/api/categories/' + id, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name })
+    });
+    if (res.ok) {
+        document.querySelector('#cat-' + id + ' span').textContent = name;
+        document.querySelector('#cat-' + id + ' .ing-name-field').value = name;
+        document.getElementById('cat-' + id).classList.remove('editing');
+    } else {
+        alert('Fehler beim Speichern.');
+    }
+}
+async function deleteCat(id, name) {
+    if (!confirm(`"${name}" wirklich löschen?`)) return;
+    const res = await fetch('/api/categories/' + id, { method: 'DELETE' });
+    const data = await res.json();
+    if (res.ok) {
+        document.getElementById('cat-' + id).remove();
+    } else {
+        alert(data.error || 'Fehler beim Löschen.');
+    }
+}
+async function addCat() {
+    const name = document.getElementById('new-cat-name').value.trim();
+    if (!name) return;
+    const res = await fetch('/api/categories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name })
+    });
+    const data = await res.json();
+    if (res.ok) {
+        const li = document.createElement('li');
+        li.className = 'ing-manage-item';
+        li.id = 'cat-' + data.id;
+        li.innerHTML = `
+            <span>${name}</span>
+            <input type="text" class="ing-name-field" value="${name}" placeholder="Name">
+            <button class="ing-small-btn ing-btn-edit" onclick="editCat(${data.id})">Bearbeiten</button>
+            <button class="ing-small-btn ing-btn-save" onclick="saveCat(${data.id})">Speichern</button>
+            <button class="ing-small-btn ing-btn-delete" onclick="deleteCat(${data.id}, '${name}')">Löschen</button>
+        `;
+        document.getElementById('cat-list').appendChild(li);
+        document.getElementById('new-cat-name').value = '';
+    } else {
+        alert('Fehler: ' + (data.error || 'Unbekannt'));
+    }
+}
+</script>
+{% endblock %}

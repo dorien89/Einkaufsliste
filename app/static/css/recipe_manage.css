@@ -388,6 +388,36 @@
     min-height: 48px;
 }
 
+/* ── Category filter bar ────────────────────────────── */
+.rm-category-filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 8px 10px;
+    border-bottom: 1px solid #ddd;
+    background: #f0f0f0;
+}
+
+.rm-cat-btn {
+    padding: 6px 12px;
+    border: 1px solid #ccc;
+    border-radius: 14px;
+    background: #fff;
+    font-size: 0.82em;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.rm-cat-btn:hover {
+    background: #e8e8e8;
+}
+
+.rm-cat-btn.active {
+    background: #007BFF;
+    color: #fff;
+    border-color: #007BFF;
+}
+
 /* ── Responsive ─────────────────────────────────────── */
 @media (max-width: 767px) {
     .rm-container {

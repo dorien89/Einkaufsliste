@@ -1,12 +1,54 @@
 from app import db
 from flask import Blueprint, jsonify, request
-from app.models.recipe import Recipe, RecipeIngredient, Ingredient
+from app.models.recipe import Recipe, RecipeIngredient, Ingredient, Category
 from app.models.shopping_list import ShoppingList
 from app.services.recipe_service import RecipeService
 import random
 from datetime import datetime
 
 bp = Blueprint('api', __name__, url_prefix='/api')
+
+@bp.route('/categories', methods=['GET'])
+def get_categories():
+    categories = Category.query.order_by(Category.name).all()
+    return jsonify([{'id': c.id, 'name': c.name} for c in categories])
+
+@bp.route('/categories', methods=['POST'])
+def create_category():
+    data = request.get_json()
+    name = data.get('name', '').strip()
+    if not name:
+        return jsonify({'error': 'Name required'}), 400
+    existing = Category.query.filter(Category.name.ilike(name)).first()
+    if existing:
+        return jsonify({'error': 'Category already exists'}), 400
+    category = Category(name=name)
+    db.session.add(category)
+    db.session.commit()
+    return jsonify({'id': category.id, 'name': category.name}), 201
+
+@bp.route('/categories/<int:category_id>', methods=['PUT'])
+def update_category(category_id):
+    category = Category.query.get_or_404(category_id)
+    data = request.get_json()
+    new_name = data.get('name', '').strip()
+    if not new_name:
+        return jsonify({'error': 'Name required'}), 400
+    old_name = category.name
+    category.name = new_name
+    Recipe.query.filter_by(category=old_name).update({'category': new_name})
+    db.session.commit()
+    return jsonify({'id': category.id, 'name': category.name})
+
+@bp.route('/categories/<int:category_id>', methods=['DELETE'])
+def delete_category(category_id):
+    category = Category.query.get_or_404(category_id)
+    in_use = Recipe.query.filter_by(category=category.name).first()
+    if in_use:
+        return jsonify({'error': 'Category is used by recipes'}), 400
+    db.session.delete(category)
+    db.session.commit()
+    return jsonify({'success': True})
 
 @bp.route('/ingredients', methods=['GET'])
 def search_ingredients():

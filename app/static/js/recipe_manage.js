@@ -1,16 +1,52 @@
 let allRecipes = [];
+let allCategories = [];
 let activeRecipeId = null;
+let activeCategory = null;
 
 // ── Init ─────────────────────────────────────────────
 async function init() {
+    await loadCategories();
     await loadRecipeList();
+}
+
+// ── Categories ───────────────────────────────────────
+async function loadCategories() {
+    const res = await fetch('/api/categories');
+    allCategories = await res.json();
+    renderCategoryFilter();
+}
+
+function renderCategoryFilter() {
+    const bar = document.getElementById('rm-category-filter');
+    bar.innerHTML = '';
+    const all = document.createElement('button');
+    all.className = 'rm-cat-btn' + (activeCategory === null ? ' active' : '');
+    all.textContent = 'Alle';
+    all.onclick = () => { activeCategory = null; renderCategoryFilter(); renderList(getFilteredRecipes()); };
+    bar.appendChild(all);
+    allCategories.forEach(cat => {
+        const btn = document.createElement('button');
+        btn.className = 'rm-cat-btn' + (activeCategory === cat.name ? ' active' : '');
+        btn.textContent = cat.name;
+        btn.onclick = () => { activeCategory = cat.name; renderCategoryFilter(); renderList(getFilteredRecipes()); };
+        bar.appendChild(btn);
+    });
+}
+
+function getFilteredRecipes() {
+    const q = document.getElementById('rm-search').value.toLowerCase();
+    return allRecipes.filter(r => {
+        const matchesSearch = r.name.toLowerCase().includes(q) || (r.category || '').toLowerCase().includes(q);
+        const matchesCategory = activeCategory === null || r.category === activeCategory;
+        return matchesSearch && matchesCategory;
+    });
 }
 
 // ── Recipe list ──────────────────────────────────────
 async function loadRecipeList() {
     const response = await fetch('/api/recipes/all');
     allRecipes = await response.json();
-    renderList(allRecipes);
+    renderList(getFilteredRecipes());
 }
 
 function renderList(recipes) {
@@ -30,8 +66,7 @@ function renderList(recipes) {
 }
 
 function filterList() {
-    const q = document.getElementById('rm-search').value.toLowerCase();
-    renderList(allRecipes.filter(r => r.name.toLowerCase().includes(q) || (r.category || '').toLowerCase().includes(q)));
+    renderList(getFilteredRecipes());
 }
 
 // ── Detail view ──────────────────────────────────────
@@ -117,14 +152,10 @@ function renderForm(recipe) {
         </div>
         <div class="rm-form-group">
             <label>Kategorie</label>
-            <input type="text" id="f-category" value="${isEdit ? recipe.category : ''}" placeholder="z.B. Hauptgericht" list="categories-list">
-            <datalist id="categories-list">
-                <option value="Hauptgericht">
-                <option value="Beilage">
-                <option value="Vorspeise">
-                <option value="Dessert">
-                <option value="Snack">
-            </datalist>
+            <select id="f-category">
+                <option value="">-- Keine --</option>
+                ${allCategories.map(c => `<option value="${c.name}" ${isEdit && recipe.category === c.name ? 'selected' : ''}>${c.name}</option>`).join('')}
+            </select>
         </div>
         <div class="rm-form-group">
             <label>Beschreibung (optional)</label>
