@@ -1,5 +1,7 @@
 let shoppingList = [];
 let carouselIndex = 0;
+let allRecipes = [];
+let activeCategory = null;
 
 function toggleShoppingList() {
     const overlay = document.getElementById('shopping-list-overlay');
@@ -126,29 +128,68 @@ function goToShoppingList() {
     window.location.href = '/shopping-list/';
 }
 
-async function loadRecipes() {
-    try {
-        const response = await fetch(`/api/recipes?nocache=${Date.now()}`);
-        const recipes = await response.json();
-        const container = document.querySelector('.grid-container');
-        container.innerHTML = '';
+// ── Category filter ───────────────────────────────────
+function setCategory(cat) {
+    activeCategory = cat;
+    renderFilterBar();
+    renderGrid();
+}
 
-        recipes.forEach(recipe => {
-            const div = document.createElement('div');
-            div.className = 'grid-item';
-            div.textContent = recipe.name;
-            div.dataset.recipeId = recipe.id;
+function renderFilterBar() {
+    const bar = document.getElementById('category-filter-bar');
+    const isFiltered = activeCategory !== null;
+    bar.className = 'kiosk-filter-bar' + (isFiltered ? ' has-filter' : '');
 
-            div.addEventListener('click', () => {
-                addToShoppingList(recipe.id, recipe.name);
-                div.classList.add('clicked');
-                setTimeout(() => div.classList.remove('clicked'), 500);
-            });
+    bar.innerHTML = '';
+    const allBtn = document.createElement('button');
+    allBtn.className = 'kiosk-cat-btn' + (activeCategory === null ? ' active' : '');
+    allBtn.textContent = 'Alle';
+    allBtn.onclick = () => setCategory(null);
+    bar.appendChild(allBtn);
 
-            container.appendChild(div);
+    const categories = [...new Set(allRecipes.map(r => r.category).filter(Boolean))].sort();
+    categories.forEach(cat => {
+        const btn = document.createElement('button');
+        btn.className = 'kiosk-cat-btn' + (activeCategory === cat ? ' active' : '');
+        btn.textContent = cat;
+        btn.onclick = () => setCategory(cat);
+        bar.appendChild(btn);
+    });
+}
+
+function renderGrid() {
+    const container = document.querySelector('.grid-container');
+    container.innerHTML = '';
+
+    const filtered = activeCategory
+        ? allRecipes.filter(r => r.category === activeCategory)
+        : allRecipes;
+
+    filtered.forEach(recipe => {
+        const div = document.createElement('div');
+        div.className = 'grid-item';
+        div.textContent = recipe.name;
+        div.dataset.recipeId = recipe.id;
+
+        div.addEventListener('click', () => {
+            addToShoppingList(recipe.id, recipe.name);
+            div.classList.add('clicked');
+            setTimeout(() => div.classList.remove('clicked'), 500);
         });
 
-        renderShoppingList();
+        container.appendChild(div);
+    });
+
+    renderShoppingList();
+}
+
+// ── Load data ─────────────────────────────────────────
+async function loadRecipes() {
+    try {
+        const response = await fetch(`/api/recipes/all`);
+        allRecipes = await response.json();
+        renderFilterBar();
+        renderGrid();
     } catch (error) {
         console.error('Fehler beim Laden der Rezepte:', error);
     }
