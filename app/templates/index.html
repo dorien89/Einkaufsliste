@@ -1,5 +1,8 @@
 {% extends "base.html" %}
 {% block content %}
-    <h1>Willkommen zur Einkaufslisten-App</h1>
-    <div id="random-recipes"></div>
+    <h1>Einkaufsliste</h1>
+    <div class="landing-links">
+        <a href="{{ url_for('kiosk.run_kiosk') }}" class="btn">Kiosk</a>
+        <a href="{{ url_for('recipe.list_recipes') }}" class="btn">Rezepte verwalten</a>
+    </div>
 {% endblock %}
