@@ -137,6 +137,26 @@ body {
     list-style: none;
     padding: 0;
 }
+.shopping-list-content ul li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px solid #eee;
+}
+.remove-btn {
+    background: none;
+    border: none;
+    color: #e53935;
+    font-size: 1em;
+    cursor: pointer;
+    padding: 0 4px;
+    margin-top: 0 !important;
+}
+.remove-btn:hover {
+    color: #b71c1c;
+    background: none !important;
+}
 .shopping-list-content button {
     margin-top: 20px;
     padding: 10px 20px;

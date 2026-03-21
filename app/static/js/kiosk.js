@@ -25,12 +25,20 @@ function addToShoppingList(recipeId, recipeName) {
 }
 
 
+function removeFromShoppingList(recipeId) {
+    shoppingList = shoppingList.filter(item => item.id !== recipeId);
+    renderShoppingList();
+}
+
 function renderShoppingList() {
     const listElement = document.getElementById('shopping-list-items');
     listElement.innerHTML = '';
     shoppingList.forEach(item => {
         const li = document.createElement('li');
-        li.textContent = `${item.name} - ${item.servings} Portion(en)`;
+        li.innerHTML = `
+            <span>${item.name} - ${item.servings} Portion(en)</span>
+            <button class="remove-btn" onclick="removeFromShoppingList(${item.id})">✕</button>
+        `;
         listElement.appendChild(li);
     });
 
@@ -95,11 +103,9 @@ async function exportShoppingList() {
             return;
         }
 
-        console.log('Einkaufsliste erfolgreich exportiert:', data);
-        alert('Einkaufsliste wurde erfolgreich exportiert.');
-
         shoppingList = [];
         renderShoppingList();
+        window.location.href = '/shopping-list/';
     } catch (error) {
         console.error('Fehler beim Exportieren der Einkaufsliste:', error);
         alert('Fehler beim Exportieren der Einkaufsliste.');
