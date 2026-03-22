@@ -4,10 +4,21 @@ let activeRecipeId = null;
 let activeCategory = null;
 let filterExpanded = window.innerWidth > 767; // collapsed by default on mobile
 
+// ── Scroll progress ───────────────────────────────────
+function updateScrollProgress() {
+    const el = document.getElementById('rm-list-items');
+    const bar = document.getElementById('rm-scroll-progress');
+    if (!el || !bar) return;
+    const { scrollTop, scrollHeight, clientHeight } = el;
+    const scrollable = scrollHeight - clientHeight;
+    bar.style.width = (scrollable > 0 ? (scrollTop / scrollable) * 100 : 100) + '%';
+}
+
 // ── Init ─────────────────────────────────────────────
 async function init() {
     await loadCategories();
     await loadRecipeList();
+    document.getElementById('rm-list-items').addEventListener('scroll', updateScrollProgress);
 }
 
 // ── Categories ───────────────────────────────────────
@@ -68,8 +79,15 @@ async function loadRecipeList() {
 function renderList(recipes) {
     const ul = document.getElementById('rm-list-items');
     ul.innerHTML = '';
+
+    const countEl = document.getElementById('rm-list-count');
+    if (countEl) countEl.textContent = recipes.length === allRecipes.length
+        ? `${recipes.length} Rezepte`
+        : `${recipes.length} von ${allRecipes.length}`;
+
     if (recipes.length === 0) {
         ul.innerHTML = '<li style="padding:16px;color:#aaa">Keine Rezepte gefunden</li>';
+        updateScrollProgress();
         return;
     }
     recipes.forEach(recipe => {
@@ -79,6 +97,7 @@ function renderList(recipes) {
         li.onclick = () => openRecipe(recipe.id);
         ul.appendChild(li);
     });
+    updateScrollProgress();
 }
 
 function filterList() {
