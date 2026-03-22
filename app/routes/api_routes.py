@@ -342,7 +342,15 @@ def clear_week_plan(week_start):
         start = date_type.fromisoformat(week_start)
     except ValueError:
         return jsonify({'error': 'Invalid date'}), 400
-    WeekPlan.query.filter_by(week_start=start).delete()
+    entries = WeekPlan.query.filter_by(week_start=start).all()
+    recipe_ids = {e.recipe_id for e in entries if e.recipe_id}
+    for e in entries:
+        db.session.delete(e)
+    db.session.flush()
+    # Remove from shopping list any recipes no longer referenced by any planner slot
+    for rid in recipe_ids:
+        if not WeekPlan.query.filter_by(recipe_id=rid).first():
+            ShoppingList.query.filter_by(recipe_id=rid, is_active=True).delete()
     db.session.commit()
     return jsonify({'success': True})
 
@@ -383,7 +391,14 @@ def delete_week_slot(week_start, day_index, slot_index):
         start = date_type.fromisoformat(week_start)
     except ValueError:
         return jsonify({'error': 'Invalid date'}), 400
-    WeekPlan.query.filter_by(week_start=start, day_index=day_index, slot_index=slot_index).delete()
+    entry = WeekPlan.query.filter_by(week_start=start, day_index=day_index, slot_index=slot_index).first()
+    if entry:
+        recipe_id = entry.recipe_id
+        db.session.delete(entry)
+        db.session.flush()
+        # Remove from shopping list if no other planner slot still uses this recipe
+        if recipe_id and not WeekPlan.query.filter_by(recipe_id=recipe_id).first():
+            ShoppingList.query.filter_by(recipe_id=recipe_id, is_active=True).delete()
     db.session.commit()
     return jsonify({'success': True})
 
