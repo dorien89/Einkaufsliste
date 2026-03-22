@@ -46,14 +46,24 @@ function renderWeekLabel() {
         `${formatDate(weekStart)} – ${formatDate(end)}${end.getFullYear()}`;
 }
 
+function isToday(dayIndex) {
+    const d = new Date(weekStart);
+    d.setDate(d.getDate() + dayIndex);
+    const t = new Date();
+    return d.getFullYear() === t.getFullYear() &&
+           d.getMonth() === t.getMonth() &&
+           d.getDate() === t.getDate();
+}
+
 function renderDayTabs() {
     const container = document.getElementById('wp-day-tabs');
     container.innerHTML = DAYS.map((name, i) => {
         const d = new Date(weekStart);
         d.setDate(d.getDate() + i);
         const hasFilled = SLOTS.some((_, s) => plan[`${i}_${s}`]);
-        return `<div class="wp-day-tab${i === activeDay ? ' active' : ''}${hasFilled ? ' has-entries' : ''}" data-day="${i}">
-            <div class="day-name">${name}</div>
+        const today = isToday(i);
+        return `<div class="wp-day-tab${i === activeDay ? ' active' : ''}${hasFilled ? ' has-entries' : ''}${today ? ' today' : ''}" data-day="${i}">
+            <div class="day-name">${today ? '•' + name : name}</div>
             <div class="day-date">${formatDate(d)}</div>
             <div class="day-dot"></div>
         </div>`;
@@ -157,11 +167,15 @@ function updateNavButtons() {
     const weeksAhead = (weekStart - TODAY_MONDAY) / msPerWeek;
     document.getElementById('wp-prev').disabled = weeksAhead <= 0;
     document.getElementById('wp-next').disabled = weeksAhead >= 2;
+    document.getElementById('wp-today-bar').style.display = weeksAhead !== 0 ? 'flex' : 'none';
 }
 
 async function changeWeek(delta) {
     weekStart.setDate(weekStart.getDate() + delta * 7);
     weekStart = getMonday(weekStart);
+    // On the current week land on today; on other weeks start at Monday
+    const todayDayIndex = (() => { const d = new Date().getDay(); return d === 0 ? 6 : d - 1; })();
+    activeDay = weekStart.getTime() === TODAY_MONDAY.getTime() ? todayDayIndex : 0;
     await loadWeek();
     render();
     updateNavButtons();
@@ -169,6 +183,14 @@ async function changeWeek(delta) {
 
 document.getElementById('wp-prev').addEventListener('click', () => changeWeek(-1));
 document.getElementById('wp-next').addEventListener('click', () => changeWeek(1));
+document.getElementById('wp-today-btn').addEventListener('click', async () => {
+    const todayDayIndex = (() => { const d = new Date().getDay(); return d === 0 ? 6 : d - 1; })();
+    weekStart = getMonday(new Date());
+    activeDay = todayDayIndex;
+    await loadWeek();
+    render();
+    updateNavButtons();
+});
 
 // ── Picker ────────────────────────────────────────────
 

@@ -32,6 +32,23 @@
     color: #333;
 }
 
+.wp-today-bar {
+    justify-content: center;
+    padding: 4px 0 2px;
+    background: #fff;
+    border-bottom: 1px solid #e8e8e8;
+}
+
+.wp-today-btn {
+    background: none;
+    border: none;
+    color: #007BFF;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 4px 12px;
+    cursor: pointer;
+}
+
 /* Day tabs */
 .wp-day-tabs {
     display: flex;
@@ -76,6 +93,15 @@
 
 .wp-day-tab.active .day-name {
     color: #007BFF;
+}
+
+.wp-day-tab.today .day-name {
+    color: #007BFF;
+}
+
+.wp-day-tab.today .day-date {
+    color: #007BFF;
+    font-weight: 600;
 }
 
 .wp-day-tab .day-dot {
