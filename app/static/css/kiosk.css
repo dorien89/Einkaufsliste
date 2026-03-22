@@ -306,3 +306,22 @@ body {
 .shopping-list-content button:hover {
     background-color: #0056b3;
 }
+
+/* ── Portrait phone safety net ──────────────────────── */
+@media (max-width: 600px) and (orientation: portrait) {
+    .kiosk-wrapper {
+        width: 100%;
+        height: auto;
+        max-height: calc(100vh - 120px);
+    }
+
+    .kiosk-cat-btn {
+        min-height: 44px;
+        padding: 8px 16px;
+    }
+
+    .shopping-list-content {
+        width: 95%;
+        padding: 16px;
+    }
+}

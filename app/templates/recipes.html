@@ -3,7 +3,7 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/recipe_manage.css') }}">
 {% endblock %}
 {% block content %}
-<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+<div class="page-header-row" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
     <h1 style="margin:0">Rezepte</h1>
     <div style="display:flex;gap:8px;">
         <a href="{{ url_for('recipe.manage_categories') }}" class="rm-btn rm-btn-edit" style="text-decoration:none;padding:10px 16px;">Kategorien</a>

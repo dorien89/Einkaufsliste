@@ -3,17 +3,18 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/recipe_manage.css') }}">
 {% endblock %}
 {% block content %}
-<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+<div class="page-header-row" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
     <h1 style="margin:0">Zutaten verwalten</h1>
     <a href="{{ url_for('recipe.list_recipes') }}" class="rm-btn rm-btn-cancel" style="text-decoration:none;padding:10px 16px;">← Rezepte</a>
 </div>
-<p style="color:#666;margin-bottom:16px;">Standardeinheit wird beim Hinzufügen zu einem Rezept automatisch eingetragen.</p>
+<p style="color:#666;margin-bottom:16px;">Standardeinheit wird beim Hinzufügen zu einem Rezept automatisch eingetragen. <strong>Vorrat</strong> = immer zu Hause, wird in der Einkaufsliste unten angezeigt.</p>
 <ul class="ing-manage-list" id="ing-list">
     {% for ingredient in ingredients %}
     <li class="ing-manage-item" id="ing-{{ ingredient.id }}">
         <span>{{ ingredient.name }}</span>
         <input type="text" class="ing-name-field" value="{{ ingredient.name }}" placeholder="Name">
         <input type="text" class="ing-unit-field" value="{{ ingredient.default_unit or '' }}" placeholder="Einheit (z.B. g, Stück, ml)">
+        <label class="ing-staple-label"><input type="checkbox" class="ing-staple-field" {% if ingredient.is_staple %}checked{% endif %}> Vorrat</label>
         <button class="ing-small-btn ing-btn-edit" onclick="editIng({{ ingredient.id }})">Bearbeiten</button>
         <button class="ing-small-btn ing-btn-save" onclick="saveIng({{ ingredient.id }})">Speichern</button>
         <button class="ing-small-btn ing-btn-delete" onclick="deleteIng({{ ingredient.id }}, '{{ ingredient.name }}')">Löschen</button>
@@ -22,7 +23,7 @@
 </ul>
 <div class="ing-add-form">
     <input type="text" id="new-ing-name" placeholder="Name...">
-    <input type="text" id="new-ing-unit" placeholder="Einheit..." style="width:120px;">
+    <input type="text" id="new-ing-unit" placeholder="Einheit...">
     <button onclick="addIng()">+ Hinzufügen</button>
 </div>
 <script>
@@ -33,11 +34,12 @@ function editIng(id) {
 async function saveIng(id) {
     const name = document.querySelector('#ing-' + id + ' .ing-name-field').value.trim();
     const defaultUnit = document.querySelector('#ing-' + id + ' .ing-unit-field').value.trim();
+    const isStaple = document.querySelector('#ing-' + id + ' .ing-staple-field').checked;
     if (!name) return;
     const res = await fetch('/api/ingredients/' + id, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, default_unit: defaultUnit })
+        body: JSON.stringify({ name, default_unit: defaultUnit, is_staple: isStaple })
     });
     if (res.ok) {
         document.querySelector('#ing-' + id + ' span').textContent = name;
@@ -82,6 +84,7 @@ async function addIng() {
             <span>${name}</span>
             <input type="text" class="ing-name-field" value="${name}" placeholder="Name">
             <input type="text" class="ing-unit-field" value="${defaultUnit}" placeholder="Einheit">
+            <label class="ing-staple-label"><input type="checkbox" class="ing-staple-field"> Vorrat</label>
             <button class="ing-small-btn ing-btn-edit" onclick="editIng(${data.id})">Bearbeiten</button>
             <button class="ing-small-btn ing-btn-save" onclick="saveIng(${data.id})">Speichern</button>
             <button class="ing-small-btn ing-btn-delete" onclick="deleteIng(${data.id}, '${name}')">Löschen</button>

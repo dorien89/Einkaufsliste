@@ -3,7 +3,7 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/recipe_manage.css') }}">
 {% endblock %}
 {% block content %}
-<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+<div class="page-header-row" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
     <h1 style="margin:0">Kategorien verwalten</h1>
     <a href="{{ url_for('recipe.list_recipes') }}" class="rm-btn rm-btn-cancel" style="text-decoration:none;padding:10px 16px;">← Rezepte</a>
 </div>

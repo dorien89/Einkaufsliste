@@ -345,6 +345,16 @@
 .ing-manage-item.editing input  { display: block; }
 .ing-manage-item.editing span   { display: none; }
 
+.ing-staple-label {
+    display: none;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.85em;
+    color: #555;
+    white-space: nowrap;
+}
+.ing-manage-item.editing .ing-staple-label { display: flex; }
+
 .ing-small-btn {
     padding: 8px 12px;
     border: none;
@@ -420,24 +430,175 @@
 
 /* ── Responsive ─────────────────────────────────────── */
 @media (max-width: 767px) {
+
+    /* Container: block flow instead of side-by-side */
     .rm-container {
         flex-direction: column;
         height: auto;
+        overflow: visible;
     }
 
+    /* List panel: full viewport height, visible by default */
     .rm-list-panel {
         width: 100%;
         border-right: none;
-        border-bottom: 2px solid #ddd;
-        max-height: 40vh;
+        border-bottom: none;
+        max-height: none;
+        height: calc(100vh - 120px);
+        overflow-y: auto;
     }
 
+    /* Detail panel: hidden by default */
     .rm-detail-panel {
-        min-height: 60vh;
+        display: none;
+        width: 100%;
+        min-height: 0;
     }
 
+    /* Panel swap: when detail is open, hide list, show detail */
+    .rm-container.detail-open .rm-list-panel {
+        display: none;
+    }
+
+    .rm-container.detail-open .rm-detail-panel {
+        display: flex;
+        min-height: calc(100vh - 120px);
+    }
+
+    /* Back button: full-width, easy to tap */
     .rm-back-btn {
-        display: inline-block;
+        display: flex;
+        align-items: center;
+        width: 100%;
+        min-height: 48px;
+        padding: 12px 16px;
+        margin-bottom: 16px;
+        font-size: 1em;
+        background: #f0f0f0;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+    /* Search input: taller touch target */
+    .rm-list-search input {
+        min-height: 44px;
+    }
+
+    /* Category filter buttons: taller */
+    .rm-cat-btn {
+        min-height: 40px;
+        padding: 8px 14px;
+    }
+
+    /* Add recipe button: full width */
+    .rm-list-add-btn {
+        width: calc(100% - 20px);
+        min-height: 52px;
+    }
+
+    /* Detail header: stack title and buttons */
+    .rm-detail-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    /* Action buttons: full width stacked */
+    .rm-action-btns {
+        flex-direction: column;
+    }
+
+    .rm-btn {
+        width: 100%;
+        text-align: center;
+    }
+
+    /* Ingredient rows in form: stack on mobile */
+    .rm-ingredient-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 6px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #eee;
+        margin-bottom: 12px;
+    }
+
+    .rm-ingredient-row .ing-name  { flex: none; width: 100%; }
+    .rm-ingredient-row .ing-amount { width: 100%; }
+    .rm-ingredient-row .ing-unit   { width: 100%; }
+
+    .rm-ingredient-row .ing-remove {
+        width: 100%;
+        height: 44px;
+        border-radius: 6px;
+        font-size: 1em;
+    }
+
+    /* Ingredient table in detail view: collapse to readable format */
+    .rm-ingredient-table thead {
+        display: none;
+    }
+
+    .rm-ingredient-table tr {
+        display: block;
+        padding: 8px 0;
+        border-bottom: 1px solid #eee;
+    }
+
+    .rm-ingredient-table td {
+        display: inline;
+        padding: 0 4px 0 0;
+        border: none;
+        font-size: 0.95em;
+    }
+
+    .rm-ingredient-table td:first-child {
+        display: block;
+        font-weight: 500;
+        padding-bottom: 2px;
+    }
+
+    /* Ingredient management list: raise touch targets */
+    .ing-manage-item {
+        flex-wrap: wrap;
+        padding: 12px 0;
+        gap: 8px;
+    }
+
+    .ing-manage-item > span {
+        flex-basis: 100%;
+        font-size: 1.05em;
+    }
+
+    .ing-manage-item.editing {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .ing-manage-item .ing-name-field,
+    .ing-manage-item .ing-unit-field {
+        width: 100% !important;
+        min-height: 44px;
+    }
+
+    .ing-small-btn {
+        min-height: 44px;
+        padding: 10px 16px;
+        font-size: 0.95em;
+        flex: 1;
+    }
+
+    .ing-add-form {
+        flex-direction: column;
+    }
+
+    .ing-add-form input {
+        width: 100% !important;
+        min-height: 44px;
+    }
+
+    .ing-add-form button {
+        width: 100%;
     }
 }
 

@@ -10,12 +10,23 @@
         {% else %}
             <div class="shopping-list-items">
                 {% if ingredients %}
-                    {% for ingredient in ingredients %}
+                    {% set buy_items = ingredients | selectattr('is_staple', 'equalto', false) | list %}
+                    {% set staple_items = ingredients | selectattr('is_staple', 'equalto', true) | list %}
+                    {% for ingredient in buy_items %}
                         <div class="shopping-list-item">
                             <span class="item-name">{{ ingredient.name }}</span>
                             <span class="item-amount">{{ "%.1f"|format(ingredient.amount) }} {{ ingredient.unit }}</span>
                         </div>
                     {% endfor %}
+                    {% if staple_items %}
+                        <div class="staple-separator">Vorrat</div>
+                        {% for ingredient in staple_items %}
+                            <div class="shopping-list-item staple-item">
+                                <span class="item-name">{{ ingredient.name }}</span>
+                                <span class="item-amount">{{ "%.1f"|format(ingredient.amount) }} {{ ingredient.unit }}</span>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
                 {% else %}
                     <div class="shopping-list-item">
                         <p>Keine aktiven Zutaten in der Einkaufsliste.</p>
@@ -33,7 +44,7 @@
             Drucken
         </button>
         <button onclick="clearShoppingList()" class="action-button button-clear">
-            Die komplette Datenbank leeren!
+            Liste leeren
         </button>
     </div>
 
