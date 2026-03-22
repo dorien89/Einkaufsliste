@@ -7,3 +7,7 @@ bp = Blueprint('main', __name__)
 def index():
     return render_template('index.html')
 
+@bp.route('/planen/')
+def planen():
+    return render_template('planen.html')
+

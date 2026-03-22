@@ -3,7 +3,7 @@
 <div class="landing-welcome">
     <div class="landing-icon">🍳</div>
     <h1>Einkaufsliste</h1>
-    <a href="{{ url_for('kiosk.run_kiosk') }}" class="kiosk-launch-btn">Kiosk öffnen →</a>
-    <p class="landing-hint">Kiosk ist für den Küchen-Touchscreen gedacht.</p>
+    <a href="{{ url_for('main.planen') }}" class="kiosk-launch-btn" style="background:#4caf50;">📋 Woche planen</a>
+    <a href="{{ url_for('kiosk.run_kiosk') }}" class="kiosk-launch-btn" style="background:#007BFF;font-size:0.95rem;padding:10px 24px;">Kiosk öffnen (Küchentouchscreen)</a>
 </div>
 {% endblock %}

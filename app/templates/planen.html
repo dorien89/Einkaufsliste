@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/planen.css') }}">
+{% endblock %}
+{% block content %}
+
+<div class="plan-sticky-header">
+    <input type="search" id="plan-search" class="plan-search" placeholder="Rezept suchen…" autocomplete="off">
+    <div id="plan-cat-bar" class="plan-cat-bar"></div>
+</div>
+
+<div id="plan-list" class="plan-list"></div>
+
+<button id="plan-footer-btn" class="plan-footer-btn" onclick="window.location.href='/shopping-list/'"></button>
+
+{% endblock %}
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/planen.js') }}"></script>
+{% endblock %}

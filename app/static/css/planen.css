@@ -1,0 +1,204 @@
+/* ── Planen page ─────────────────────────────────────── */
+
+/* Sticky search + filter bar */
+.plan-sticky-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: #fff;
+    border-bottom: 1px solid #e0e0e0;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    margin: -20px -20px 0; /* bleed to body edges */
+    padding: 10px 16px 0;
+}
+
+.plan-search {
+    width: 100%;
+    padding: 10px 14px;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-sizing: border-box;
+    margin-bottom: 10px;
+}
+
+.plan-cat-bar {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+    scrollbar-width: none;
+}
+.plan-cat-bar::-webkit-scrollbar { display: none; }
+
+.plan-cat-btn {
+    padding: 6px 16px;
+    border: 1px solid #ccc;
+    border-radius: 20px;
+    background: #fff;
+    font-size: 0.85em;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+    min-height: 36px;
+}
+.plan-cat-btn.active {
+    background: #007BFF;
+    color: #fff;
+    border-color: #007BFF;
+    font-weight: 600;
+}
+
+/* Recipe list */
+.plan-list {
+    margin-top: 12px;
+    padding-bottom: 80px; /* space for footer button + nav */
+}
+
+.plan-group-header {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #999;
+    padding: 16px 4px 6px;
+}
+
+.plan-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 12px;
+    border-radius: 10px;
+    margin-bottom: 6px;
+    background: #f7f7f7;
+    border: 1.5px solid transparent;
+    transition: background 0.15s, border-color 0.15s;
+    min-height: 64px;
+}
+
+.plan-item.in-list {
+    background: #e8f5e9;
+    border-color: #4caf50;
+}
+
+.plan-item-info {
+    flex: 1;
+    min-width: 0;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.plan-item-name {
+    display: block;
+    font-weight: 600;
+    font-size: 1rem;
+    color: #222;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.plan-item-cat {
+    display: inline-block;
+    font-size: 0.72rem;
+    color: #888;
+    background: #e8e8e8;
+    border-radius: 8px;
+    padding: 2px 8px;
+    margin-top: 3px;
+}
+.plan-item.in-list .plan-item-cat {
+    background: #c8e6c9;
+    color: #388e3c;
+}
+
+/* Controls */
+.plan-item-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.plan-btn {
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.4rem;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.plan-add {
+    background: #007BFF;
+    color: #fff;
+}
+
+.plan-plus {
+    background: #4caf50;
+    color: #fff;
+}
+
+.plan-minus {
+    background: #fff;
+    color: #e53935;
+    border: 1.5px solid #e53935;
+}
+
+.plan-count {
+    min-width: 28px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #2e7d32;
+}
+
+.plan-empty {
+    text-align: center;
+    color: #aaa;
+    padding: 40px 20px;
+    font-size: 1rem;
+}
+
+/* Floating footer button */
+.plan-footer-btn {
+    display: none;
+    position: fixed;
+    bottom: 72px; /* above bottom nav */
+    left: 16px;
+    right: 16px;
+    padding: 16px;
+    background: #4caf50;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    z-index: 490;
+    box-shadow: 0 4px 16px rgba(76,175,80,0.35);
+    text-align: center;
+}
+
+/* Desktop: narrower layout */
+@media (min-width: 640px) {
+    .plan-sticky-header {
+        margin: 0 0 0;
+        border-radius: 8px 8px 0 0;
+    }
+
+    .plan-footer-btn {
+        max-width: 600px;
+        left: 50%;
+        right: auto;
+        transform: translateX(-50%);
+        width: calc(100% - 32px);
+    }
+}
