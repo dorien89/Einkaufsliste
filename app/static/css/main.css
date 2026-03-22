@@ -175,6 +175,24 @@ h1 {
     font-size: 0.95rem;
 }
 
+.kiosk-launch-btn {
+    display: inline-block;
+    padding: 14px 32px;
+    background: #007BFF;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 10px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-top: 8px;
+}
+
+.landing-hint {
+    font-size: 0.8rem !important;
+    color: #bbb !important;
+    margin-top: -4px;
+}
+
 @media print {
     .no-print {
         display: none !important;
@@ -307,22 +325,11 @@ h1 {
 @media (max-width: 639px) {
     body {
         padding: 12px;
+        padding-bottom: 80px; /* preserve space for fixed bottom nav */
     }
 
     h1 {
         font-size: 1.3rem;
-    }
-
-    nav {
-        padding: 0 0.5rem;
-        margin-bottom: 1rem;
-    }
-
-    nav a {
-        padding: 0.75rem 1rem;
-        min-height: 44px;
-        display: flex;
-        align-items: center;
     }
 
     /* Page header rows (Rezepte, Zutaten, Kategorien headings with action buttons) */

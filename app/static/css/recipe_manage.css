@@ -460,13 +460,14 @@
         overflow: visible;
     }
 
-    /* List panel: full viewport height, visible by default */
+    /* List panel: full viewport height minus nav bar, visible by default */
     .rm-list-panel {
         width: 100%;
         border-right: none;
         border-bottom: none;
         max-height: none;
-        height: calc(100vh - 120px);
+        height: calc(100dvh - 120px - 62px);
+        height: calc(100vh - 120px - 62px);
         overflow-y: auto;
     }
 
@@ -484,7 +485,8 @@
 
     .rm-container.detail-open .rm-detail-panel {
         display: flex;
-        min-height: calc(100vh - 120px);
+        min-height: calc(100dvh - 120px - 62px);
+        min-height: calc(100vh - 120px - 62px);
     }
 
     /* Back button: full-width, easy to tap */

@@ -9,9 +9,9 @@
 </head>
 <body>
     <nav class="app-nav">
-        <a href="{{ url_for('kiosk.run_kiosk') }}" class="nav-tab {% if request.path.startswith('/kiosk') %}active{% endif %}">
-            <span class="nav-icon">🍳</span>
-            <span class="nav-label">Kiosk</span>
+        <a href="{{ url_for('main.index') }}" class="nav-tab {% if request.path == '/' %}active{% endif %}">
+            <span class="nav-icon">🏠</span>
+            <span class="nav-label">Start</span>
         </a>
         <a href="{{ url_for('shopping-list.view_shopping_list') }}" class="nav-tab {% if request.path.startswith('/shopping-list') %}active{% endif %}">
             <span class="nav-icon">🛒</span>
