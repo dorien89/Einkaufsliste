@@ -66,7 +66,9 @@ async function loadWeekPlan() {
                 data.slots.forEach(s => {
                     if (s.recipe_id) weekPlan[`${ws}|${s.day_index}|${s.slot_index}`] = {
                         id: s.recipe_id,
-                        is_bought: s.is_bought
+                        is_bought: s.is_bought,
+                        in_shopping_list: s.in_shopping_list,
+                        servings: s.servings
                     };
                 });
             }
@@ -187,18 +189,23 @@ function selectDay(dayInfo) {
         const entry = weekPlan[key];
         const takenId = entry?.id;
         const isBought = entry?.is_bought;
+        const inList = entry?.in_shopping_list && !isBought;
         const isThisRecipe = takenId === pickerRecipeId;
         const takenRecipe = takenId ? allRecipes.find(r => r.id === takenId) : null;
         let btnClass = '';
-        if (isThisRecipe) btnClass = isBought ? ' bought selected' : ' selected';
-        else if (isBought) btnClass = ' bought';
-        else if (takenId)  btnClass = ' taken';
+        if (isThisRecipe && isBought)   btnClass = ' bought selected';
+        else if (isThisRecipe && inList) btnClass = ' in-list selected';
+        else if (isThisRecipe)           btnClass = ' selected';
+        else if (isBought)               btnClass = ' bought';
+        else if (inList)                 btnClass = ' in-list';
+        else if (takenId)                btnClass = ' taken';
+        const servingsLabel = entry?.servings ? ` · ${entry.servings} Pers.` : '';
         return `<button class="slot-meal-btn${btnClass}" data-slot="${s}">
             <span class="slot-meal-name">${label}</span>
             ${isThisRecipe
-                ? `<span class="slot-meal-taken">${isBought ? '✓ bereits gekauft' : '✓ gewählt'} — tippen zum ${isBought ? 'Ersetzen' : 'Entfernen'}</span>`
+                ? `<span class="slot-meal-taken">${isBought ? '✓ gekauft' : inList ? '🛒 in Liste' : '✓ gewählt'}${servingsLabel} — tippen zum ${isBought || inList ? 'Ersetzen' : 'Entfernen'}</span>`
                 : takenRecipe
-                    ? `<span class="slot-meal-taken">${isBought ? '✓ ' : ''}${takenRecipe.name}</span>`
+                    ? `<span class="slot-meal-taken">${isBought ? '✓ ' : inList ? '🛒 ' : ''}${takenRecipe.name}${servingsLabel}</span>`
                     : ''}
         </button>`;
     }).join('');
@@ -217,8 +224,8 @@ async function assignOrRemoveSlot(slotIndex) {
     const key = `${weekStartStr}|${dayIndex}|${slotIndex}`;
     const oldEntry = weekPlan[key];
     const oldId = oldEntry?.id;
-    // Toggle off only if same recipe AND not already bought (bought slots get replaced, not toggled)
-    const isToggleOff = oldId === pickerRecipeId && !oldEntry?.is_bought;
+    // Toggle off only if same recipe AND not bought/in-list (those get replaced, not toggled)
+    const isToggleOff = oldId === pickerRecipeId && !oldEntry?.is_bought && !oldEntry?.in_shopping_list;
     const id = pickerRecipeId;
     const name = pickerRecipeName;
     closeSlotPicker();
