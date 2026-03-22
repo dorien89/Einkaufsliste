@@ -37,65 +37,102 @@
     </div>
 
     <div class="button-container">
-        <button onclick="markAllAsBought()" class="action-button button-buy">
-            Alles gekauft
+        {% if ingredients %}
+        <button onclick="shareList()" class="action-button button-share">
+            📤 Teilen / Kopieren
         </button>
-        <button onclick="window.print()" class="action-button button-print">
-            Drucken
-        </button>
-        <button onclick="clearShoppingList()" class="action-button button-clear">
-            Liste leeren
-        </button>
+        {% endif %}
+        <div class="button-row-secondary">
+            <button onclick="markAllAsBought()" class="action-button button-buy">
+                ✓ Gekauft
+            </button>
+            <button onclick="window.print()" class="action-button button-print">
+                🖨️ Drucken
+            </button>
+            <button onclick="clearShoppingList()" class="action-button button-clear">
+                🗑️ Leeren
+            </button>
+        </div>
     </div>
 
 </div>
 
-<!-- Add JavaScript for the buttons -->
 <script>
+// Pass ingredient data to JS for share formatting
+const buyItems = {{ (ingredients | selectattr('is_staple', 'equalto', false) | list) | tojson if ingredients else '[]' }};
+const stapleItems = {{ (ingredients | selectattr('is_staple', 'equalto', true) | list) | tojson if ingredients else '[]' }};
+
+function buildShareText() {
+    const lines = ['🛒 Einkaufsliste\n'];
+
+    buyItems.forEach(i => {
+        const amount = parseFloat(i.amount);
+        const amountStr = Number.isInteger(amount) ? amount : amount.toFixed(1);
+        lines.push(`${i.name} — ${amountStr} ${i.unit}`);
+    });
+
+    if (stapleItems.length > 0) {
+        lines.push('\n── Vorrat (prüfen) ──');
+        lines.push(stapleItems.map(i => i.name).join(', '));
+    }
+
+    return lines.join('\n');
+}
+
+async function shareList() {
+    const text = buildShareText();
+
+    if (navigator.share) {
+        try {
+            await navigator.share({ title: 'Einkaufsliste', text });
+            return;
+        } catch (e) {
+            if (e.name === 'AbortError') return; // user cancelled share sheet
+        }
+    }
+
+    // Fallback: copy to clipboard
+    try {
+        await navigator.clipboard.writeText(text);
+        showToast('Liste in die Zwischenablage kopiert ✓');
+    } catch (e) {
+        // Last resort: prompt
+        prompt('Liste kopieren:', text);
+    }
+}
+
+function showToast(msg) {
+    let t = document.getElementById('sl-toast');
+    if (!t) {
+        t = document.createElement('div');
+        t.id = 'sl-toast';
+        t.style.cssText = 'position:fixed;bottom:140px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 20px;border-radius:20px;font-size:0.9rem;z-index:600;white-space:nowrap;';
+        document.body.appendChild(t);
+    }
+    t.textContent = msg;
+    t.style.display = 'block';
+    setTimeout(() => t.style.display = 'none', 2500);
+}
+
 function markAllAsBought() {
     if (confirm('Alle Artikel als gekauft markieren?')) {
-        fetch('/api/shopping-list/mark-bought', {  // Make sure URL matches your route
+        fetch('/api/shopping-list/mark-bought', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            }
+            headers: { 'Content-Type': 'application/json' }
         })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Server response was not ok');
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log('Success:', data); // Debug log
-            if (data.success) {
-                location.reload();
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error); // Debug log
-            alert('Fehler beim Markieren der Artikel: ' + error.message);
-        });
+        .then(r => r.json())
+        .then(data => { if (data.success) location.reload(); })
+        .catch(e => alert('Fehler: ' + e.message));
     }
 }
 
 function clearShoppingList() {
-    if (confirm('Wirklich die gesamte Einkaufsliste löschen?')) {
-        fetch('/api/admin/shopping-list/clear', {
-            method: 'POST'
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.message) {
-                location.reload();
-            }
-        })
-        .catch(error => alert('Fehler beim Löschen der Liste'));
+    if (confirm('Einkaufsliste wirklich leeren?')) {
+        fetch('/api/admin/shopping-list/clear', { method: 'POST' })
+        .then(r => r.json())
+        .then(data => { if (data.message) location.reload(); })
+        .catch(() => alert('Fehler beim Löschen der Liste'));
     }
-}
-
-function printList() {
-    window.print();
 }
 </script>
 {% endblock %}
