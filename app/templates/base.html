@@ -9,8 +9,8 @@
 </head>
 <body>
     <nav class="app-nav">
-        <a href="{{ url_for('main.planen') }}" class="nav-tab {% if request.path.startswith('/planen') %}active{% endif %}">
-            <span class="nav-icon">📋</span>
+        <a href="{{ url_for('main.wochenplan') }}" class="nav-tab {% if request.path.startswith('/wochenplan') %}active{% endif %}">
+            <span class="nav-icon">📅</span>
             <span class="nav-label">Planen</span>
         </a>
         <a href="{{ url_for('shopping-list.view_shopping_list') }}" class="nav-tab {% if request.path.startswith('/shopping-list') %}active{% endif %}">

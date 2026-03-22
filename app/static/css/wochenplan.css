@@ -1,0 +1,341 @@
+#wp-app {
+    padding-bottom: 80px;
+}
+
+/* Week nav bar */
+.wp-week-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: #fff;
+    border-bottom: 1px solid #e8e8e8;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.wp-nav-btn {
+    background: none;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 6px 16px;
+    font-size: 1.3rem;
+    cursor: pointer;
+    color: #555;
+    min-height: 40px;
+}
+
+.wp-week-label {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #333;
+}
+
+/* Day tabs */
+.wp-day-tabs {
+    display: flex;
+    overflow-x: auto;
+    scrollbar-width: none;
+    border-bottom: 2px solid #e8e8e8;
+    background: #fff;
+    position: sticky;
+    top: 49px;
+    z-index: 99;
+}
+
+.wp-day-tabs::-webkit-scrollbar { display: none; }
+
+.wp-day-tab {
+    flex: 1;
+    min-width: 44px;
+    padding: 8px 2px;
+    text-align: center;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.wp-day-tab .day-name {
+    font-weight: 600;
+    font-size: 0.78rem;
+    color: #555;
+}
+
+.wp-day-tab .day-date {
+    font-size: 0.68rem;
+    color: #aaa;
+    margin-top: 1px;
+}
+
+.wp-day-tab.active {
+    border-bottom-color: #007BFF;
+}
+
+.wp-day-tab.active .day-name {
+    color: #007BFF;
+}
+
+.wp-day-tab .day-dot {
+    width: 5px;
+    height: 5px;
+    background: #22c55e;
+    border-radius: 50%;
+    margin: 3px auto 0;
+    display: none;
+}
+
+.wp-day-tab.has-entries .day-dot {
+    display: block;
+}
+
+/* Slot list */
+.wp-slots {
+    padding: 8px 16px 16px;
+}
+
+.wp-slot {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.wp-slot-label {
+    font-size: 0.75rem;
+    color: #999;
+    width: 76px;
+    flex-shrink: 0;
+    line-height: 1.2;
+}
+
+.wp-slot-recipe {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    background: #f8f9fa;
+    border: 1.5px dashed #ddd;
+    border-radius: 8px;
+    padding: 10px 12px;
+    cursor: pointer;
+    min-height: 44px;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.wp-slot-recipe.filled {
+    background: #e8f5e9;
+    border: 1.5px solid #a5d6a7;
+}
+
+.wp-slot-recipe.in-list {
+    background: #fff8e1;
+    border: 1.5px solid #ffca28;
+}
+
+.wp-slot-recipe.bought {
+    background: #f5f5f5;
+    border: 1.5px solid #ddd;
+    cursor: default;
+}
+
+.wp-slot-recipe.bought .wp-slot-recipe-name {
+    color: #aaa;
+    text-decoration: line-through;
+}
+
+.wp-slot-icon {
+    margin-right: 6px;
+    flex-shrink: 0;
+    font-style: normal;
+}
+
+.wp-slot-recipe-name {
+    font-size: 0.88rem;
+    color: #333;
+    font-weight: 500;
+}
+
+.wp-slot-recipe.empty .wp-slot-recipe-name {
+    color: #bbb;
+    font-weight: 400;
+}
+
+.wp-slot-clear {
+    background: none;
+    border: none;
+    color: #ccc;
+    font-size: 0.9rem;
+    padding: 6px 8px;
+    cursor: pointer;
+    flex-shrink: 0;
+    min-height: 44px;
+    min-width: 36px;
+}
+
+/* Footer */
+.wp-footer {
+    position: fixed;
+    bottom: 62px;
+    left: 0;
+    right: 0;
+    padding: 10px 16px;
+    background: #fff;
+    border-top: 1px solid #e8e8e8;
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.07);
+    z-index: 490;
+}
+
+.wp-to-list-btn {
+    width: 100%;
+    padding: 14px;
+    background: #22c55e;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.wp-clear-btn {
+    width: 100%;
+    padding: 10px;
+    background: none;
+    color: #ef4444;
+    border: 1px solid #ef4444;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 6px;
+}
+
+/* Picker modal (bottom sheet) */
+.wp-picker-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 800;
+}
+
+.wp-picker {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border-radius: 18px 18px 0 0;
+    z-index: 801;
+    flex-direction: column;
+    max-height: 80dvh;
+}
+
+.wp-picker-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px 8px;
+    flex-shrink: 0;
+}
+
+.wp-picker-title {
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+.wp-picker-close {
+    background: #f0f0f0;
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    color: #555;
+}
+
+.wp-picker-search {
+    margin: 0 16px 8px;
+    padding: 10px 14px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    font-size: 1rem;
+    width: calc(100% - 32px);
+    flex-shrink: 0;
+    box-sizing: border-box;
+}
+
+.wp-picker-list {
+    overflow-y: auto;
+    flex: 1;
+    padding: 0 16px 16px;
+    -webkit-overflow-scrolling: touch;
+}
+
+.wp-picker-category {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #aaa;
+    padding: 10px 0 4px;
+}
+
+.wp-picker-item {
+    padding: 13px 8px;
+    border-bottom: 1px solid #f0f0f0;
+    cursor: pointer;
+    font-size: 0.95rem;
+    color: #333;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.wp-picker-item:active {
+    background: #f0f7ff;
+    border-radius: 6px;
+}
+
+/* Toast */
+.wp-toast {
+    position: fixed;
+    bottom: 150px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    z-index: 900;
+    white-space: nowrap;
+}
+
+@media (min-width: 640px) {
+    .wp-footer {
+        position: static;
+        box-shadow: none;
+        border-top: none;
+        padding: 16px 0;
+    }
+
+    #wp-app {
+        max-width: 640px;
+        margin: 0 auto;
+        padding-bottom: 0;
+    }
+
+    .wp-picker {
+        bottom: auto;
+        top: 50%;
+        transform: translateY(-50%);
+        left: 50%;
+        right: auto;
+        margin-left: -280px;
+        width: 560px;
+        border-radius: 14px;
+        max-height: 70vh;
+    }
+}

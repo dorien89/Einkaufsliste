@@ -2,9 +2,11 @@ from app import db
 from flask import Blueprint, jsonify, request
 from app.models.recipe import Recipe, RecipeIngredient, Ingredient, Category
 from app.models.shopping_list import ShoppingList
+from app.models.week_plan import WeekPlan
 from app.services.recipe_service import RecipeService
 import random
-from datetime import datetime
+from datetime import datetime, date as date_type, timedelta
+
 
 bp = Blueprint('api', __name__, url_prefix='/api')
 
@@ -310,20 +312,109 @@ def delete_item(recipe_id):
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
-@bp.route('/shopping-list/mark-bought', methods=['POST'])  # /api is already in the blueprint prefix
+@bp.route('/wochenplan/<week_start>', methods=['GET'])
+def get_week_plan(week_start):
+    try:
+        start = date_type.fromisoformat(week_start)
+    except ValueError:
+        return jsonify({'error': 'Invalid date'}), 400
+    slots = WeekPlan.query.filter_by(week_start=start).all()
+    active_recipe_ids = {
+        sl.recipe_id for sl in ShoppingList.query.filter_by(is_active=True).all()
+    }
+    result = []
+    for s in slots:
+        recipe = Recipe.query.get(s.recipe_id) if s.recipe_id else None
+        result.append({
+            'day_index': s.day_index,
+            'slot_index': s.slot_index,
+            'recipe_id': s.recipe_id,
+            'recipe_name': recipe.name if recipe else None,
+            'is_bought': s.is_bought,
+            'in_shopping_list': s.recipe_id in active_recipe_ids if s.recipe_id else False
+        })
+    return jsonify({'slots': result})
+
+@bp.route('/wochenplan/<week_start>/clear', methods=['DELETE'])
+def clear_week_plan(week_start):
+    try:
+        start = date_type.fromisoformat(week_start)
+    except ValueError:
+        return jsonify({'error': 'Invalid date'}), 400
+    WeekPlan.query.filter_by(week_start=start).delete()
+    db.session.commit()
+    return jsonify({'success': True})
+
+@bp.route('/wochenplan/<week_start>/<int:day_index>/<int:slot_index>', methods=['PUT'])
+def set_week_slot(week_start, day_index, slot_index):
+    try:
+        start = date_type.fromisoformat(week_start)
+    except ValueError:
+        return jsonify({'error': 'Invalid date'}), 400
+    data = request.get_json()
+    recipe_id = data.get('recipe_id')
+    entry = WeekPlan.query.filter_by(week_start=start, day_index=day_index, slot_index=slot_index).first()
+    if entry:
+        entry.recipe_id = recipe_id
+        entry.is_bought = False
+    else:
+        entry = WeekPlan(week_start=start, day_index=day_index, slot_index=slot_index, recipe_id=recipe_id)
+        db.session.add(entry)
+    db.session.commit()
+    return jsonify({'success': True})
+
+@bp.route('/wochenplan/<week_start>/<int:day_index>/<int:slot_index>', methods=['DELETE'])
+def delete_week_slot(week_start, day_index, slot_index):
+    try:
+        start = date_type.fromisoformat(week_start)
+    except ValueError:
+        return jsonify({'error': 'Invalid date'}), 400
+    WeekPlan.query.filter_by(week_start=start, day_index=day_index, slot_index=slot_index).delete()
+    db.session.commit()
+    return jsonify({'success': True})
+
+@bp.route('/wochenplan/<week_start>/to-shopping-list', methods=['POST'])
+def week_to_shopping_list(week_start):
+    try:
+        start = date_type.fromisoformat(week_start)
+    except ValueError:
+        return jsonify({'error': 'Invalid date'}), 400
+    today = date_type.today()
+    slots = WeekPlan.query.filter(
+        WeekPlan.week_start == start,
+        WeekPlan.recipe_id.isnot(None),
+        WeekPlan.is_bought == False
+    ).all()
+    added = 0
+    for s in slots:
+        slot_date = s.week_start + timedelta(days=s.day_index)
+        if slot_date < today:
+            continue
+        if ShoppingList.query.filter_by(recipe_id=s.recipe_id, is_active=True).first():
+            continue
+        db.session.add(ShoppingList(recipe_id=s.recipe_id, servings=1))
+        added += 1
+    db.session.commit()
+    return jsonify({'success': True, 'added': added})
+
+@bp.route('/shopping-list/mark-bought', methods=['POST'])
 def mark_items_bought():
     try:
-        # Mark all active items as bought
         items = ShoppingList.query.filter_by(is_active=True).all()
-        print(f"Found {len(items)} active items") # Debug log
-        
+        bought_recipe_ids = {item.recipe_id for item in items}
+
         for item in items:
             item.is_active = False
             item.bought_at = datetime.utcnow()
-        
+
+        # Mark week plan entries whose recipe was just bought
+        if bought_recipe_ids:
+            for entry in WeekPlan.query.filter(WeekPlan.is_bought == False).all():
+                if entry.recipe_id in bought_recipe_ids:
+                    entry.is_bought = True
+
         db.session.commit()
         return jsonify({'success': True, 'message': 'All items marked as bought'})
     except Exception as e:
-        print(f"Error: {str(e)}") # Debug log
         db.session.rollback()
         return jsonify({'error': str(e)}), 500

@@ -7,37 +7,46 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/kiosk.css') }}">
 </head>
 <body>
-    
 
     <div class="kiosk-wrapper">
         <div id="category-filter-bar" class="kiosk-filter-bar"></div>
-        <div class="grid-container">
-            <!-- Kacheln werden hier dynamisch geladen -->
-        </div>
+        <div class="grid-container"></div>
     </div>
 
-    <!-- Shopping List Overlay -->
-    <div id="shopping-list-overlay" class="hidden">
-        <div class="shopping-list-content">
-            <h2>Einkaufsliste</h2>
-            <ul id="shopping-list-items"></ul>
-            <div class="carousel" id="carousel">
-                <div class="carousel-nav">
-                    <button class="carousel-arrow" id="carousel-prev" onclick="carouselPrev()">‹</button>
-                    <div class="carousel-card" id="carousel-card"></div>
-                    <button class="carousel-arrow" id="carousel-next" onclick="carouselNext()">›</button>
-                </div>
-                <div class="carousel-counter" id="carousel-counter"></div>
-            </div>
-            <button id="clear-list-button" onclick="clearShoppingList()">Liste leeren</button>
-            <button id="export-list-button" onclick="goToShoppingList()">Einkaufsliste erstellen →</button>
-            <button onclick="toggleShoppingList()">Schließen</button>
-        </div>
-    </div>
-    
     <div class="button-container">
-        <button id="shopping-list-button" class="button" onclick="toggleShoppingList()">List<span id="list-badge" class="hidden"></span></button>
         <button id="update-recipes-button" class="button" onclick="loadRecipes()">↺</button>
+    </div>
+
+    <!-- Slot picker overlay -->
+    <div id="slot-backdrop" class="slot-backdrop hidden" onclick="closeSlotPicker()"></div>
+    <div id="slot-picker" class="slot-picker hidden">
+
+        <!-- Always-visible header -->
+        <div class="slot-picker-header">
+            <span id="slot-picker-title" class="slot-picker-title"></span>
+            <button class="slot-picker-close" onclick="closeSlotPicker()">✕</button>
+        </div>
+
+        <!-- Scrollable body -->
+        <div class="slot-picker-body">
+            <!-- Step 1: choose day -->
+            <div id="slot-step-day">
+                <div class="slot-step-label">Welcher Tag?</div>
+                <div class="slot-day-grid" id="slot-day-grid"></div>
+            </div>
+
+            <!-- Step 2: choose meal -->
+            <div id="slot-step-meal" style="display:none;">
+                <div class="slot-step-label" id="slot-meal-label"></div>
+                <div class="slot-meal-list" id="slot-meal-list"></div>
+            </div>
+        </div>
+
+        <!-- Always-visible footer (back button) -->
+        <div class="slot-picker-footer" id="slot-picker-footer" style="display:none;">
+            <button class="slot-back-btn" onclick="slotBackToDay()">← Zurück</button>
+        </div>
+
     </div>
 
     <script src="{{ url_for('static', filename='js/kiosk.js') }}"></script>

@@ -11,3 +11,7 @@ def index():
 def planen():
     return render_template('planen.html')
 
+@bp.route('/wochenplan/')
+def wochenplan():
+    return render_template('wochenplan.html')
+

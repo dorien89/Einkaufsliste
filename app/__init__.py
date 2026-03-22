@@ -33,6 +33,7 @@ def create_app():
     app.register_blueprint(shopping_bp)
 
     with app.app_context():
+        from app.models.week_plan import WeekPlan  # ensure Alembic & create_all see it
         db.create_all()
         from app.models.recipe import Recipe
         if Recipe.query.count() == 0:
