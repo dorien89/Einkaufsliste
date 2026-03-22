@@ -7,6 +7,7 @@ let searchQuery = '';
 // ── Init ─────────────────────────────────────────────
 window.onload = async () => {
     await Promise.all([loadDraft(), loadData()]);
+    render(); // render only after both draft and recipes are loaded
     document.getElementById('plan-search').addEventListener('input', e => {
         searchQuery = e.target.value.toLowerCase();
         render();
@@ -21,7 +22,6 @@ async function loadData() {
     allRecipes = await recipesRes.json();
     allCategories = await catsRes.json();
     renderCategoryFilter();
-    render();
 }
 
 async function loadDraft() {
