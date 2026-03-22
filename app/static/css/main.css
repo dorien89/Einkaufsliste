@@ -305,6 +305,20 @@ h1 {
     font-weight: 700;
 }
 
+.share-option-btn {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 12px;
+    margin-bottom: 8px;
+    text-decoration: none;
+    color: #333;
+    font-size: 0.95rem;
+    box-sizing: border-box;
+}
+
 .button-buy {
     background-color: #22c55e;
     font-size: 0.8rem;

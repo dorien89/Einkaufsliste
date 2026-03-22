@@ -38,87 +38,102 @@
 
     <div class="button-container">
         {% if ingredients %}
-        <button onclick="shareList()" class="action-button button-share">
-            📤 Teilen / Kopieren
+        <button onclick="openShareSheet()" class="action-button button-share">
+            📤 Teilen
         </button>
         {% endif %}
         <div class="button-row-secondary">
-            <button onclick="markAllAsBought()" class="action-button button-buy">
-                ✓ Gekauft
-            </button>
-            <button onclick="window.print()" class="action-button button-print">
-                🖨️ Drucken
-            </button>
-            <button onclick="clearShoppingList()" class="action-button button-clear">
-                🗑️ Leeren
-            </button>
+            <button onclick="markAllAsBought()" class="action-button button-buy">✓ Gekauft</button>
+            <button onclick="window.print()" class="action-button button-print">🖨️ Drucken</button>
+            <button onclick="clearShoppingList()" class="action-button button-clear">🗑️ Leeren</button>
         </div>
     </div>
-
 </div>
 
+<!-- Share sheet -->
+<div id="share-backdrop" onclick="closeShareSheet()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:700;"></div>
+<div id="share-sheet" style="display:none;position:fixed;bottom:0;left:0;right:0;background:#fff;border-radius:18px 18px 0 0;padding:16px 16px 80px;z-index:701;box-shadow:0 -4px 20px rgba(0,0,0,0.15);">
+    <div style="width:40px;height:4px;background:#ddd;border-radius:2px;margin:0 auto 16px;"></div>
+    <div style="font-weight:700;font-size:1rem;margin-bottom:14px;color:#333;">Liste teilen</div>
+    <a id="share-email-btn" class="share-option-btn" style="background:#f0f4ff;">
+        <span style="font-size:1.4rem;">📧</span>
+        <div><strong>Per E-Mail senden</strong><div style="font-size:0.8rem;color:#888;">Öffnet Mail-App</div></div>
+    </a>
+    <a id="share-whatsapp-btn" class="share-option-btn" style="background:#f0fff4;">
+        <span style="font-size:1.4rem;">💬</span>
+        <div><strong>WhatsApp</strong><div style="font-size:0.8rem;color:#888;">Öffnet WhatsApp</div></div>
+    </a>
+    <button onclick="copyList()" class="share-option-btn" style="background:#fff8f0;width:100%;text-align:left;border:none;cursor:pointer;">
+        <span style="font-size:1.4rem;">📋</span>
+        <div><strong>Kopieren</strong><div style="font-size:0.8rem;color:#888;">In Zwischenablage</div></div>
+    </button>
+    <button onclick="closeShareSheet()" style="width:100%;margin-top:8px;padding:14px;background:#f5f5f5;border:none;border-radius:12px;font-size:1rem;color:#555;cursor:pointer;">Abbrechen</button>
+</div>
+
+<div id="sl-toast" style="display:none;position:fixed;bottom:150px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 20px;border-radius:20px;font-size:0.9rem;z-index:800;white-space:nowrap;"></div>
+
 <script>
-// Pass ingredient data to JS for share formatting
 const buyItems = {{ (ingredients | selectattr('is_staple', 'equalto', false) | list) | tojson if ingredients else '[]' }};
 const stapleItems = {{ (ingredients | selectattr('is_staple', 'equalto', true) | list) | tojson if ingredients else '[]' }};
 
 function buildShareText() {
     const lines = ['🛒 Einkaufsliste\n'];
-
     buyItems.forEach(i => {
-        const amount = parseFloat(i.amount);
-        const amountStr = Number.isInteger(amount) ? amount : amount.toFixed(1);
-        lines.push(`${i.name} — ${amountStr} ${i.unit}`);
+        const a = parseFloat(i.amount);
+        lines.push(`${i.name} — ${Number.isInteger(a) ? a : a.toFixed(1)} ${i.unit}`);
     });
-
     if (stapleItems.length > 0) {
         lines.push('\n── Vorrat (prüfen) ──');
         lines.push(stapleItems.map(i => i.name).join(', '));
     }
-
     return lines.join('\n');
 }
 
-async function shareList() {
+function openShareSheet() {
     const text = buildShareText();
+    const encoded = encodeURIComponent(text);
 
-    if (navigator.share) {
-        try {
-            await navigator.share({ title: 'Einkaufsliste', text });
-            return;
-        } catch (e) {
-            if (e.name === 'AbortError') return; // user cancelled share sheet
-        }
-    }
+    document.getElementById('share-email-btn').href =
+        'mailto:?subject=' + encodeURIComponent('Einkaufsliste') + '&body=' + encoded;
 
-    // Fallback: copy to clipboard
-    try {
-        await navigator.clipboard.writeText(text);
-        showToast('Liste in die Zwischenablage kopiert ✓');
-    } catch (e) {
-        // Last resort: prompt
-        prompt('Liste kopieren:', text);
-    }
+    document.getElementById('share-whatsapp-btn').href =
+        'https://wa.me/?text=' + encoded;
+
+    document.getElementById('share-backdrop').style.display = 'block';
+    document.getElementById('share-sheet').style.display = 'block';
+}
+
+function closeShareSheet() {
+    document.getElementById('share-backdrop').style.display = 'none';
+    document.getElementById('share-sheet').style.display = 'none';
+}
+
+function copyList() {
+    const text = buildShareText();
+    // execCommand works without HTTPS; clipboard API requires HTTPS
+    const el = document.createElement('textarea');
+    el.value = text;
+    el.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0;';
+    document.body.appendChild(el);
+    el.focus();
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+    closeShareSheet();
+    showToast('Kopiert ✓');
 }
 
 function showToast(msg) {
-    let t = document.getElementById('sl-toast');
-    if (!t) {
-        t = document.createElement('div');
-        t.id = 'sl-toast';
-        t.style.cssText = 'position:fixed;bottom:140px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 20px;border-radius:20px;font-size:0.9rem;z-index:600;white-space:nowrap;';
-        document.body.appendChild(t);
-    }
+    const t = document.getElementById('sl-toast');
     t.textContent = msg;
     t.style.display = 'block';
-    setTimeout(() => t.style.display = 'none', 2500);
+    setTimeout(() => t.style.display = 'none', 2200);
 }
 
 function markAllAsBought() {
     if (confirm('Alle Artikel als gekauft markieren?')) {
         fetch('/api/shopping-list/mark-bought', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
+            method: 'POST', headers: { 'Content-Type': 'application/json' }
         })
         .then(r => r.json())
         .then(data => { if (data.success) location.reload(); })
