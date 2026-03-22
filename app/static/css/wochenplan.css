@@ -164,6 +164,20 @@
     border: 1.5px solid #ffca28;
 }
 
+.wp-slot-recipe.past {
+    background: #f5f5f5;
+    border: 1.5px dashed #e0e0e0;
+    cursor: default;
+}
+
+.wp-slot-recipe.past .wp-slot-recipe-name {
+    color: #bbb;
+}
+
+.wp-slot-past .wp-slot-label {
+    color: #ccc;
+}
+
 .wp-slot-recipe.bought {
     background: #f5f5f5;
     border: 1.5px solid #ddd;

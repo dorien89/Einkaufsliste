@@ -70,8 +70,17 @@ function renderDayTabs() {
     }).join('');
 }
 
+function isSlotPast() {
+    const d = new Date(weekStart);
+    d.setDate(d.getDate() + activeDay);
+    d.setHours(0, 0, 0, 0);
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    return d < today;
+}
+
 function renderSlots() {
     const container = document.getElementById('wp-slots');
+    const past = isSlotPast();
     container.innerHTML = SLOTS.map((label, s) => {
         const key = `${activeDay}_${s}`;
         const entry = plan[key];
@@ -79,22 +88,24 @@ function renderSlots() {
         const inList = entry && !bought && entry.in_shopping_list;
         let slotClass = 'empty';
         let icon = '';
-        if (bought)       { slotClass = 'bought';   icon = '<span class="wp-slot-icon">✓</span>'; }
-        else if (inList)  { slotClass = 'in-list';  icon = '<span class="wp-slot-icon">🛒</span>'; }
-        else if (entry)   { slotClass = 'filled'; }
-        return `<div class="wp-slot">
+        if (past && entry)  { slotClass = 'past'; }
+        else if (bought)    { slotClass = 'bought';  icon = '<span class="wp-slot-icon">✓</span>'; }
+        else if (inList)    { slotClass = 'in-list'; icon = '<span class="wp-slot-icon">🛒</span>'; }
+        else if (entry)     { slotClass = 'filled'; }
+        const clickable = !past && !bought;
+        return `<div class="wp-slot${past ? ' wp-slot-past' : ''}">
             <span class="wp-slot-label">${label}</span>
-            <div class="wp-slot-recipe ${slotClass}" data-day="${activeDay}" data-slot="${s}">
-                <span class="wp-slot-recipe-name">${icon}${entry ? escHtml(entry.name) : '+ Rezept wählen'}</span>
+            <div class="wp-slot-recipe ${slotClass}"${clickable ? ` data-day="${activeDay}" data-slot="${s}"` : ''}>
+                <span class="wp-slot-recipe-name">${icon}${entry ? escHtml(entry.name) : (past ? '—' : '+ Rezept wählen')}</span>
             </div>
-            ${entry && !bought ? `<button class="wp-slot-clear" data-day="${activeDay}" data-slot="${s}" title="Entfernen">✕</button>` : ''}
-            ${entry && !bought && !inList ? `
+            ${entry ? `<button class="wp-slot-clear" data-day="${activeDay}" data-slot="${s}" title="Entfernen">✕</button>` : ''}
+            ${entry && !past && !bought && !inList ? `
             <div class="wp-slot-servings">
                 <button class="wp-srv-btn" data-day="${activeDay}" data-slot="${s}" data-delta="-1">−</button>
                 <span class="wp-srv-count">${entry.servings} Pers.</span>
                 <button class="wp-srv-btn" data-day="${activeDay}" data-slot="${s}" data-delta="1">+</button>
             </div>` : ''}
-            ${entry && !bought && inList ? `
+            ${entry && !past && !bought && inList ? `
             <div class="wp-slot-servings">
                 <span class="wp-srv-count wp-srv-locked">${entry.servings} Pers.</span>
             </div>` : ''}
@@ -196,7 +207,7 @@ const TODAY_MONDAY = getMonday(new Date());
 function updateNavButtons() {
     const msPerWeek = 7 * 24 * 3600 * 1000;
     const weeksAhead = (weekStart - TODAY_MONDAY) / msPerWeek;
-    document.getElementById('wp-prev').disabled = weeksAhead <= 0;
+    document.getElementById('wp-prev').disabled = weeksAhead <= -4;
     document.getElementById('wp-next').disabled = weeksAhead >= 2;
     document.getElementById('wp-today-bar').style.display = weeksAhead !== 0 ? 'flex' : 'none';
 }

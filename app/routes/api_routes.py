@@ -402,6 +402,20 @@ def delete_week_slot(week_start, day_index, slot_index):
     db.session.commit()
     return jsonify({'success': True})
 
+def _cleanup_past_shopping_list():
+    """Remove active shopping list items whose only plan entries are in the past."""
+    today = date_type.today()
+    for item in ShoppingList.query.filter_by(is_active=True).all():
+        plan_entries = WeekPlan.query.filter_by(recipe_id=item.recipe_id).all()
+        if not plan_entries:
+            continue  # manually added, leave it
+        has_future = any(
+            e.week_start + timedelta(days=e.day_index) >= today
+            for e in plan_entries
+        )
+        if not has_future:
+            db.session.delete(item)
+
 @bp.route('/wochenplan/<week_start>/to-shopping-list', methods=['POST'])
 def week_to_shopping_list(week_start):
     try:
