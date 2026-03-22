@@ -2,6 +2,7 @@ let allRecipes = [];
 let allCategories = [];
 let activeRecipeId = null;
 let activeCategory = null;
+let filterExpanded = window.innerWidth > 767; // collapsed by default on mobile
 
 // ── Init ─────────────────────────────────────────────
 async function init() {
@@ -19,17 +20,32 @@ async function loadCategories() {
 function renderCategoryFilter() {
     const bar = document.getElementById('rm-category-filter');
     bar.innerHTML = '';
+
+    // Toggle button (mobile only — hidden on desktop via CSS)
+    const toggle = document.createElement('button');
+    toggle.className = 'rm-filter-toggle';
+    const label = activeCategory ? activeCategory : 'Alle';
+    toggle.textContent = `Kategorie: ${label} ${filterExpanded ? '▴' : '▾'}`;
+    toggle.onclick = () => { filterExpanded = !filterExpanded; renderCategoryFilter(); };
+    bar.appendChild(toggle);
+
+    // Pills container
+    const pills = document.createElement('div');
+    pills.className = 'rm-filter-pills' + (filterExpanded ? '' : ' collapsed');
+    bar.appendChild(pills);
+
     const all = document.createElement('button');
     all.className = 'rm-cat-btn' + (activeCategory === null ? ' active' : '');
     all.textContent = 'Alle';
-    all.onclick = () => { activeCategory = null; renderCategoryFilter(); renderList(getFilteredRecipes()); };
-    bar.appendChild(all);
+    all.onclick = () => { activeCategory = null; filterExpanded = false; renderCategoryFilter(); renderList(getFilteredRecipes()); };
+    pills.appendChild(all);
+
     allCategories.forEach(cat => {
         const btn = document.createElement('button');
         btn.className = 'rm-cat-btn' + (activeCategory === cat.name ? ' active' : '');
         btn.textContent = cat.name;
-        btn.onclick = () => { activeCategory = cat.name; renderCategoryFilter(); renderList(getFilteredRecipes()); };
-        bar.appendChild(btn);
+        btn.onclick = () => { activeCategory = cat.name; filterExpanded = false; renderCategoryFilter(); renderList(getFilteredRecipes()); };
+        pills.appendChild(btn);
     });
 }
 

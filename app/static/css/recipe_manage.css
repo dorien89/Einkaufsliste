@@ -401,11 +401,33 @@
 /* ── Category filter bar ────────────────────────────── */
 .rm-category-filter {
     display: flex;
+    flex-direction: column;
+    border-bottom: 1px solid #ddd;
+    background: #f0f0f0;
+}
+
+.rm-filter-toggle {
+    display: none; /* shown only on mobile via media query */
+    width: 100%;
+    padding: 10px 14px;
+    background: none;
+    border: none;
+    text-align: left;
+    font-size: 0.9em;
+    color: #333;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.rm-filter-pills {
+    display: flex;
     flex-wrap: wrap;
     gap: 6px;
     padding: 8px 10px;
-    border-bottom: 1px solid #ddd;
-    background: #f0f0f0;
+}
+
+.rm-filter-pills.collapsed {
+    display: none;
 }
 
 .rm-cat-btn {
@@ -483,6 +505,11 @@
     /* Search input: taller touch target */
     .rm-list-search input {
         min-height: 44px;
+    }
+
+    /* Category filter: show toggle, hide pills by default */
+    .rm-filter-toggle {
+        display: block;
     }
 
     /* Category filter buttons: taller */

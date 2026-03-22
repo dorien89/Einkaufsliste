@@ -81,4 +81,10 @@ async function addCat() {
     }
 }
 </script>
+<button id="back-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" style="display:none;position:fixed;bottom:24px;right:20px;z-index:200;width:48px;height:48px;border-radius:50%;border:none;background:#007BFF;color:#fff;font-size:1.4em;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.2);">↑</button>
+<script>
+window.addEventListener('scroll', () => {
+    document.getElementById('back-to-top').style.display = window.scrollY > 200 ? 'block' : 'none';
+});
+</script>
 {% endblock %}
