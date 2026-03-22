@@ -88,11 +88,15 @@ function renderSlots() {
                 <span class="wp-slot-recipe-name">${icon}${entry ? escHtml(entry.name) : '+ Rezept wählen'}</span>
             </div>
             ${entry && !bought ? `<button class="wp-slot-clear" data-day="${activeDay}" data-slot="${s}" title="Entfernen">✕</button>` : ''}
-            ${entry && !bought ? `
+            ${entry && !bought && !inList ? `
             <div class="wp-slot-servings">
                 <button class="wp-srv-btn" data-day="${activeDay}" data-slot="${s}" data-delta="-1">−</button>
                 <span class="wp-srv-count">${entry.servings} Pers.</span>
                 <button class="wp-srv-btn" data-day="${activeDay}" data-slot="${s}" data-delta="1">+</button>
+            </div>` : ''}
+            ${entry && !bought && inList ? `
+            <div class="wp-slot-servings">
+                <span class="wp-srv-count wp-srv-locked">${entry.servings} Pers.</span>
             </div>` : ''}
         </div>`;
     }).join('');

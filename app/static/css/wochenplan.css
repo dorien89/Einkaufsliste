@@ -227,6 +227,10 @@
     text-align: center;
 }
 
+.wp-srv-locked {
+    color: #aaa;
+}
+
 .wp-slot-clear {
     background: none;
     border: none;
