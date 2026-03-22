@@ -409,7 +409,23 @@ body {
     background: #f1f8e9;
 }
 
+.slot-day-btn.has-entries::after {
+    content: '';
+    display: block;
+    width: 6px;
+    height: 6px;
+    background: #22c55e;
+    border-radius: 50%;
+    margin: 3px auto 0;
+}
+
 .slot-day-btn.today {
+    border-color: #007BFF;
+    background: #e3f2fd;
+}
+
+/* today overrides has-entries background but keeps the dot */
+.slot-day-btn.today.has-entries {
     border-color: #007BFF;
     background: #e3f2fd;
 }
