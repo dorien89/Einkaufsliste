@@ -11,6 +11,7 @@ class WeekPlan(db.Model):
                      db.ForeignKey('recipes.id', ondelete='SET NULL'),
                      nullable=True)
 
+    servings   = db.Column(db.Integer, nullable=False, default=1)
     is_bought  = db.Column(db.Boolean, nullable=False, default=False)
 
     recipe = db.relationship('Recipe',

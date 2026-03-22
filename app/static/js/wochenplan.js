@@ -85,9 +85,15 @@ function renderSlots() {
         return `<div class="wp-slot">
             <span class="wp-slot-label">${label}</span>
             <div class="wp-slot-recipe ${slotClass}" data-day="${activeDay}" data-slot="${s}">
-                ${icon}<span class="wp-slot-recipe-name">${entry ? escHtml(entry.name) : '+ Rezept wählen'}</span>
+                <span class="wp-slot-recipe-name">${icon}${entry ? escHtml(entry.name) : '+ Rezept wählen'}</span>
             </div>
             ${entry && !bought ? `<button class="wp-slot-clear" data-day="${activeDay}" data-slot="${s}" title="Entfernen">✕</button>` : ''}
+            ${entry && !bought ? `
+            <div class="wp-slot-servings">
+                <button class="wp-srv-btn" data-day="${activeDay}" data-slot="${s}" data-delta="-1">−</button>
+                <span class="wp-srv-count">${entry.servings} Pers.</span>
+                <button class="wp-srv-btn" data-day="${activeDay}" data-slot="${s}" data-delta="1">+</button>
+            </div>` : ''}
         </div>`;
     }).join('');
 }
@@ -113,13 +119,33 @@ document.getElementById('wp-day-tabs').addEventListener('click', e => {
 
 document.getElementById('wp-slots').addEventListener('click', e => {
     const recipe = e.target.closest('.wp-slot-recipe');
-    if (recipe) {
-        openPicker(parseInt(recipe.dataset.day), parseInt(recipe.dataset.slot));
-        return;
-    }
+    if (recipe) { openPicker(parseInt(recipe.dataset.day), parseInt(recipe.dataset.slot)); return; }
+
+    const srv = e.target.closest('.wp-srv-btn');
+    if (srv) { changeServings(parseInt(srv.dataset.day), parseInt(srv.dataset.slot), parseInt(srv.dataset.delta)); return; }
+
     const clear = e.target.closest('.wp-slot-clear');
     if (clear) clearSlot(parseInt(clear.dataset.day), parseInt(clear.dataset.slot));
 });
+
+async function changeServings(day, slot, delta) {
+    const key = `${day}_${slot}`;
+    const entry = plan[key];
+    if (!entry) return;
+    const newServings = Math.max(1, (entry.servings || 1) + delta);
+    entry.servings = newServings;
+    // Update count display without full re-render
+    const countEl = document.querySelector(`.wp-srv-btn[data-day="${day}"][data-slot="${slot}"][data-delta="-1"]`)
+        ?.parentElement?.querySelector('.wp-srv-count');
+    if (countEl) countEl.textContent = newServings;
+    try {
+        await fetch(`/api/wochenplan/${weekStartStr()}/${day}/${slot}/servings`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ servings: newServings })
+        });
+    } catch(e) {}
+}
 
 document.getElementById('wp-picker-list').addEventListener('click', e => {
     const item = e.target.closest('.wp-picker-item');
@@ -139,6 +165,7 @@ async function loadWeek() {
                     plan[`${s.day_index}_${s.slot_index}`] = {
                         recipe_id: s.recipe_id,
                         name: s.recipe_name,
+                        servings: s.servings,
                         is_bought: s.is_bought,
                         in_shopping_list: s.in_shopping_list
                     };
@@ -250,7 +277,7 @@ async function selectRecipe(id, name) {
             body: JSON.stringify({ recipe_id: id })
         });
         if (!r.ok) throw new Error();
-        plan[`${day}_${slot}`] = { recipe_id: id, name, is_bought: false, in_shopping_list: false };
+        plan[`${day}_${slot}`] = { recipe_id: id, name, servings: 1, is_bought: false, in_shopping_list: false };
         renderDayTabs();
         renderSlots();
     } catch(e) {
@@ -280,7 +307,11 @@ document.getElementById('wp-to-list-btn').addEventListener('click', async () => 
         const r = await fetch(`/api/wochenplan/${weekStartStr()}/to-shopping-list`, { method: 'POST' });
         const data = await r.json();
         if (data.success) {
-            showToast(data.added > 0 ? `${data.added} Rezepte hinzugefügt` : 'Keine neuen Rezepte');
+            if (data.added > 0) {
+                window.location.href = '/shopping-list/';
+            } else {
+                showToast('Keine neuen Rezepte');
+            }
         } else {
             showToast(data.error || 'Fehler');
         }

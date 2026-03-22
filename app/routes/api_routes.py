@@ -330,6 +330,7 @@ def get_week_plan(week_start):
             'slot_index': s.slot_index,
             'recipe_id': s.recipe_id,
             'recipe_name': recipe.name if recipe else None,
+            'servings': s.servings,
             'is_bought': s.is_bought,
             'in_shopping_list': s.recipe_id in active_recipe_ids if s.recipe_id else False
         })
@@ -357,11 +358,24 @@ def set_week_slot(week_start, day_index, slot_index):
     if entry:
         entry.recipe_id = recipe_id
         entry.is_bought = False
+        entry.servings = 1
     else:
-        entry = WeekPlan(week_start=start, day_index=day_index, slot_index=slot_index, recipe_id=recipe_id)
+        entry = WeekPlan(week_start=start, day_index=day_index, slot_index=slot_index, recipe_id=recipe_id, servings=1)
         db.session.add(entry)
     db.session.commit()
     return jsonify({'success': True})
+
+@bp.route('/wochenplan/<week_start>/<int:day_index>/<int:slot_index>/servings', methods=['PATCH'])
+def patch_week_slot_servings(week_start, day_index, slot_index):
+    try:
+        start = date_type.fromisoformat(week_start)
+    except ValueError:
+        return jsonify({'error': 'Invalid date'}), 400
+    entry = WeekPlan.query.filter_by(week_start=start, day_index=day_index, slot_index=slot_index).first_or_404()
+    servings = request.get_json().get('servings', 1)
+    entry.servings = max(1, int(servings))
+    db.session.commit()
+    return jsonify({'success': True, 'servings': entry.servings})
 
 @bp.route('/wochenplan/<week_start>/<int:day_index>/<int:slot_index>', methods=['DELETE'])
 def delete_week_slot(week_start, day_index, slot_index):
@@ -392,7 +406,7 @@ def week_to_shopping_list(week_start):
             continue
         if ShoppingList.query.filter_by(recipe_id=s.recipe_id, is_active=True).first():
             continue
-        db.session.add(ShoppingList(recipe_id=s.recipe_id, servings=1))
+        db.session.add(ShoppingList(recipe_id=s.recipe_id, servings=s.servings))
         added += 1
     db.session.commit()
     return jsonify({'success': True, 'added': added})
