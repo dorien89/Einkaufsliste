@@ -8,31 +8,97 @@ body {
     font-family: Arial, sans-serif;
     line-height: 1.6;
     padding: 20px;
+    padding-bottom: 80px; /* room for fixed bottom nav */
     max-width: 1200px;
     margin: 0 auto;
 }
 
-nav {
-    background-color: #f4f4f4;
-    padding: 1rem;
-    margin-bottom: 2rem;
-}
-
-nav ul {
-    list-style: none;
+/* ── Bottom tab bar (mobile-first) ──────────────────── */
+.app-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 62px;
     display: flex;
-    gap: 1rem;
+    background: #fff;
+    border-top: 1px solid #e0e0e0;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.08);
+    z-index: 500;
 }
 
-nav a {
-    color: #333;
+.nav-tab {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     text-decoration: none;
-    padding: 0.5rem 1rem;
+    color: #999;
+    gap: 3px;
+    padding: 8px 4px 10px;
+    transition: color 0.15s;
 }
 
-nav a:hover {
-    background-color: #ddd;
-    border-radius: 4px;
+.nav-tab.active {
+    color: #007BFF;
+}
+
+.nav-tab:hover {
+    color: #007BFF;
+}
+
+.nav-icon {
+    font-size: 1.5rem;
+    line-height: 1;
+}
+
+.nav-label {
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+}
+
+/* ── Desktop: top header bar ─────────────────────────── */
+@media (min-width: 768px) {
+    body {
+        padding: 20px;
+        padding-top: 0;
+    }
+
+    .app-nav {
+        position: static;
+        height: auto;
+        border-top: none;
+        border-bottom: 2px solid #e8e8e8;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+        padding: 0 24px;
+        margin-bottom: 28px;
+        flex-direction: row;
+        justify-content: flex-start;
+    }
+
+    .nav-tab {
+        flex: none;
+        flex-direction: row;
+        gap: 6px;
+        padding: 14px 20px;
+        font-size: 0.95rem;
+        border-bottom: 3px solid transparent;
+        margin-bottom: -2px;
+    }
+
+    .nav-tab.active {
+        border-bottom-color: #007BFF;
+    }
+
+    .nav-icon {
+        font-size: 1.1rem;
+    }
+
+    .nav-label {
+        font-size: 0.95rem;
+    }
 }
 
 h1 {
@@ -80,6 +146,33 @@ h1 {
 
 #ingredients-container {
     margin-top: 1rem;
+}
+
+/* ── Landing page ────────────────────────────────────── */
+.landing-welcome {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 50vh;
+    gap: 12px;
+    text-align: center;
+    color: #555;
+}
+
+.landing-icon {
+    font-size: 4rem;
+    line-height: 1;
+}
+
+.landing-welcome h1 {
+    margin-bottom: 0;
+    color: #333;
+}
+
+.landing-welcome p {
+    color: #999;
+    font-size: 0.95rem;
 }
 
 @media print {
@@ -158,7 +251,7 @@ h1 {
 
 .button-container {
     position: fixed;
-    bottom: 0;
+    bottom: 62px; /* sit above bottom nav */
     left: 0;
     right: 0;
     padding: 0.75rem;
@@ -167,6 +260,7 @@ h1 {
     display: flex;
     justify-content: space-around;
     gap: 0.5rem;
+    z-index: 490;
 }
 
 .action-button {
@@ -193,9 +287,9 @@ h1 {
     background-color: #3b82f6;
 }
 
-/* Add padding to main content to prevent overlap with fixed buttons */
+/* Add padding to main content to prevent overlap with fixed buttons + bottom nav */
 .main-content {
-    padding-bottom: 4rem;
+    padding-bottom: 8rem; /* button-container (3.5rem) + bottom nav (62px) */
 }
 
 /* Print styles */
@@ -309,9 +403,10 @@ h1 {
         max-width: 600px;
         padding: 1rem;
     }
-    
+
     .button-container {
         position: static;
+        bottom: auto;
         box-shadow: none;
         padding: 1rem 0;
     }

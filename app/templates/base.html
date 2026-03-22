@@ -8,11 +8,19 @@
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <nav>
-        <ul>
-            <li><a href="{{ url_for('main.index') }}">Start</a></li>
-            <li><a href="{{ url_for('recipe.list_recipes') }}">Rezepte</a></li>
-        </ul>
+    <nav class="app-nav">
+        <a href="{{ url_for('kiosk.run_kiosk') }}" class="nav-tab {% if request.path.startswith('/kiosk') %}active{% endif %}">
+            <span class="nav-icon">🍳</span>
+            <span class="nav-label">Kiosk</span>
+        </a>
+        <a href="{{ url_for('shopping-list.view_shopping_list') }}" class="nav-tab {% if request.path.startswith('/shopping-list') %}active{% endif %}">
+            <span class="nav-icon">🛒</span>
+            <span class="nav-label">Einkaufsliste</span>
+        </a>
+        <a href="{{ url_for('recipe.list_recipes') }}" class="nav-tab {% if request.path.startswith('/recipe') %}active{% endif %}">
+            <span class="nav-icon">📖</span>
+            <span class="nav-label">Rezepte</span>
+        </a>
     </nav>
     <main>
         {% block content %}{% endblock %}
