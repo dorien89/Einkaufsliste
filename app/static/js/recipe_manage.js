@@ -48,14 +48,14 @@ function renderCategoryFilter() {
     const all = document.createElement('button');
     all.className = 'rm-cat-btn' + (activeCategory === null ? ' active' : '');
     all.textContent = 'Alle';
-    all.onclick = () => { activeCategory = null; filterExpanded = false; renderCategoryFilter(); renderList(getFilteredRecipes()); };
+    all.onclick = () => { activeCategory = null; if (window.innerWidth <= 767) filterExpanded = false; renderCategoryFilter(); renderList(getFilteredRecipes()); };
     pills.appendChild(all);
 
     allCategories.forEach(cat => {
         const btn = document.createElement('button');
         btn.className = 'rm-cat-btn' + (activeCategory === cat.name ? ' active' : '');
         btn.textContent = cat.name;
-        btn.onclick = () => { activeCategory = cat.name; filterExpanded = false; renderCategoryFilter(); renderList(getFilteredRecipes()); };
+        btn.onclick = () => { activeCategory = cat.name; if (window.innerWidth <= 767) filterExpanded = false; renderCategoryFilter(); renderList(getFilteredRecipes()); };
         pills.appendChild(btn);
     });
 }
