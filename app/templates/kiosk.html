@@ -14,7 +14,20 @@
     </div>
 
     <div class="button-container">
+        <button id="theme-btn" class="button" onclick="toggleThemePicker()" title="Design ändern">🎨</button>
         <button id="update-recipes-button" class="button" onclick="loadRecipes()">↺</button>
+    </div>
+
+    <div id="theme-picker-panel" class="hidden">
+        <button class="theme-option" data-theme="küche" onclick="setTheme('küche')">
+            <span class="theme-swatch" style="background:#fdf6ee;border-color:#c8622a"></span> Küche
+        </button>
+        <button class="theme-option" data-theme="garten" onclick="setTheme('garten')">
+            <span class="theme-swatch" style="background:#f2f8f2;border-color:#3a7d44"></span> Garten
+        </button>
+        <button class="theme-option" data-theme="nacht" onclick="setTheme('nacht')">
+            <span class="theme-swatch" style="background:#1e1e28;border-color:#e08c5a"></span> Nacht
+        </button>
     </div>
 
     <!-- Slot picker overlay -->

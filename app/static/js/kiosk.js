@@ -1,3 +1,31 @@
+// ── Theme ─────────────────────────────────────────────
+const THEMES = ['küche', 'garten', 'nacht'];
+
+function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    document.querySelectorAll('.theme-option').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.theme === theme);
+    });
+}
+
+function setTheme(theme) {
+    applyTheme(theme);
+    localStorage.setItem('kiosk-theme', theme);
+    closeThemePicker();
+}
+
+function toggleThemePicker() {
+    const panel = document.getElementById('theme-picker-panel');
+    panel.classList.toggle('hidden');
+}
+
+function closeThemePicker() {
+    document.getElementById('theme-picker-panel').classList.add('hidden');
+}
+
+// ── Init theme from localStorage ──────────────────────
+applyTheme(localStorage.getItem('kiosk-theme') || 'küche');
+
 const DAY_NAMES = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
 const SLOTS = ['Frühstück', 'Vormittag', 'Mittagessen', 'Nachmittag', 'Abendessen'];
 
@@ -147,6 +175,7 @@ function openSlotPicker(id, name) {
 }
 
 function closeSlotPicker() {
+    closeThemePicker();
     document.getElementById('slot-backdrop').classList.add('hidden');
     document.getElementById('slot-picker').classList.add('hidden');
     pickerRecipeId = null;
@@ -336,4 +365,5 @@ async function refreshWeekPlan() {
 window.onload = async () => {
     await Promise.all([loadWeekPlan(), loadRecipes()]);
     setInterval(refreshWeekPlan, 30000);
+    document.querySelector('.kiosk-wrapper').addEventListener('click', closeThemePicker);
 };
