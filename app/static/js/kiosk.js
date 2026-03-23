@@ -286,6 +286,15 @@ async function loadRecipes() {
     }
 }
 
+async function refreshWeekPlan() {
+    await loadWeekPlan();
+    document.querySelectorAll('.grid-item').forEach(tile => {
+        const recipeId = parseInt(tile.dataset.recipeId);
+        tile.classList.toggle('planned', Object.values(weekPlan).some(v => v.id === recipeId));
+    });
+}
+
 window.onload = async () => {
     await Promise.all([loadWeekPlan(), loadRecipes()]);
+    setInterval(refreshWeekPlan, 30000);
 };
