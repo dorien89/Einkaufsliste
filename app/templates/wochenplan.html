@@ -8,6 +8,7 @@
     <div class="wp-week-nav">
         <button id="wp-prev" class="wp-nav-btn">‹</button>
         <span id="wp-week-label" class="wp-week-label"></span>
+        <button id="wp-overview-btn" class="wp-overview-btn" onclick="toggleOverview()">Woche</button>
         <button id="wp-next" class="wp-nav-btn">›</button>
     </div>
     <div id="wp-today-bar" class="wp-today-bar" style="display:none;">
@@ -17,6 +18,7 @@
     <div class="wp-day-tabs" id="wp-day-tabs"></div>
 
     <div class="wp-slots" id="wp-slots"></div>
+    <div id="wp-overview" style="display:none;"></div>
 
     <div class="wp-footer">
         <button id="wp-to-list-btn" class="wp-to-list-btn">🛒 Zur Einkaufsliste hinzufügen</button>
@@ -36,6 +38,16 @@
 </div>
 
 <div id="wp-toast" class="wp-toast" style="display:none;"></div>
+
+<!-- Clear-week confirm sheet -->
+<div id="wp-clear-backdrop" onclick="closeClearConfirm()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:900;"></div>
+<div id="wp-clear-sheet" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--app-surface,#fff);border-radius:18px 18px 0 0;padding:20px 16px 40px;z-index:901;box-shadow:0 -4px 20px rgba(0,0,0,0.15);">
+    <div style="width:40px;height:4px;background:var(--app-border,#ddd);border-radius:2px;margin:0 auto 18px;"></div>
+    <div style="font-weight:700;font-size:1.05rem;margin-bottom:6px;color:var(--app-text,#333);text-align:center;">Woche leeren?</div>
+    <div style="font-size:0.85rem;color:var(--app-muted,#888);text-align:center;margin-bottom:22px;">Alle Einträge dieser Woche werden gelöscht.</div>
+    <button onclick="confirmClearWeek()" style="width:100%;padding:15px;background:#ef4444;color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;margin-bottom:10px;">🗑️ Ja, Woche leeren</button>
+    <button onclick="closeClearConfirm()" style="width:100%;padding:14px;background:var(--app-border,#f5f5f5);border:none;border-radius:12px;font-size:1rem;color:var(--app-muted,#555);cursor:pointer;">Abbrechen</button>
+</div>
 {% endblock %}
 {% block extra_js %}
 <script src="{{ url_for('static', filename='js/wochenplan.js') }}"></script>

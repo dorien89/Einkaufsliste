@@ -1,3 +1,38 @@
+/* ── App theme variables ───────────────────────────────── */
+:root, [data-theme="küche"] {
+    --app-accent:      #c8622a;
+    --app-accent-light: rgba(200, 98, 42, 0.10);
+    --app-bg:          #fdf8f4;
+    --app-surface:     #ffffff;
+    --app-border:      #e8d5be;
+    --app-text:        #2c1a08;
+    --app-muted:       #9a7a60;
+    --app-nav-bg:      #ffffff;
+    --app-nav-border:  #e8d5be;
+}
+[data-theme="garten"] {
+    --app-accent:      #3a7d44;
+    --app-accent-light: rgba(58, 125, 68, 0.10);
+    --app-bg:          #f5faf5;
+    --app-surface:     #ffffff;
+    --app-border:      #c8dcc8;
+    --app-text:        #1a3320;
+    --app-muted:       #5a7a5a;
+    --app-nav-bg:      #ffffff;
+    --app-nav-border:  #c8dcc8;
+}
+[data-theme="nacht"] {
+    --app-accent:      #ff8c42;
+    --app-accent-light: rgba(255, 140, 66, 0.14);
+    --app-bg:          #1e1e28;
+    --app-surface:     #28283a;
+    --app-border:      #3e3e52;
+    --app-text:        #ede0cc;
+    --app-muted:       #8888aa;
+    --app-nav-bg:      #1a1a26;
+    --app-nav-border:  #3e3e52;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -6,12 +41,15 @@
 }
 
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'Segoe UI', Arial, sans-serif;
     line-height: 1.6;
     padding: 20px;
-    padding-bottom: 80px; /* room for fixed bottom nav */
+    padding-bottom: 80px;
     max-width: 1200px;
     margin: 0 auto;
+    background-color: var(--app-bg);
+    color: var(--app-text);
+    transition: background-color 0.3s, color 0.3s;
 }
 
 /* ── Bottom tab bar (mobile-first) ──────────────────── */
@@ -22,8 +60,8 @@ body {
     right: 0;
     height: 62px;
     display: flex;
-    background: #fff;
-    border-top: 1px solid #e0e0e0;
+    background: var(--app-nav-bg);
+    border-top: 1px solid var(--app-nav-border);
     box-shadow: 0 -2px 10px rgba(0,0,0,0.08);
     z-index: 500;
 }
@@ -35,18 +73,18 @@ body {
     align-items: center;
     justify-content: center;
     text-decoration: none;
-    color: #999;
+    color: var(--app-muted);
     gap: 3px;
     padding: 8px 4px 10px;
     transition: color 0.15s;
 }
 
 .nav-tab.active {
-    color: #007BFF;
+    color: var(--app-accent);
 }
 
 .nav-tab:hover {
-    color: #007BFF;
+    color: var(--app-accent);
 }
 
 .nav-icon {
@@ -71,7 +109,7 @@ body {
         position: static;
         height: auto;
         border-top: none;
-        border-bottom: 2px solid #e8e8e8;
+        border-bottom: 2px solid var(--app-nav-border);
         box-shadow: 0 1px 4px rgba(0,0,0,0.06);
         padding: 0 24px;
         margin-bottom: 28px;
@@ -90,7 +128,7 @@ body {
     }
 
     .nav-tab.active {
-        border-bottom-color: #007BFF;
+        border-bottom-color: var(--app-accent);
     }
 
     .nav-icon {
@@ -179,7 +217,7 @@ h1 {
 .kiosk-launch-btn {
     display: inline-block;
     padding: 14px 32px;
-    background: #007BFF;
+    background: var(--app-accent);
     color: #fff;
     text-decoration: none;
     border-radius: 10px;
@@ -226,7 +264,7 @@ h1 {
 }
 
 .shopping-list-items {
-    background: white;
+    background: var(--app-surface);
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     margin-bottom: 1rem;

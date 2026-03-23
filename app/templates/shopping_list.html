@@ -2,6 +2,9 @@
 {% block content %}
 
 <div class="shopping-list-container">
+    <div style="margin-bottom:8px;">
+        <a href="{{ url_for('main.wochenplan') }}" style="font-size:0.85rem;color:var(--app-muted,#888);text-decoration:none;font-weight:600;">← Zurück zum Planer</a>
+    </div>
     <h1 class="shopping-list-header">Einkaufsliste</h1>
 
     <div class="main-content">
@@ -45,7 +48,7 @@
         <div class="button-row-secondary">
             <button onclick="openBoughtConfirm()" class="action-button button-buy">✓ Gekauft</button>
             <button onclick="window.print()" class="action-button button-print">🖨️ Drucken</button>
-            <button onclick="clearShoppingList()" class="action-button button-clear">🗑️ Leeren</button>
+            <button onclick="openClearConfirm()" class="action-button button-clear">🗑️ Leeren</button>
         </div>
     </div>
 </div>
@@ -78,6 +81,16 @@
     <div style="font-size:0.85rem;color:#888;text-align:center;margin-bottom:22px;">Die Einkaufsliste wird geleert und der Wochenplan aktualisiert.</div>
     <button onclick="confirmBought()" style="width:100%;padding:15px;background:#22c55e;color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;margin-bottom:10px;">✓ Ja, alles gekauft</button>
     <button onclick="closeBoughtConfirm()" style="width:100%;padding:14px;background:#f5f5f5;border:none;border-radius:12px;font-size:1rem;color:#555;cursor:pointer;">Abbrechen</button>
+</div>
+
+<!-- Clear list confirm sheet -->
+<div id="clear-backdrop" onclick="closeClearConfirm()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:700;"></div>
+<div id="clear-sheet" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--app-surface,#fff);border-radius:18px 18px 0 0;padding:20px 16px 40px;z-index:701;box-shadow:0 -4px 20px rgba(0,0,0,0.15);">
+    <div style="width:40px;height:4px;background:var(--app-border,#ddd);border-radius:2px;margin:0 auto 18px;"></div>
+    <div style="font-weight:700;font-size:1.05rem;margin-bottom:6px;color:var(--app-text,#333);text-align:center;">Liste leeren?</div>
+    <div style="font-size:0.85rem;color:var(--app-muted,#888);text-align:center;margin-bottom:22px;">Die Einkaufsliste wird endgültig geleert.</div>
+    <button onclick="confirmClear()" style="width:100%;padding:15px;background:#ef4444;color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;margin-bottom:10px;">🗑️ Ja, leeren</button>
+    <button onclick="closeClearConfirm()" style="width:100%;padding:14px;background:var(--app-border,#f5f5f5);border:none;border-radius:12px;font-size:1rem;color:var(--app-muted,#555);cursor:pointer;">Abbrechen</button>
 </div>
 
 <div id="sl-toast" style="display:none;position:fixed;bottom:150px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 20px;border-radius:20px;font-size:0.9rem;z-index:800;white-space:nowrap;"></div>
@@ -160,13 +173,20 @@ function confirmBought() {
     .catch(e => showToast('Fehler: ' + e.message));
 }
 
-function clearShoppingList() {
-    if (confirm('Einkaufsliste wirklich leeren?')) {
-        fetch('/api/admin/shopping-list/clear', { method: 'POST' })
+function openClearConfirm() {
+    document.getElementById('clear-backdrop').style.display = 'block';
+    document.getElementById('clear-sheet').style.display = 'block';
+}
+function closeClearConfirm() {
+    document.getElementById('clear-backdrop').style.display = 'none';
+    document.getElementById('clear-sheet').style.display = 'none';
+}
+function confirmClear() {
+    closeClearConfirm();
+    fetch('/api/admin/shopping-list/clear', { method: 'POST' })
         .then(r => r.json())
         .then(data => { if (data.message) location.reload(); })
-        .catch(() => alert('Fehler beim Löschen der Liste'));
-    }
+        .catch(() => showToast('Fehler beim Löschen'));
 }
 </script>
 {% endblock %}

@@ -8,8 +8,8 @@
     align-items: center;
     justify-content: space-between;
     padding: 10px 16px;
-    background: #fff;
-    border-bottom: 1px solid #e8e8e8;
+    background: var(--app-surface, #fff);
+    border-bottom: 1px solid var(--app-border, #e8e8e8);
     position: sticky;
     top: 0;
     z-index: 100;
@@ -35,14 +35,14 @@
 .wp-today-bar {
     justify-content: center;
     padding: 4px 0 2px;
-    background: #fff;
-    border-bottom: 1px solid #e8e8e8;
+    background: var(--app-surface, #fff);
+    border-bottom: 1px solid var(--app-border, #e8e8e8);
 }
 
 .wp-today-btn {
     background: none;
     border: none;
-    color: #007BFF;
+    color: var(--app-accent, #007BFF);
     font-size: 0.8rem;
     font-weight: 600;
     padding: 4px 12px;
@@ -54,8 +54,8 @@
     display: flex;
     overflow-x: auto;
     scrollbar-width: none;
-    border-bottom: 2px solid #e8e8e8;
-    background: #fff;
+    border-bottom: 2px solid var(--app-border, #e8e8e8);
+    background: var(--app-surface, #fff);
     position: sticky;
     top: 49px;
     z-index: 99;
@@ -88,19 +88,19 @@
 }
 
 .wp-day-tab.active {
-    border-bottom-color: #007BFF;
+    border-bottom-color: var(--app-accent, #007BFF);
 }
 
 .wp-day-tab.active .day-name {
-    color: #007BFF;
+    color: var(--app-accent, #007BFF);
 }
 
 .wp-day-tab.today .day-name {
-    color: #007BFF;
+    color: var(--app-accent, #007BFF);
 }
 
 .wp-day-tab.today .day-date {
-    color: #007BFF;
+    color: var(--app-accent, #007BFF);
     font-weight: 600;
 }
 
@@ -264,8 +264,8 @@
     left: 0;
     right: 0;
     padding: 10px 16px;
-    background: #fff;
-    border-top: 1px solid #e8e8e8;
+    background: var(--app-surface, #fff);
+    border-top: 1px solid var(--app-border, #e8e8e8);
     box-shadow: 0 -2px 8px rgba(0,0,0,0.07);
     z-index: 490;
 }
@@ -378,6 +378,86 @@
 .wp-picker-item:active {
     background: #f0f7ff;
     border-radius: 6px;
+}
+
+/* Overview toggle button */
+.wp-overview-btn {
+    background: none;
+    border: 1px solid var(--app-border, #ddd);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--app-muted, #777);
+    min-height: 40px;
+    transition: background 0.15s, color 0.15s;
+}
+.wp-overview-btn.active {
+    background: var(--app-accent-light, rgba(0,123,255,0.10));
+    color: var(--app-accent, #007BFF);
+    border-color: var(--app-accent, #007BFF);
+}
+
+/* Week overview panel */
+#wp-overview {
+    padding: 0 16px 16px;
+}
+
+.wp-overview-day {
+    padding: 12px 8px;
+    border-bottom: 1px solid var(--app-border, #f0f0f0);
+    cursor: pointer;
+    border-radius: 8px;
+    transition: background 0.12s;
+}
+.wp-overview-day:active { background: var(--app-accent-light, #f0f7ff); }
+.wp-overview-day.past { opacity: 0.5; cursor: default; }
+.wp-overview-day-header {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+.wp-overview-day-name {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--app-text, #333);
+}
+.wp-overview-day.today .wp-overview-day-name {
+    color: var(--app-accent, #007BFF);
+}
+.wp-overview-day-date {
+    font-size: 0.75rem;
+    color: var(--app-muted, #aaa);
+}
+.wp-overview-entries { padding-left: 4px; }
+.wp-overview-entry {
+    font-size: 0.82rem;
+    display: flex;
+    gap: 8px;
+    padding: 2px 0;
+    align-items: baseline;
+}
+.wp-overview-slot {
+    color: var(--app-muted, #aaa);
+    min-width: 72px;
+    flex-shrink: 0;
+    font-size: 0.75rem;
+}
+.wp-overview-recipe {
+    color: var(--app-text, #333);
+    font-weight: 500;
+}
+.wp-overview-entry.bought .wp-overview-recipe {
+    color: var(--app-muted, #aaa);
+    text-decoration: line-through;
+}
+.wp-overview-entry.in-list .wp-overview-recipe { color: #b8860b; }
+.wp-overview-empty {
+    font-size: 0.82rem;
+    color: var(--app-muted, #ccc);
+    font-style: italic;
 }
 
 /* Toast */

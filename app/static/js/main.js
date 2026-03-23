@@ -1,3 +1,9 @@
+// Apply saved kiosk theme to all pages
+(function() {
+    const theme = localStorage.getItem('kiosk-theme') || 'küche';
+    document.documentElement.setAttribute('data-theme', theme);
+})();
+
 // Zutaten eines Rezepts anzeigen
 async function showIngredients(recipeId) {
     const ingredientsDiv = document.getElementById(`ingredients-${recipeId}`);

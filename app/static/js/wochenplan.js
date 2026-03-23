@@ -99,15 +99,11 @@ function renderSlots() {
                 <span class="wp-slot-recipe-name">${icon}${entry ? escHtml(entry.name) : (past ? '—' : '+ Rezept wählen')}</span>
             </div>
             ${entry ? `<button class="wp-slot-clear" data-day="${activeDay}" data-slot="${s}" title="Entfernen">✕</button>` : ''}
-            ${entry && !past && !bought && !inList ? `
+            ${entry && !past && !bought ? `
             <div class="wp-slot-servings">
                 <button class="wp-srv-btn" data-day="${activeDay}" data-slot="${s}" data-delta="-1">−</button>
                 <span class="wp-srv-count">${entry.servings} Pers.</span>
                 <button class="wp-srv-btn" data-day="${activeDay}" data-slot="${s}" data-delta="1">+</button>
-            </div>` : ''}
-            ${entry && !past && !bought && inList ? `
-            <div class="wp-slot-servings">
-                <span class="wp-srv-count wp-srv-locked">${entry.servings} Pers.</span>
             </div>` : ''}
         </div>`;
     }).join('');
@@ -159,6 +155,13 @@ async function changeServings(day, slot, delta) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ servings: newServings })
         });
+        if (entry.in_shopping_list) {
+            await fetch(`/api/shopping-list/item/${entry.recipe_id}/servings`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ servings: newServings })
+            });
+        }
     } catch(e) {}
 }
 
@@ -335,23 +338,92 @@ document.getElementById('wp-to-list-btn').addEventListener('click', async () => 
     }
 });
 
-document.getElementById('wp-clear-btn').addEventListener('click', async () => {
-    if (!confirm('Alle Einträge dieser Woche löschen?')) return;
+document.getElementById('wp-clear-btn').addEventListener('click', () => {
+    document.getElementById('wp-clear-backdrop').style.display = 'block';
+    document.getElementById('wp-clear-sheet').style.display = 'block';
+});
+
+function closeClearConfirm() {
+    document.getElementById('wp-clear-backdrop').style.display = 'none';
+    document.getElementById('wp-clear-sheet').style.display = 'none';
+}
+
+async function confirmClearWeek() {
+    closeClearConfirm();
     try {
         await fetch(`/api/wochenplan/${weekStartStr()}/clear`, { method: 'DELETE' });
         plan = {};
         renderDayTabs();
         renderSlots();
+        if (overviewMode) renderOverview();
     } catch(e) {
         showToast('Fehler');
     }
-});
+}
 
 function showToast(msg) {
     const t = document.getElementById('wp-toast');
     t.textContent = msg;
     t.style.display = 'block';
     setTimeout(() => t.style.display = 'none', 2500);
+}
+
+// ── Week overview ─────────────────────────────────────
+
+let overviewMode = false;
+
+function toggleOverview() {
+    overviewMode = !overviewMode;
+    document.getElementById('wp-overview-btn').classList.toggle('active', overviewMode);
+    document.getElementById('wp-day-tabs').style.display = overviewMode ? 'none' : '';
+    document.getElementById('wp-slots').style.display = overviewMode ? 'none' : '';
+    document.getElementById('wp-overview').style.display = overviewMode ? 'block' : 'none';
+    if (overviewMode) renderOverview();
+}
+
+function renderOverview() {
+    const container = document.getElementById('wp-overview');
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+
+    container.innerHTML = DAYS.map((name, i) => {
+        const d = new Date(weekStart);
+        d.setDate(d.getDate() + i);
+        const isPast = d < today;
+        const isToday = d.getTime() === today.getTime();
+
+        const entries = SLOTS.map((slotName, s) => {
+            const entry = plan[`${i}_${s}`];
+            return entry ? { slotName, ...entry } : null;
+        }).filter(Boolean);
+
+        let html = `<div class="wp-overview-day${isPast ? ' past' : ''}${isToday ? ' today' : ''}" data-day="${i}">
+            <div class="wp-overview-day-header">
+                <span class="wp-overview-day-name">${isToday ? '• ' : ''}${name}</span>
+                <span class="wp-overview-day-date">${d.getDate()}.${d.getMonth()+1}.</span>
+            </div>
+            <div class="wp-overview-entries">`;
+
+        if (entries.length === 0) {
+            html += `<span class="wp-overview-empty">Nichts geplant</span>`;
+        } else {
+            entries.forEach(e => {
+                const icon = e.is_bought ? '✓ ' : e.in_shopping_list ? '🛒 ' : '';
+                html += `<div class="wp-overview-entry${e.is_bought ? ' bought' : e.in_shopping_list ? ' in-list' : ''}">
+                    <span class="wp-overview-slot">${e.slotName}</span>
+                    <span class="wp-overview-recipe">${icon}${escHtml(e.name)}</span>
+                </div>`;
+            });
+        }
+        html += `</div></div>`;
+        return html;
+    }).join('');
+
+    container.querySelectorAll('.wp-overview-day:not(.past)').forEach(el => {
+        el.addEventListener('click', () => {
+            toggleOverview();
+            setDay(parseInt(el.dataset.day));
+        });
+    });
 }
 
 window.onload = async () => {
