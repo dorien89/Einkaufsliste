@@ -133,6 +133,7 @@ function renderFilterBar() {
 let pickerRecipeId = null;
 let pickerRecipeName = null;
 let pickerDayInfo = null;
+let pickerSlotIndex = null;
 
 function openSlotPicker(id, name) {
     pickerRecipeId = id;
@@ -151,6 +152,7 @@ function closeSlotPicker() {
     pickerRecipeId = null;
     pickerRecipeName = null;
     pickerDayInfo = null;
+    pickerSlotIndex = null;
 }
 
 function showDayStep() {
@@ -219,38 +221,67 @@ function slotBackToDay() {
     showDayStep();
 }
 
-async function assignOrRemoveSlot(slotIndex) {
+function slotBackToMeal() {
+    document.getElementById('slot-step-servings').style.display = 'none';
+    document.getElementById('slot-step-meal').style.display = 'block';
+    document.getElementById('slot-picker-footer').querySelector('.slot-back-btn').onclick = slotBackToDay;
+}
+
+function assignOrRemoveSlot(slotIndex) {
     const { weekStartStr, dayIndex } = pickerDayInfo;
     const key = `${weekStartStr}|${dayIndex}|${slotIndex}`;
     const oldEntry = weekPlan[key];
     const oldId = oldEntry?.id;
-    // Toggle off only if same recipe AND not bought/in-list (those get replaced, not toggled)
     const isToggleOff = oldId === pickerRecipeId && !oldEntry?.is_bought && !oldEntry?.in_shopping_list;
+
+    if (isToggleOff) {
+        const id = pickerRecipeId;
+        const name = pickerRecipeName;
+        closeSlotPicker();
+        fetch(`/api/wochenplan/${weekStartStr}/${dayIndex}/${slotIndex}`, { method: 'DELETE' })
+            .then(() => {
+                delete weekPlan[key];
+                showFeedback(`${name} entfernt`);
+                updateTile(id);
+            }).catch(() => {});
+    } else {
+        pickerSlotIndex = slotIndex;
+        const defaultServings = oldEntry?.servings || 1;
+        showServingsStep(defaultServings);
+    }
+}
+
+function showServingsStep(defaultServings) {
+    document.getElementById('slot-step-meal').style.display = 'none';
+    document.getElementById('slot-step-servings').style.display = 'block';
+    const backBtn = document.getElementById('slot-picker-footer').querySelector('.slot-back-btn');
+    backBtn.onclick = slotBackToMeal;
+
+    const grid = document.getElementById('slot-servings-grid');
+    grid.innerHTML = [1, 2, 3, 4, 5, 6, 7, 8].map(n =>
+        `<button class="slot-servings-btn${n === defaultServings ? ' selected' : ''}" onclick="confirmServings(${n})">${n}</button>`
+    ).join('');
+}
+
+async function confirmServings(servings) {
+    const { weekStartStr, dayIndex } = pickerDayInfo;
+    const slotIndex = pickerSlotIndex;
+    const key = `${weekStartStr}|${dayIndex}|${slotIndex}`;
+    const oldId = weekPlan[key]?.id;
     const id = pickerRecipeId;
     const name = pickerRecipeName;
     closeSlotPicker();
 
     try {
-        if (isToggleOff) {
-            await fetch(`/api/wochenplan/${weekStartStr}/${dayIndex}/${slotIndex}`, { method: 'DELETE' });
-            delete weekPlan[key];
-            showFeedback(`${name} entfernt`);
-        } else {
-            await fetch(`/api/wochenplan/${weekStartStr}/${dayIndex}/${slotIndex}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ recipe_id: id })
-            });
-            weekPlan[key] = { id, is_bought: false };
-            showFeedback(`✓ ${name} eingeplant`);        }
-
-        // Update tile for the recipe that was just assigned/removed
+        await fetch(`/api/wochenplan/${weekStartStr}/${dayIndex}/${slotIndex}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ recipe_id: id, servings })
+        });
+        weekPlan[key] = { id, is_bought: false, servings };
+        showFeedback(`✓ ${name} · ${servings} Pers.`);
         updateTile(id);
-
-        // Also update the old recipe's tile if a different recipe was replaced
-        if (oldId !== undefined && oldId !== id) {
-            updateTile(oldId);
-        }
+        if (oldId !== undefined && oldId !== id) updateTile(oldId);
     } catch(e) {}
 }
 

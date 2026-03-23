@@ -362,13 +362,14 @@ def set_week_slot(week_start, day_index, slot_index):
         return jsonify({'error': 'Invalid date'}), 400
     data = request.get_json()
     recipe_id = data.get('recipe_id')
+    servings = max(1, int(data.get('servings', 1)))
     entry = WeekPlan.query.filter_by(week_start=start, day_index=day_index, slot_index=slot_index).first()
     if entry:
         entry.recipe_id = recipe_id
         entry.is_bought = False
-        entry.servings = 1
+        entry.servings = servings
     else:
-        entry = WeekPlan(week_start=start, day_index=day_index, slot_index=slot_index, recipe_id=recipe_id, servings=1)
+        entry = WeekPlan(week_start=start, day_index=day_index, slot_index=slot_index, recipe_id=recipe_id, servings=servings)
         db.session.add(entry)
     db.session.commit()
     return jsonify({'success': True})

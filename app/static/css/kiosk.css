@@ -526,6 +526,36 @@ body {
     text-overflow: ellipsis;
 }
 
+.slot-servings-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    padding: 8px 0;
+}
+
+.slot-servings-btn {
+    height: 72px;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    background: #fafafa;
+    font-size: 1.6rem;
+    font-weight: 700;
+    cursor: pointer;
+    color: #333;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.slot-servings-btn.selected {
+    border-color: #007BFF;
+    background: #e3f2fd;
+    color: #007BFF;
+}
+
+.slot-servings-btn:active {
+    background: #bbdefb;
+    border-color: #007BFF;
+}
+
 .slot-back-btn {
     background: #f5f5f5;
     border: none;
