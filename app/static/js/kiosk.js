@@ -104,8 +104,23 @@ async function loadWeekPlan() {
     }));
 }
 
-function plannedIds() {
-    return new Set(Object.values(weekPlan).map(v => v.id));
+// Returns {planned: Set, bought: Set} considering only today-or-future slots
+function relevantEntries() {
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const planned = new Set();
+    const bought = new Set();
+    Object.entries(weekPlan).forEach(([key, v]) => {
+        const parts = key.split('|');
+        const d = new Date(parts[0]);
+        d.setDate(d.getDate() + parseInt(parts[1]));
+        d.setHours(0, 0, 0, 0);
+        if (d >= today) {
+            if (v.is_bought) bought.add(v.id);
+            else planned.add(v.id);
+        }
+    });
+    bought.forEach(id => { if (planned.has(id)) bought.delete(id); });
+    return { planned, bought };
 }
 
 // ── Grid ──────────────────────────────────────────────
@@ -116,11 +131,14 @@ function renderGrid() {
         ? allRecipes.filter(r => r.category === activeCategory)
         : allRecipes;
     const shuffled = [...filtered].sort(() => Math.random() - 0.5).slice(0, 9);
-    const planned = plannedIds();
+    const { planned, bought } = relevantEntries();
 
     shuffled.forEach(recipe => {
         const div = document.createElement('div');
-        div.className = 'grid-item' + (planned.has(recipe.id) ? ' planned' : '');
+        let cls = 'grid-item';
+        if (planned.has(recipe.id)) cls += ' planned';
+        else if (bought.has(recipe.id)) cls += ' bought';
+        div.className = cls;
         div.textContent = recipe.name;
         div.dataset.recipeId = recipe.id;
         div.dataset.recipeName = recipe.name;
@@ -324,9 +342,10 @@ async function confirmServings(servings) {
 
 function updateTile(recipeId) {
     const tile = document.querySelector(`.grid-item[data-recipe-id="${recipeId}"]`);
-    if (tile) {
-        tile.classList.toggle('planned', Object.values(weekPlan).some(v => v.id === recipeId));
-    }
+    if (!tile) return;
+    const { planned, bought } = relevantEntries();
+    tile.classList.toggle('planned', planned.has(recipeId));
+    tile.classList.toggle('bought', bought.has(recipeId));
 }
 
 function showFeedback(msg) {
@@ -356,9 +375,11 @@ async function loadRecipes() {
 
 async function refreshWeekPlan() {
     await loadWeekPlan();
+    const { planned, bought } = relevantEntries();
     document.querySelectorAll('.grid-item').forEach(tile => {
-        const recipeId = parseInt(tile.dataset.recipeId);
-        tile.classList.toggle('planned', Object.values(weekPlan).some(v => v.id === recipeId));
+        const id = parseInt(tile.dataset.recipeId);
+        tile.classList.toggle('planned', planned.has(id));
+        tile.classList.toggle('bought', bought.has(id));
     });
 }
 

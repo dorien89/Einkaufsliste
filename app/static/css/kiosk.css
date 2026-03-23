@@ -205,6 +205,21 @@ body {
     font-size: 0.9em;
     opacity: 0.9;
 }
+.grid-item.bought {
+    background: linear-gradient(160deg, #e8e8e8 60%, #d8d8d8 100%);
+    color: #888;
+    border-color: #c8c8c8;
+    border-top-color: #a0a0a0;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    text-decoration: line-through;
+    text-decoration-color: #bbb;
+}
+.grid-item.bought::after {
+    content: ' ✓';
+    font-size: 0.9em;
+    opacity: 0.5;
+    text-decoration: none;
+}
 
 /* ── FAB buttons ───────────────────────────────────────── */
 .button-container {
