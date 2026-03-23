@@ -57,7 +57,7 @@ function getUpcomingDays() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const days = [];
-    for (let i = 0; i < 21; i++) {
+    for (let i = 0; i < 20; i++) {
         const d = new Date(today);
         d.setDate(d.getDate() + i);
         const mon = getMonday(d);
@@ -80,7 +80,7 @@ async function loadWeekPlan() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const weeks = new Set();
-    for (let i = 0; i < 21; i++) {
+    for (let i = 0; i < 20; i++) {
         const d = new Date(today);
         d.setDate(d.getDate() + i);
         weeks.add(formatYMD(getMonday(d)));
