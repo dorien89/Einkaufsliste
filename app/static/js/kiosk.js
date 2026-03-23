@@ -373,6 +373,10 @@ async function loadRecipes() {
     }
 }
 
+async function refreshRecipes() {
+    await Promise.all([loadWeekPlan(), loadRecipes()]);
+}
+
 async function refreshWeekPlan() {
     await loadWeekPlan();
     const { planned, bought } = relevantEntries();
