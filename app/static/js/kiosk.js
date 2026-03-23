@@ -158,6 +158,7 @@ function closeSlotPicker() {
 function showDayStep() {
     document.getElementById('slot-step-day').style.display = 'block';
     document.getElementById('slot-step-meal').style.display = 'none';
+    document.getElementById('slot-step-servings').style.display = 'none';
     document.getElementById('slot-picker-footer').style.display = 'none';
 
     const days = getUpcomingDays();
