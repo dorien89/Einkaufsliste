@@ -234,33 +234,40 @@ function assignOrRemoveSlot(slotIndex) {
     const oldId = oldEntry?.id;
     const isToggleOff = oldId === pickerRecipeId && !oldEntry?.is_bought && !oldEntry?.in_shopping_list;
 
-    if (isToggleOff) {
-        const id = pickerRecipeId;
-        const name = pickerRecipeName;
-        closeSlotPicker();
-        fetch(`/api/wochenplan/${weekStartStr}/${dayIndex}/${slotIndex}`, { method: 'DELETE' })
-            .then(() => {
-                delete weekPlan[key];
-                showFeedback(`${name} entfernt`);
-                updateTile(id);
-            }).catch(() => {});
-    } else {
-        pickerSlotIndex = slotIndex;
-        const defaultServings = oldEntry?.servings || 1;
-        showServingsStep(defaultServings);
-    }
+    pickerSlotIndex = slotIndex;
+    const defaultServings = oldEntry?.servings || 1;
+    showServingsStep(defaultServings, isToggleOff);
 }
 
-function showServingsStep(defaultServings) {
+function showServingsStep(defaultServings, showDelete = false) {
     document.getElementById('slot-step-meal').style.display = 'none';
     document.getElementById('slot-step-servings').style.display = 'block';
     const backBtn = document.getElementById('slot-picker-footer').querySelector('.slot-back-btn');
     backBtn.onclick = slotBackToMeal;
 
     const grid = document.getElementById('slot-servings-grid');
-    grid.innerHTML = [1, 2, 3, 4, 5, 6, 7, 8].map(n =>
+    const numbers = [1, 2, 3, 4, 5, 6, 7, 8].map(n =>
         `<button class="slot-servings-btn${n === defaultServings ? ' selected' : ''}" onclick="confirmServings(${n})">${n}</button>`
     ).join('');
+    const deleteBtn = showDelete
+        ? `<button class="slot-servings-delete" onclick="deleteCurrentSlot()">🗑 Entfernen</button>`
+        : '';
+    grid.innerHTML = numbers + deleteBtn;
+}
+
+async function deleteCurrentSlot() {
+    const { weekStartStr, dayIndex } = pickerDayInfo;
+    const slotIndex = pickerSlotIndex;
+    const key = `${weekStartStr}|${dayIndex}|${slotIndex}`;
+    const id = pickerRecipeId;
+    const name = pickerRecipeName;
+    closeSlotPicker();
+    try {
+        await fetch(`/api/wochenplan/${weekStartStr}/${dayIndex}/${slotIndex}`, { method: 'DELETE' });
+        delete weekPlan[key];
+        showFeedback(`${name} entfernt`);
+        updateTile(id);
+    } catch(e) {}
 }
 
 async function confirmServings(servings) {

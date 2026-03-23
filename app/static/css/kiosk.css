@@ -556,6 +556,23 @@ body {
     border-color: #007BFF;
 }
 
+.slot-servings-delete {
+    grid-column: 1 / -1;
+    height: 56px;
+    border: 2px solid #e53935;
+    border-radius: 12px;
+    background: #fff5f5;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    color: #e53935;
+    margin-top: 4px;
+}
+
+.slot-servings-delete:active {
+    background: #ffcdd2;
+}
+
 .slot-back-btn {
     background: #f5f5f5;
     border: none;
