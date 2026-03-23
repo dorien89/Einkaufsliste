@@ -355,7 +355,7 @@ def populate_database():
 
         # Ingredients
         for name in INGREDIENTS:
-            cursor.execute('INSERT OR IGNORE INTO ingredients (name) VALUES (?)', (name,))
+            cursor.execute('INSERT OR IGNORE INTO ingredients (name, is_staple) VALUES (?, ?)', (name, 0))
 
         cursor.execute('SELECT id, name FROM ingredients')
         ingredient_ids = {name: id for id, name in cursor.fetchall()}
@@ -379,7 +379,7 @@ def populate_database():
             for ing_name, amount, unit in ingredients:
                 # Auto-create ingredient if not in list
                 if ing_name not in ingredient_ids:
-                    cursor.execute('INSERT OR IGNORE INTO ingredients (name) VALUES (?)', (ing_name,))
+                    cursor.execute('INSERT OR IGNORE INTO ingredients (name, is_staple) VALUES (?, ?)', (ing_name, 0))
                     cursor.execute('SELECT id FROM ingredients WHERE name = ?', (ing_name,))
                     ingredient_ids[ing_name] = cursor.fetchone()[0]
 
