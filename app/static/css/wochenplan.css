@@ -29,7 +29,19 @@
 .wp-week-label {
     font-weight: 600;
     font-size: 0.95rem;
-    color: #333;
+    color: var(--app-text, #333);
+    cursor: pointer;
+    padding: 4px 10px;
+    border-radius: 8px;
+    transition: background 0.15s;
+    user-select: none;
+}
+.wp-week-label:hover {
+    background: var(--app-accent-light, rgba(0,0,0,0.06));
+}
+.wp-week-label.active {
+    background: var(--app-accent-light, rgba(0,123,255,0.10));
+    color: var(--app-accent, #007BFF);
 }
 
 .wp-today-bar {

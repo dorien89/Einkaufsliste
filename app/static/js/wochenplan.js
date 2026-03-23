@@ -374,7 +374,8 @@ let overviewMode = false;
 
 function toggleOverview() {
     overviewMode = !overviewMode;
-    document.getElementById('wp-overview-btn').classList.toggle('active', overviewMode);
+    const label = document.getElementById('wp-week-label');
+    label.classList.toggle('active', overviewMode);
     document.getElementById('wp-day-tabs').style.display = overviewMode ? 'none' : '';
     document.getElementById('wp-slots').style.display = overviewMode ? 'none' : '';
     document.getElementById('wp-overview').style.display = overviewMode ? 'block' : 'none';
