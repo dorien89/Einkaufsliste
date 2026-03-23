@@ -218,12 +218,12 @@ function updateNavButtons() {
 async function changeWeek(delta) {
     weekStart.setDate(weekStart.getDate() + delta * 7);
     weekStart = getMonday(weekStart);
-    // On the current week land on today; on other weeks start at Monday
     const todayDayIndex = (() => { const d = new Date().getDay(); return d === 0 ? 6 : d - 1; })();
     activeDay = weekStart.getTime() === TODAY_MONDAY.getTime() ? todayDayIndex : 0;
     await loadWeek();
     render();
     updateNavButtons();
+    if (overviewMode) renderOverview();
 }
 
 document.getElementById('wp-prev').addEventListener('click', () => changeWeek(-1));
@@ -235,6 +235,7 @@ document.getElementById('wp-today-btn').addEventListener('click', async () => {
     await loadWeek();
     render();
     updateNavButtons();
+    if (overviewMode) renderOverview();
 });
 
 // ── Picker ────────────────────────────────────────────
