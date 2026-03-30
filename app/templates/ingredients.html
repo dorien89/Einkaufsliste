@@ -7,7 +7,8 @@
     <h1 style="margin:0">Zutaten verwalten</h1>
     <a href="{{ url_for('recipe.list_recipes') }}" class="rm-btn rm-btn-cancel" style="text-decoration:none;padding:10px 16px;">← Rezepte</a>
 </div>
-<p style="color:#666;margin-bottom:16px;">Standardeinheit wird beim Hinzufügen zu einem Rezept automatisch eingetragen. <strong>Vorrat</strong> = immer zu Hause, wird in der Einkaufsliste unten angezeigt.</p>
+<p style="color:#666;margin-bottom:16px;">Standardeinheit wird beim Hinzufügen zu einem Rezept automatisch eingetragen. <strong>Vorrat</strong> = immer zu Hause, wird in der Einkaufsliste unten angezeigt. <strong>Kategorie</strong> = Bereich im Supermarkt.</p>
+{% set shop_cats = ['Obst & Gemüse','Fleisch & Fisch','Milch & Käse','Brot & Backwaren','Tiefkühl','Konserven & Fertiggerichte','Nudeln, Reis & Hülsenfrüchte','Öle & Gewürze','Getränke','Sonstiges'] %}
 <ul class="ing-manage-list" id="ing-list">
     {% for ingredient in ingredients %}
     <li class="ing-manage-item" id="ing-{{ ingredient.id }}">
@@ -15,6 +16,9 @@
         <input type="text" class="ing-name-field" value="{{ ingredient.name }}" placeholder="Name">
         <input type="text" class="ing-unit-field" value="{{ ingredient.default_unit or '' }}" placeholder="Einheit (z.B. g, Stück, ml)">
         <label class="ing-staple-label"><input type="checkbox" class="ing-staple-field" {% if ingredient.is_staple %}checked{% endif %}> Vorrat</label>
+        <select class="ing-category-field">
+            {% for cat in shop_cats %}<option value="{{ cat }}" {% if ingredient.shop_category == cat %}selected{% endif %}>{{ cat }}</option>{% endfor %}
+        </select>
         <button class="ing-small-btn ing-btn-edit" onclick="editIng({{ ingredient.id }})">Bearbeiten</button>
         <button class="ing-small-btn ing-btn-save" onclick="saveIng({{ ingredient.id }})">Speichern</button>
         <button class="ing-small-btn ing-btn-delete" onclick="deleteIng({{ ingredient.id }}, '{{ ingredient.name }}')">Löschen</button>
@@ -27,6 +31,7 @@
     <button onclick="addIng()">+ Hinzufügen</button>
 </div>
 <script>
+const SHOP_CATS = ['Obst & Gemüse','Fleisch & Fisch','Milch & Käse','Brot & Backwaren','Tiefkühl','Konserven & Fertiggerichte','Nudeln, Reis & Hülsenfrüchte','Öle & Gewürze','Getränke','Sonstiges'];
 function editIng(id) {
     document.getElementById('ing-' + id).classList.add('editing');
     document.querySelector('#ing-' + id + ' .ing-name-field').focus();
@@ -35,11 +40,12 @@ async function saveIng(id) {
     const name = document.querySelector('#ing-' + id + ' .ing-name-field').value.trim();
     const defaultUnit = document.querySelector('#ing-' + id + ' .ing-unit-field').value.trim();
     const isStaple = document.querySelector('#ing-' + id + ' .ing-staple-field').checked;
+    const shopCategory = document.querySelector('#ing-' + id + ' .ing-category-field').value;
     if (!name) return;
     const res = await fetch('/api/ingredients/' + id, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, default_unit: defaultUnit, is_staple: isStaple })
+        body: JSON.stringify({ name, default_unit: defaultUnit, is_staple: isStaple, shop_category: shopCategory })
     });
     if (res.ok) {
         document.querySelector('#ing-' + id + ' span').textContent = name;
@@ -85,6 +91,7 @@ async function addIng() {
             <input type="text" class="ing-name-field" value="${name}" placeholder="Name">
             <input type="text" class="ing-unit-field" value="${defaultUnit}" placeholder="Einheit">
             <label class="ing-staple-label"><input type="checkbox" class="ing-staple-field"> Vorrat</label>
+            <select class="ing-category-field">${SHOP_CATS.map(c => `<option value="${c}">${c}</option>`).join('')}</select>
             <button class="ing-small-btn ing-btn-edit" onclick="editIng(${data.id})">Bearbeiten</button>
             <button class="ing-small-btn ing-btn-save" onclick="saveIng(${data.id})">Speichern</button>
             <button class="ing-small-btn ing-btn-delete" onclick="deleteIng(${data.id}, '${name}')">Löschen</button>

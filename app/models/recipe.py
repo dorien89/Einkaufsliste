@@ -31,6 +31,7 @@ class Ingredient(db.Model):
     name = db.Column(db.String, nullable=False, unique=True)
     default_unit = db.Column(db.String, nullable=True)
     is_staple = db.Column(db.Boolean, nullable=False, default=False)
+    shop_category = db.Column(db.String, nullable=False, default='Sonstiges')
 
     def __repr__(self):
         return f"<Ingredient(id={self.id}, name={self.name})>"

@@ -15,11 +15,18 @@
                 {% if ingredients %}
                     {% set buy_items = ingredients | selectattr('is_staple', 'equalto', false) | list %}
                     {% set staple_items = ingredients | selectattr('is_staple', 'equalto', true) | list %}
-                    {% for ingredient in buy_items %}
-                        <div class="shopping-list-item">
-                            <span class="item-name">{{ ingredient.name }}</span>
-                            <span class="item-amount">{{ "%.1f"|format(ingredient.amount) }} {{ ingredient.unit }}</span>
-                        </div>
+                    {% set categories = ['Obst & Gemüse', 'Fleisch & Fisch', 'Milch & Käse', 'Brot & Backwaren', 'Tiefkühl', 'Konserven & Fertiggerichte', 'Nudeln, Reis & Hülsenfrüchte', 'Öle & Gewürze', 'Getränke', 'Sonstiges'] %}
+                    {% for cat in categories %}
+                        {% set cat_items = buy_items | selectattr('shop_category', 'equalto', cat) | list %}
+                        {% if cat_items %}
+                            <div class="category-separator">{{ cat }}</div>
+                            {% for ingredient in cat_items %}
+                                <div class="shopping-list-item">
+                                    <span class="item-name">{{ ingredient.name }}</span>
+                                    <span class="item-amount">{{ "%.1f"|format(ingredient.amount) }} {{ ingredient.unit }}</span>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
                     {% endfor %}
                     {% if staple_items %}
                         <div class="staple-separator">Vorrat</div>
@@ -98,12 +105,18 @@
 <script>
 const buyItems = {{ (ingredients | selectattr('is_staple', 'equalto', false) | list) | tojson if ingredients else '[]' }};
 const stapleItems = {{ (ingredients | selectattr('is_staple', 'equalto', true) | list) | tojson if ingredients else '[]' }};
+const CATEGORIES = ['Obst & Gemüse','Fleisch & Fisch','Milch & Käse','Brot & Backwaren','Tiefkühl','Konserven & Fertiggerichte','Nudeln, Reis & Hülsenfrüchte','Öle & Gewürze','Getränke','Sonstiges'];
 
 function buildShareText() {
     const lines = ['🛒 Einkaufsliste\n'];
-    buyItems.forEach(i => {
-        const a = parseFloat(i.amount);
-        lines.push(`${i.name} — ${Number.isInteger(a) ? a : a.toFixed(1)} ${i.unit}`);
+    CATEGORIES.forEach(cat => {
+        const items = buyItems.filter(i => i.shop_category === cat);
+        if (items.length === 0) return;
+        lines.push(`\n── ${cat} ──`);
+        items.forEach(i => {
+            const a = parseFloat(i.amount);
+            lines.push(`${i.name} — ${Number.isInteger(a) ? a : a.toFixed(1)} ${i.unit}`);
+        });
     });
     if (stapleItems.length > 0) {
         lines.push('\n── Vorrat (prüfen) ──');

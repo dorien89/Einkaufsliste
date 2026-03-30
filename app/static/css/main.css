@@ -289,6 +289,18 @@ h1 {
     white-space: nowrap;
 }
 
+.category-separator {
+    padding: 0.5rem 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #555;
+    background: #eef2f7;
+    border-bottom: 1px solid #dde3ec;
+    margin-top: 0.25rem;
+}
+
 .staple-separator {
     padding: 0.5rem 1rem;
     font-size: 0.75rem;

@@ -87,8 +87,10 @@ def update_ingredient(ingredient_id):
         ingredient.default_unit = data['default_unit'].strip() or None
     if 'is_staple' in data:
         ingredient.is_staple = bool(data['is_staple'])
+    if 'shop_category' in data:
+        ingredient.shop_category = data['shop_category'] or 'Sonstiges'
     db.session.commit()
-    return jsonify({'id': ingredient.id, 'name': ingredient.name, 'default_unit': ingredient.default_unit or '', 'is_staple': ingredient.is_staple})
+    return jsonify({'id': ingredient.id, 'name': ingredient.name, 'default_unit': ingredient.default_unit or '', 'is_staple': ingredient.is_staple, 'shop_category': ingredient.shop_category})
 
 @bp.route('/ingredients/<int:ingredient_id>', methods=['DELETE'])
 def delete_ingredient(ingredient_id):
@@ -241,7 +243,8 @@ def get_shopping_list():
                         'amount': ri.amount * item.servings,
                         'unit': ri.unit,
                         'shopping_list_id': item.id,
-                        'is_staple': ingredient.is_staple
+                        'is_staple': ingredient.is_staple,
+                        'shop_category': ingredient.shop_category
                     }
         
         return jsonify({
