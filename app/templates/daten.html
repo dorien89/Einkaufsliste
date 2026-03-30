@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 style="margin-bottom:20px;">Daten</h1>
+
+<!-- Export -->
+<div class="data-card">
+    <div class="data-card-title">Export</div>
+
+    <div class="data-row">
+        <div class="data-row-info">
+            <strong>Rezepte (JSON)</strong>
+            <span>Alle Rezepte, Kategorien und Zutaten-Metadaten. Kann reimportiert werden.</span>
+        </div>
+        <a href="{{ url_for('data.export_recipes_json') }}" class="data-btn data-btn-primary">↓ JSON</a>
+    </div>
+
+    <div class="data-row">
+        <div class="data-row-info">
+            <strong>Rezepte (Markdown)</strong>
+            <span>Lesbare Textdatei zum Drucken oder Teilen. Kein Reimport möglich.</span>
+        </div>
+        <a href="{{ url_for('data.export_recipes_md') }}" class="data-btn data-btn-secondary">↓ MD</a>
+    </div>
+
+    <div class="data-row">
+        <div class="data-row-info">
+            <strong>Vollständiges Backup (JSON)</strong>
+            <span>Rezepte + Wochenplan + Einkaufsliste. Für Restore oder Gerätewechsel.</span>
+        </div>
+        <a href="{{ url_for('data.export_backup_json') }}" class="data-btn data-btn-primary">↓ Backup</a>
+    </div>
+</div>
+
+<!-- Import -->
+<div class="data-card">
+    <div class="data-card-title">Import / Wiederherstellen</div>
+    <p style="color:#888;font-size:0.85rem;margin-bottom:16px;">
+        JSON-Datei aus einem Export oder Backup wählen. Der Typ wird automatisch erkannt.
+    </p>
+
+    <div style="margin-bottom:14px;">
+        <label class="data-file-label" for="import-file">
+            <span id="file-label-text">📂 Datei wählen…</span>
+            <input type="file" id="import-file" accept=".json" style="display:none;" onchange="onFileChange(this)">
+        </label>
+    </div>
+
+    <label style="display:flex;align-items:center;gap:10px;margin-bottom:16px;cursor:pointer;font-size:0.9rem;">
+        <input type="checkbox" id="overwrite-cb" style="width:18px;height:18px;">
+        Duplikate überschreiben (nur bei Rezept-Import)
+    </label>
+
+    <button class="data-btn data-btn-primary" style="width:100%;justify-content:center;" onclick="runImport()" id="import-btn" disabled>
+        Importieren
+    </button>
+
+    <div id="import-result" style="display:none;margin-top:16px;padding:14px;border-radius:10px;font-size:0.9rem;"></div>
+</div>
+
+<!-- Restore warning -->
+<div class="data-card" style="border-color:#ffcdd2;background:#fff8f8;">
+    <div class="data-card-title" style="color:#c62828;">⚠️ Backup wiederherstellen</div>
+    <p style="color:#888;font-size:0.85rem;margin-bottom:12px;">
+        Eine Backup-Datei <strong>ersetzt alle bestehenden Daten</strong> vollständig. Dies kann nicht rückgängig gemacht werden.
+        Erstelle zuerst ein Backup der aktuellen Daten, bevor du eine alte Version wiederherstellst.
+    </p>
+</div>
+
+<script>
+let selectedFile = null;
+
+function onFileChange(input) {
+    selectedFile = input.files[0] || null;
+    document.getElementById('file-label-text').textContent = selectedFile ? `📄 ${selectedFile.name}` : '📂 Datei wählen…';
+    document.getElementById('import-btn').disabled = !selectedFile;
+    document.getElementById('import-result').style.display = 'none';
+}
+
+async function runImport() {
+    if (!selectedFile) return;
+
+    // Peek at the type before confirming
+    let payload;
+    try {
+        payload = JSON.parse(await selectedFile.text());
+    } catch {
+        showResult(false, 'Datei konnte nicht gelesen werden. Ist es eine gültige JSON-Datei?');
+        return;
+    }
+
+    if (payload.type === 'backup') {
+        if (!confirm('Achtung: Alle aktuellen Daten (Rezepte, Wochenplan, Einkaufsliste) werden gelöscht und durch das Backup ersetzt.\n\nFortfahren?')) return;
+    }
+
+    const form = new FormData();
+    form.append('file', selectedFile);
+    form.append('on_duplicate', document.getElementById('overwrite-cb').checked ? 'overwrite' : 'skip');
+
+    document.getElementById('import-btn').textContent = 'Wird importiert…';
+    document.getElementById('import-btn').disabled = true;
+
+    try {
+        const res = await fetch('/daten/import', { method: 'POST', body: form });
+        const data = await res.json();
+        if (data.success) {
+            showResult(true, data.message);
+        } else {
+            showResult(false, data.error || 'Unbekannter Fehler');
+        }
+    } catch (e) {
+        showResult(false, 'Netzwerkfehler: ' + e.message);
+    } finally {
+        document.getElementById('import-btn').textContent = 'Importieren';
+        document.getElementById('import-btn').disabled = false;
+    }
+}
+
+function showResult(success, msg) {
+    const el = document.getElementById('import-result');
+    el.style.display = 'block';
+    el.style.background = success ? '#f0fff4' : '#fff3f3';
+    el.style.border = `1px solid ${success ? '#86efac' : '#ffcdd2'}`;
+    el.style.color = success ? '#166534' : '#c62828';
+    el.textContent = (success ? '✓ ' : '✗ ') + msg;
+}
+</script>
+{% endblock %}

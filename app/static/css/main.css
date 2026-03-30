@@ -483,6 +483,89 @@ h1 {
     }
 }
 
+/* ── Data page ───────────────────────────────────────── */
+.data-card {
+    background: var(--app-surface, #fff);
+    border: 1px solid var(--app-border, #eee);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+    max-width: 600px;
+}
+
+.data-card-title {
+    font-weight: 700;
+    font-size: 1rem;
+    margin-bottom: 14px;
+    color: var(--app-text, #333);
+}
+
+.data-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--app-border, #eee);
+}
+
+.data-row:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.data-row-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+}
+
+.data-row-info strong {
+    font-size: 0.92rem;
+}
+
+.data-row-info span {
+    font-size: 0.78rem;
+    color: var(--app-muted, #888);
+}
+
+.data-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 16px;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.data-btn-primary  { background: var(--app-accent, #007BFF); color: #fff; }
+.data-btn-secondary { background: var(--app-border, #eee); color: var(--app-text, #333); }
+
+.data-file-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 14px;
+    border: 2px dashed var(--app-border, #ccc);
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 0.92rem;
+    color: var(--app-muted, #888);
+    transition: border-color 0.15s;
+}
+
+.data-file-label:hover {
+    border-color: var(--app-accent, #007BFF);
+    color: var(--app-accent, #007BFF);
+}
+
 /* Larger screen adaptations */
 @media (min-width: 640px) {
     .shopping-list-container {
