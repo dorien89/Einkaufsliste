@@ -52,7 +52,7 @@ def upgrade():
                type_=sa.String(),
                existing_nullable=True)
 
-    with op.batch_alter_table('shopping_list', schema=None) as batch_op:
+    with op.batch_alter_table('shopping_list', schema=None, recreate='always') as batch_op:
         batch_op.add_column(sa.Column('is_active', sa.Boolean(), server_default='1', nullable=False))
         batch_op.add_column(sa.Column('created_at', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True))
         batch_op.add_column(sa.Column('bought_at', sa.DateTime(), nullable=True))
