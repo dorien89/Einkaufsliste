@@ -369,9 +369,23 @@ function toggleSelect(id) {
 
 function updateBulkBar() {
     const bar = document.getElementById('bulk-bar');
+    bar.style.display = selectMode ? 'flex' : 'none';
     const count = selectedIds.size;
-    bar.style.display = (selectMode && count > 0) ? 'flex' : 'none';
-    document.getElementById('bulk-count').textContent = `${count} ausgewählt`;
+    const total = getFilteredRecipes().length;
+    document.getElementById('bulk-count').textContent = count > 0 ? `${count} ausgewählt` : 'Alle auswählen';
+    const cb = document.getElementById('select-all-cb');
+    if (cb) {
+        cb.checked = count > 0 && count === total;
+        cb.indeterminate = count > 0 && count < total;
+    }
+}
+
+function toggleSelectAll(checked) {
+    const filtered = getFilteredRecipes();
+    if (checked) filtered.forEach(r => selectedIds.add(r.id));
+    else selectedIds.clear();
+    renderList(filtered);
+    updateBulkBar();
 }
 
 async function bulkDelete() {

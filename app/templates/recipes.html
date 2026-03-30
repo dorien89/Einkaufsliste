@@ -24,7 +24,10 @@
             <button class="rm-select-toggle" id="select-mode-btn" onclick="toggleSelectMode()">Auswählen</button>
         </div>
         <div id="bulk-bar" style="display:none;background:#fff3f3;border-bottom:1px solid #ffcdd2;padding:8px 12px;align-items:center;justify-content:space-between;gap:12px;">
-            <span id="bulk-count" style="font-weight:600;color:#c62828;font-size:0.9rem;"></span>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.9rem;font-weight:600;color:#c62828;">
+                <input type="checkbox" id="select-all-cb" style="width:18px;height:18px;" onchange="toggleSelectAll(this.checked)">
+                <span id="bulk-count"></span>
+            </label>
             <div style="display:flex;gap:8px;">
                 <button class="rm-btn rm-btn-delete" style="padding:7px 14px;font-size:0.9rem;" onclick="bulkDelete()">🗑️ Löschen</button>
                 <button class="rm-btn rm-btn-cancel" style="padding:7px 14px;font-size:0.9rem;" onclick="toggleSelectMode()">Abbrechen</button>
