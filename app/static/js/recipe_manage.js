@@ -352,8 +352,9 @@ async function saveRecipe(recipeId) {
 function toggleSelectMode() {
     selectMode = !selectMode;
     selectedIds.clear();
-    document.getElementById('select-mode-btn').textContent = selectMode ? 'Abbrechen' : 'Auswählen';
-    document.getElementById('select-mode-btn').classList.toggle('rm-btn-delete', selectMode);
+    const btn = document.getElementById('select-mode-btn');
+    btn.textContent = selectMode ? 'Abbrechen' : 'Auswählen';
+    btn.classList.toggle('active', selectMode);
     updateBulkBar();
     if (selectMode) closeDetail();
     renderList(getFilteredRecipes());

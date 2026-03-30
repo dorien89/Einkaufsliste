@@ -9,14 +9,6 @@
         <a href="{{ url_for('recipe.recipe_bin') }}" class="rm-btn rm-btn-edit" style="text-decoration:none;padding:10px 16px;">🗑️</a>
         <a href="{{ url_for('recipe.manage_categories') }}" class="rm-btn rm-btn-edit" style="text-decoration:none;padding:10px 16px;">Kategorien</a>
         <a href="{{ url_for('recipe.manage_ingredients') }}" class="rm-btn rm-btn-edit" style="text-decoration:none;padding:10px 16px;">Zutaten</a>
-        <button class="rm-btn rm-btn-edit" id="select-mode-btn" onclick="toggleSelectMode()">Auswählen</button>
-    </div>
-</div>
-<div id="bulk-bar" style="display:none;position:sticky;top:0;z-index:100;background:#fff3f3;border-bottom:1px solid #ffcdd2;padding:10px 16px;display:none;align-items:center;justify-content:space-between;gap:12px;">
-    <span id="bulk-count" style="font-weight:600;color:#c62828;"></span>
-    <div style="display:flex;gap:8px;">
-        <button class="rm-btn rm-btn-delete" onclick="bulkDelete()">🗑️ Löschen</button>
-        <button class="rm-btn rm-btn-cancel" onclick="toggleSelectMode()">Abbrechen</button>
     </div>
 </div>
 <div class="rm-container" id="rm-container">
@@ -27,7 +19,17 @@
         </div>
         <div class="rm-category-filter" id="rm-category-filter"></div>
         <div class="rm-scroll-track"><div id="rm-scroll-progress" class="rm-scroll-progress"></div></div>
-        <div class="rm-list-count" id="rm-list-count"></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:0 12px;">
+            <div class="rm-list-count" id="rm-list-count"></div>
+            <button class="rm-select-toggle" id="select-mode-btn" onclick="toggleSelectMode()">Auswählen</button>
+        </div>
+        <div id="bulk-bar" style="display:none;background:#fff3f3;border-bottom:1px solid #ffcdd2;padding:8px 12px;align-items:center;justify-content:space-between;gap:12px;">
+            <span id="bulk-count" style="font-weight:600;color:#c62828;font-size:0.9rem;"></span>
+            <div style="display:flex;gap:8px;">
+                <button class="rm-btn rm-btn-delete" style="padding:7px 14px;font-size:0.9rem;" onclick="bulkDelete()">🗑️ Löschen</button>
+                <button class="rm-btn rm-btn-cancel" style="padding:7px 14px;font-size:0.9rem;" onclick="toggleSelectMode()">Abbrechen</button>
+            </div>
+        </div>
         <ul class="rm-list-items" id="rm-list-items"></ul>
         <button class="rm-list-add-btn" onclick="openAddForm()">+ Neues Rezept</button>
     </div>

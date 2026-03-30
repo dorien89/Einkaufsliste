@@ -38,8 +38,8 @@ async function loadBin() {
                 <span style="color:#aaa;font-size:0.82rem;margin-left:8px;">${r.category || ''}</span>
                 <div style="color:#bbb;font-size:0.78rem;">Gelöscht am ${date}</div>
             </div>
-            <div style="display:flex;gap:8px;">
-                <button class="ing-small-btn ing-btn-save" onclick="restore(${r.id})">↩ Wiederherstellen</button>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button class="ing-small-btn" style="background:#28a745;color:#fff;" onclick="restore(${r.id})">↩ Wiederherstellen</button>
                 <button class="ing-small-btn ing-btn-delete" onclick="permanentDelete(${r.id}, '${r.name.replace(/'/g, "\\'")}')">Endgültig löschen</button>
             </div>
         </li>`;

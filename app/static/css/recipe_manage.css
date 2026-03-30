@@ -82,6 +82,20 @@
     flex-shrink: 0;
 }
 
+.rm-select-toggle {
+    background: none;
+    border: none;
+    color: #007BFF;
+    font-size: 0.85rem;
+    cursor: pointer;
+    padding: 4px 0;
+    font-weight: 600;
+}
+
+.rm-select-toggle.active {
+    color: #e53935;
+}
+
 .rm-swipe-delete-btn {
     opacity: 0;
     background: none;
