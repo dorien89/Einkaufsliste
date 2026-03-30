@@ -32,3 +32,7 @@ def manage_categories():
     categories = Category.query.order_by(Category.name).all()
     return render_template('categories.html', categories=categories)
 
+@bp.route('/bin')
+def recipe_bin():
+    return render_template('recipe_bin.html')
+

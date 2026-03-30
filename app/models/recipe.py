@@ -16,6 +16,7 @@ class Recipe(db.Model):
     name = db.Column(db.String, nullable=False)
     description = db.Column(db.Text)
     category = db.Column(db.String)
+    deleted_at = db.Column(db.DateTime, nullable=True)
     
     @classmethod
     def get_random(cls, limit=3):

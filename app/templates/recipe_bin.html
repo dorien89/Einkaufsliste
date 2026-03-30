@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/recipe_manage.css') }}">
+{% endblock %}
+{% block content %}
+<div class="page-header-row" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+    <h1 style="margin:0">Papierkorb</h1>
+    <div style="display:flex;gap:8px;">
+        <button class="rm-btn rm-btn-delete" id="empty-bin-btn" onclick="emptyBin()" style="display:none;">Alles löschen</button>
+        <a href="{{ url_for('recipe.list_recipes') }}" class="rm-btn rm-btn-cancel" style="text-decoration:none;padding:10px 16px;">← Rezepte</a>
+    </div>
+</div>
+<p style="color:#888;font-size:0.9rem;margin-bottom:16px;">Gelöschte Rezepte können wiederhergestellt oder endgültig gelöscht werden.</p>
+<ul class="ing-manage-list" id="bin-list">
+    <li style="padding:16px;color:#aaa" id="bin-empty-msg">Papierkorb wird geladen…</li>
+</ul>
+
+<script>
+async function loadBin() {
+    const res = await fetch('/api/recipes/bin');
+    const recipes = await res.json();
+    const ul = document.getElementById('bin-list');
+    const emptyBtn = document.getElementById('empty-bin-btn');
+
+    if (recipes.length === 0) {
+        ul.innerHTML = '<li style="padding:16px;color:#aaa">Papierkorb ist leer.</li>';
+        emptyBtn.style.display = 'none';
+        return;
+    }
+
+    emptyBtn.style.display = '';
+    ul.innerHTML = recipes.map(r => {
+        const date = new Date(r.deleted_at).toLocaleDateString('de-DE', { day:'2-digit', month:'2-digit', year:'numeric' });
+        return `
+        <li class="ing-manage-item" id="bin-${r.id}" style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+            <div>
+                <strong>${r.name}</strong>
+                <span style="color:#aaa;font-size:0.82rem;margin-left:8px;">${r.category || ''}</span>
+                <div style="color:#bbb;font-size:0.78rem;">Gelöscht am ${date}</div>
+            </div>
+            <div style="display:flex;gap:8px;">
+                <button class="ing-small-btn ing-btn-save" onclick="restore(${r.id})">↩ Wiederherstellen</button>
+                <button class="ing-small-btn ing-btn-delete" onclick="permanentDelete(${r.id}, '${r.name.replace(/'/g, "\\'")}')">Endgültig löschen</button>
+            </div>
+        </li>`;
+    }).join('');
+}
+
+async function restore(id) {
+    await fetch(`/api/recipe/${id}/restore`, { method: 'POST' });
+    document.getElementById(`bin-${id}`).remove();
+    checkEmpty();
+}
+
+async function permanentDelete(id, name) {
+    if (!confirm(`"${name}" endgültig löschen? Dies kann nicht rückgängig gemacht werden.`)) return;
+    await fetch(`/api/recipe/${id}/permanent`, { method: 'DELETE' });
+    document.getElementById(`bin-${id}`).remove();
+    checkEmpty();
+}
+
+async function emptyBin() {
+    if (!confirm('Alle Rezepte im Papierkorb endgültig löschen?')) return;
+    await fetch('/api/recipes/bin/empty', { method: 'DELETE' });
+    document.getElementById('bin-list').innerHTML = '<li style="padding:16px;color:#aaa">Papierkorb ist leer.</li>';
+    document.getElementById('empty-bin-btn').style.display = 'none';
+}
+
+function checkEmpty() {
+    const ul = document.getElementById('bin-list');
+    if (ul.querySelectorAll('li[id^="bin-"]').length === 0) {
+        ul.innerHTML = '<li style="padding:16px;color:#aaa">Papierkorb ist leer.</li>';
+        document.getElementById('empty-bin-btn').style.display = 'none';
+    }
+}
+
+loadBin();
+</script>
+{% endblock %}

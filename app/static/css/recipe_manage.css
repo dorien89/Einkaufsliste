@@ -43,10 +43,24 @@
     border-bottom: 1px solid #eee;
     cursor: pointer;
     display: flex;
-    flex-direction: column;
-    gap: 3px;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
     min-height: 52px;
-    justify-content: center;
+    overflow: hidden;
+    position: relative;
+    user-select: none;
+}
+
+.rm-list-item .item-title {
+    flex: 1;
+    font-weight: bold;
+    font-size: 0.95em;
+}
+
+.rm-list-item .item-category {
+    font-size: 0.78em;
+    opacity: 0.7;
 }
 
 .rm-list-item:hover {
@@ -58,14 +72,35 @@
     color: #fff;
 }
 
-.rm-list-item .item-title {
-    font-weight: bold;
-    font-size: 0.95em;
+.rm-list-item.selected {
+    background: #fff3e0;
 }
 
-.rm-list-item .item-category {
-    font-size: 0.78em;
-    opacity: 0.7;
+.rm-list-item .rm-select-cb {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+.rm-swipe-delete-btn {
+    opacity: 0;
+    background: none;
+    border: none;
+    font-size: 1.1rem;
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 6px;
+    transition: opacity 0.15s;
+    flex-shrink: 0;
+}
+
+.rm-list-item:hover .rm-swipe-delete-btn {
+    opacity: 0.5;
+}
+
+.rm-swipe-delete-btn:hover {
+    opacity: 1 !important;
+    background: #ffebee;
 }
 
 .rm-scroll-track {

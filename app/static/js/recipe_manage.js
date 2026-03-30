@@ -3,6 +3,8 @@ let allCategories = [];
 let activeRecipeId = null;
 let activeCategory = null;
 let filterExpanded = window.innerWidth > 767; // collapsed by default on mobile
+let selectMode = false;
+let selectedIds = new Set();
 
 // ── Scroll progress ───────────────────────────────────
 function updateScrollProgress() {
@@ -92,9 +94,23 @@ function renderList(recipes) {
     }
     recipes.forEach(recipe => {
         const li = document.createElement('li');
-        li.className = 'rm-list-item' + (recipe.id === activeRecipeId ? ' active' : '');
-        li.innerHTML = `<span class="item-title">${recipe.name}</span><span class="item-category">${recipe.category || ''}</span>`;
-        li.onclick = () => openRecipe(recipe.id);
+        li.className = 'rm-list-item' + (recipe.id === activeRecipeId ? ' active' : '') + (selectMode && selectedIds.has(recipe.id) ? ' selected' : '');
+        li.dataset.id = recipe.id;
+
+        if (selectMode) {
+            li.innerHTML = `
+                <input type="checkbox" class="rm-select-cb" ${selectedIds.has(recipe.id) ? 'checked' : ''}>
+                <span class="item-title">${recipe.name}</span>
+                <span class="item-category">${recipe.category || ''}</span>`;
+            li.onclick = () => toggleSelect(recipe.id);
+        } else {
+            li.innerHTML = `
+                <span class="item-title">${recipe.name}</span>
+                <span class="item-category">${recipe.category || ''}</span>
+                <button class="rm-swipe-delete-btn" title="Löschen" onclick="quickDelete(event, ${recipe.id})">🗑️</button>`;
+            li.onclick = () => openRecipe(recipe.id);
+            addSwipeToDelete(li, recipe.id);
+        }
         ul.appendChild(li);
     });
     updateScrollProgress();
@@ -330,6 +346,103 @@ async function saveRecipe(recipeId) {
 
     await loadRecipeList();
     openRecipe(data.id);
+}
+
+// ── Select mode ──────────────────────────────────────
+function toggleSelectMode() {
+    selectMode = !selectMode;
+    selectedIds.clear();
+    document.getElementById('select-mode-btn').textContent = selectMode ? 'Abbrechen' : 'Auswählen';
+    document.getElementById('select-mode-btn').classList.toggle('rm-btn-delete', selectMode);
+    updateBulkBar();
+    if (selectMode) closeDetail();
+    renderList(getFilteredRecipes());
+}
+
+function toggleSelect(id) {
+    if (selectedIds.has(id)) selectedIds.delete(id);
+    else selectedIds.add(id);
+    updateBulkBar();
+    renderList(getFilteredRecipes());
+}
+
+function updateBulkBar() {
+    const bar = document.getElementById('bulk-bar');
+    const count = selectedIds.size;
+    bar.style.display = (selectMode && count > 0) ? 'flex' : 'none';
+    document.getElementById('bulk-count').textContent = `${count} ausgewählt`;
+}
+
+async function bulkDelete() {
+    const ids = [...selectedIds];
+    await fetch('/api/recipes/bulk-delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids })
+    });
+    toggleSelectMode();
+    await loadRecipeList();
+    showToast(`${ids.length} Rezept${ids.length === 1 ? '' : 'e'} in den Papierkorb verschoben`);
+}
+
+// ── Quick delete (trash button / swipe) ──────────────
+async function quickDelete(event, recipeId) {
+    event.stopPropagation();
+    await fetch(`/api/recipe/${recipeId}`, { method: 'DELETE' });
+    if (activeRecipeId === recipeId) closeDetail();
+    allRecipes = allRecipes.filter(r => r.id !== recipeId);
+    renderList(getFilteredRecipes());
+    showToast('In den Papierkorb verschoben');
+}
+
+function addSwipeToDelete(li, recipeId) {
+    let startX = 0, currentX = 0, swiping = false;
+    const THRESHOLD = 80;
+
+    li.addEventListener('touchstart', e => {
+        startX = e.touches[0].clientX;
+        currentX = 0;
+        swiping = true;
+        li.style.transition = 'none';
+    }, { passive: true });
+
+    li.addEventListener('touchmove', e => {
+        if (!swiping) return;
+        const dx = e.touches[0].clientX - startX;
+        if (dx < 0) {
+            currentX = dx;
+            li.style.transform = `translateX(${Math.max(dx, -THRESHOLD * 1.5)}px)`;
+            li.style.background = Math.abs(dx) > THRESHOLD ? '#ffebee' : '';
+        }
+    }, { passive: true });
+
+    li.addEventListener('touchend', async () => {
+        swiping = false;
+        li.style.transition = 'transform 0.2s, background 0.2s';
+        if (currentX < -THRESHOLD) {
+            li.style.transform = `translateX(-100%)`;
+            li.style.opacity = '0';
+            await quickDelete({ stopPropagation: () => {} }, recipeId);
+        } else {
+            li.style.transform = '';
+            li.style.background = '';
+        }
+    });
+}
+
+// ── Toast ─────────────────────────────────────────────
+function showToast(msg) {
+    let t = document.getElementById('rm-toast');
+    if (!t) {
+        t = document.createElement('div');
+        t.id = 'rm-toast';
+        t.style.cssText = 'display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 20px;border-radius:20px;font-size:0.9rem;z-index:800;white-space:nowrap;';
+        document.body.appendChild(t);
+    }
+    t.textContent = msg;
+    t.style.display = 'block';
+    clearTimeout(t._timer);
+    t._timer = setTimeout(() => t.style.display = 'none', 2500);
 }
 
 window.onload = init;

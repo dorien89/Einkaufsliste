@@ -155,6 +155,48 @@ def delete_recipe_api(recipe_id):
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
+@bp.route('/recipes/bulk-delete', methods=['POST'])
+def bulk_delete_recipes():
+    try:
+        ids = request.get_json().get('ids', [])
+        RecipeService.bulk_delete_recipes(ids)
+        return jsonify({'success': True, 'count': len(ids)})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@bp.route('/recipe/<int:recipe_id>/restore', methods=['POST'])
+def restore_recipe(recipe_id):
+    try:
+        RecipeService.restore_recipe(recipe_id)
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@bp.route('/recipe/<int:recipe_id>/permanent', methods=['DELETE'])
+def permanent_delete_recipe(recipe_id):
+    try:
+        RecipeService.permanent_delete_recipe(recipe_id)
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@bp.route('/recipes/bin', methods=['GET'])
+def get_bin():
+    recipes = RecipeService.get_deleted_recipes()
+    return jsonify([{'id': r.id, 'name': r.name, 'category': r.category, 'deleted_at': r.deleted_at.isoformat()} for r in recipes])
+
+@bp.route('/recipes/bin/empty', methods=['DELETE'])
+def empty_bin():
+    try:
+        RecipeService.empty_bin()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
 @bp.route('/admin/shopping-list/clear', methods=['POST'])
 def clear_shopping_list():
     try:
@@ -167,7 +209,7 @@ def clear_shopping_list():
 
 @bp.route('/recipes/all')
 def get_all_recipes():
-    recipes = Recipe.query.order_by(Recipe.name).all()
+    recipes = Recipe.query.filter(Recipe.deleted_at == None).order_by(Recipe.name).all()
     return jsonify([{'id': r.id, 'name': r.name, 'category': r.category} for r in recipes])
 
 @bp.route('/recipes')

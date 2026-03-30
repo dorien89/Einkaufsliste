@@ -1,10 +1,15 @@
+from datetime import datetime, timezone
 from app import db
 from app.models.recipe import Recipe, Ingredient, RecipeIngredient
 
 class RecipeService:
     @staticmethod
     def get_all_recipes():
-        return Recipe.query.all()
+        return Recipe.query.filter(Recipe.deleted_at == None).all()
+
+    @staticmethod
+    def get_deleted_recipes():
+        return Recipe.query.filter(Recipe.deleted_at != None).order_by(Recipe.deleted_at.desc()).all()
     
     @staticmethod
     def create_recipe(name, description, category, ingredients_data):
@@ -62,7 +67,32 @@ class RecipeService:
     @staticmethod
     def delete_recipe(recipe_id):
         recipe = Recipe.query.get_or_404(recipe_id)
+        recipe.deleted_at = datetime.now(timezone.utc)
+        db.session.commit()
+
+    @staticmethod
+    def bulk_delete_recipes(recipe_ids):
+        now = datetime.now(timezone.utc)
+        Recipe.query.filter(Recipe.id.in_(recipe_ids), Recipe.deleted_at == None).update(
+            {Recipe.deleted_at: now}, synchronize_session=False
+        )
+        db.session.commit()
+
+    @staticmethod
+    def restore_recipe(recipe_id):
+        recipe = Recipe.query.get_or_404(recipe_id)
+        recipe.deleted_at = None
+        db.session.commit()
+
+    @staticmethod
+    def permanent_delete_recipe(recipe_id):
+        recipe = Recipe.query.get_or_404(recipe_id)
         db.session.delete(recipe)
+        db.session.commit()
+
+    @staticmethod
+    def empty_bin():
+        Recipe.query.filter(Recipe.deleted_at != None).delete(synchronize_session=False)
         db.session.commit()
     
     @staticmethod
