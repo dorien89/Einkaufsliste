@@ -425,6 +425,9 @@
 }
 .ing-manage-item.editing .ing-staple-label { display: flex; }
 
+.ing-category-field { display: none; }
+.ing-manage-item.editing .ing-category-field { display: block; }
+
 .ing-small-btn {
     padding: 8px 12px;
     border: none;
