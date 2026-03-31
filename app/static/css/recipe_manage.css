@@ -439,10 +439,12 @@
 
 .ing-btn-edit   { background: #007BFF; color: #fff; }
 .ing-btn-save   { background: #28a745; color: #fff; display: none; }
+.ing-btn-cancel { background: #aaa; color: #fff; display: none; }
 .ing-btn-delete { background: #e53935; color: #fff; }
 
 .ing-manage-item.editing .ing-btn-edit   { display: none; }
 .ing-manage-item.editing .ing-btn-save   { display: inline-block; }
+.ing-manage-item.editing .ing-btn-cancel { display: inline-block; }
 .ing-manage-item.editing .ing-btn-delete { display: none; }
 
 .ing-add-form {

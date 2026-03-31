@@ -21,6 +21,7 @@
         </select>
         <button class="ing-small-btn ing-btn-edit" onclick="editIng({{ ingredient.id }})">Bearbeiten</button>
         <button class="ing-small-btn ing-btn-save" onclick="saveIng({{ ingredient.id }})">Speichern</button>
+        <button class="ing-small-btn ing-btn-cancel" onclick="cancelIng({{ ingredient.id }})">Abbrechen</button>
         <button class="ing-small-btn ing-btn-delete" onclick="deleteIng({{ ingredient.id }}, '{{ ingredient.name }}')">Löschen</button>
     </li>
     {% endfor %}
@@ -33,8 +34,22 @@
 <script>
 const SHOP_CATS = ['Obst & Gemüse','Fleisch & Fisch','Milch & Käse','Brot & Backwaren','Tiefkühl','Konserven & Fertiggerichte','Nudeln, Reis & Hülsenfrüchte','Öle & Gewürze','Getränke','Sonstiges'];
 function editIng(id) {
-    document.getElementById('ing-' + id).classList.add('editing');
+    const li = document.getElementById('ing-' + id);
+    li.dataset.origName = document.querySelector('#ing-' + id + ' .ing-name-field').value;
+    li.dataset.origUnit = document.querySelector('#ing-' + id + ' .ing-unit-field').value;
+    li.dataset.origStaple = document.querySelector('#ing-' + id + ' .ing-staple-field').checked;
+    li.dataset.origCat = document.querySelector('#ing-' + id + ' .ing-category-field').value;
+    li.classList.add('editing');
     document.querySelector('#ing-' + id + ' .ing-name-field').focus();
+}
+
+function cancelIng(id) {
+    const li = document.getElementById('ing-' + id);
+    document.querySelector('#ing-' + id + ' .ing-name-field').value = li.dataset.origName;
+    document.querySelector('#ing-' + id + ' .ing-unit-field').value = li.dataset.origUnit;
+    document.querySelector('#ing-' + id + ' .ing-staple-field').checked = li.dataset.origStaple === 'true';
+    document.querySelector('#ing-' + id + ' .ing-category-field').value = li.dataset.origCat;
+    li.classList.remove('editing');
 }
 async function saveIng(id) {
     const name = document.querySelector('#ing-' + id + ' .ing-name-field').value.trim();
