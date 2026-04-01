@@ -68,8 +68,8 @@ def push_to_bring():
     async def _push():
         import aiohttp
         async with aiohttp.ClientSession() as session:
-            bring = Bring(session)
-            await bring.login(email, password)
+            bring = Bring(session, email, password)
+            await bring.login()
             lists_data = await bring.loadLists()
             bring_lists = lists_data.get('lists', [])
             if not bring_lists:
