@@ -53,7 +53,8 @@ function renderCategoryFilter() {
     all.onclick = () => { activeCategory = null; if (window.innerWidth <= 767) filterExpanded = false; renderCategoryFilter(); renderList(getFilteredRecipes()); };
     pills.appendChild(all);
 
-    allCategories.forEach(cat => {
+    const usedNames = new Set(allRecipes.map(r => r.category).filter(Boolean));
+    allCategories.filter(cat => usedNames.has(cat.name)).forEach(cat => {
         const btn = document.createElement('button');
         btn.className = 'rm-cat-btn' + (activeCategory === cat.name ? ' active' : '');
         btn.textContent = cat.name;
@@ -75,6 +76,7 @@ function getFilteredRecipes() {
 async function loadRecipeList() {
     const response = await fetch('/api/recipes/all');
     allRecipes = await response.json();
+    renderCategoryFilter();
     renderList(getFilteredRecipes());
 }
 
