@@ -157,19 +157,19 @@
     text-align: right;
 }
 
-.rm-list-add-btn {
-    margin: 10px;
-    padding: 14px;
+.rm-list-add-small {
     background: #28a745;
     color: #fff;
     border: none;
-    border-radius: 8px;
-    font-size: 1.1em;
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 0.82em;
+    font-weight: 700;
     cursor: pointer;
-    font-weight: bold;
+    white-space: nowrap;
 }
 
-.rm-list-add-btn:hover {
+.rm-list-add-small:hover {
     background: #1e7e34;
 }
 
@@ -614,15 +614,6 @@
         padding: 8px 14px;
     }
 
-    /* Add recipe button: full width, sticky at bottom of panel */
-    .rm-list-add-btn {
-        width: calc(100% - 20px);
-        min-height: 52px;
-        position: sticky;
-        bottom: 0;
-        z-index: 10;
-        box-shadow: 0 -2px 8px rgba(0,0,0,0.12);
-    }
 
     /* Detail header: stack title and buttons */
     .rm-detail-header {
