@@ -142,7 +142,7 @@ body {
 
 h1 {
     margin-bottom: 2rem;
-    color: #333;
+    color: var(--app-text, #333);
 }
 
 .recipes-grid {
@@ -264,10 +264,11 @@ h1 {
 }
 
 .shopping-list-items {
-    background: var(--app-surface);
+    background: var(--app-surface, #fff);
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.07);
     margin-bottom: 1rem;
+    border: 1px solid var(--app-border, #eee);
 }
 
 .shopping-list-item {
@@ -275,17 +276,18 @@ h1 {
     justify-content: space-between;
     align-items: center;
     padding: 0.75rem 1rem;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid var(--app-border, #eee);
     line-height: 1.2;
 }
 
 .item-name {
     font-weight: 500;
     margin-right: 0.5rem;
+    color: var(--app-text, #333);
 }
 
 .item-amount {
-    color: #666;
+    color: var(--app-muted, #666);
     white-space: nowrap;
 }
 
@@ -295,9 +297,9 @@ h1 {
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    color: #555;
-    background: #eef2f7;
-    border-bottom: 1px solid #dde3ec;
+    color: var(--app-muted, #555);
+    background: var(--app-bg, #eef2f7);
+    border-bottom: 1px solid var(--app-border, #dde3ec);
     margin-top: 0.25rem;
 }
 
@@ -307,9 +309,9 @@ h1 {
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    color: #999;
-    background: #f5f5f5;
-    border-bottom: 1px solid #eee;
+    color: var(--app-muted, #999);
+    background: var(--app-bg, #f5f5f5);
+    border-bottom: 1px solid var(--app-border, #eee);
     margin-top: 0.5rem;
 }
 
@@ -357,8 +359,9 @@ h1 {
     left: 0;
     right: 0;
     padding: 0.6rem 0.75rem 0.5rem;
-    background: white;
-    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+    background: var(--app-surface, #fff);
+    border-top: 1px solid var(--app-border, #e8e8e8);
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.08);
     display: flex;
     flex-direction: column;
     gap: 0.4rem;
@@ -383,7 +386,7 @@ h1 {
 }
 
 .button-share {
-    background-color: #4caf50;
+    background-color: var(--app-accent, #4caf50);
     font-size: 1rem;
     font-weight: 700;
 }

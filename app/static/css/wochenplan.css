@@ -17,12 +17,12 @@
 
 .wp-nav-btn {
     background: none;
-    border: 1px solid #ddd;
+    border: 1px solid var(--app-border, #ddd);
     border-radius: 8px;
     padding: 6px 16px;
     font-size: 1.3rem;
     cursor: pointer;
-    color: #555;
+    color: var(--app-muted, #555);
     min-height: 40px;
 }
 
@@ -285,7 +285,7 @@
 .wp-to-list-btn {
     width: 100%;
     padding: 14px;
-    background: #22c55e;
+    background: var(--app-accent, #22c55e);
     color: #fff;
     border: none;
     border-radius: 10px;
@@ -320,7 +320,7 @@
     bottom: 0;
     left: 0;
     right: 0;
-    background: #fff;
+    background: var(--app-surface, #fff);
     border-radius: 18px 18px 0 0;
     z-index: 801;
     flex-direction: column;
@@ -388,7 +388,7 @@
 }
 
 .wp-picker-item:active {
-    background: #f0f7ff;
+    background: var(--app-accent-light, #f0f7ff);
     border-radius: 6px;
 }
 
