@@ -70,7 +70,7 @@ def push_to_bring():
         async with aiohttp.ClientSession() as session:
             bring = Bring(session, email, password)
             await bring.login()
-            lists_data = await bring.loadLists()
+            lists_data = await bring.load_lists()
             bring_lists = lists_data.get('lists', [])
             if not bring_lists:
                 raise RuntimeError('Keine Bring!-Listen gefunden.')
@@ -95,7 +95,7 @@ def push_to_bring():
                         spec = f"{a} {u}".strip()
                 else:
                     spec = ''
-                await bring.saveItem(list_uuid, name, spec)
+                await bring.save_item(list_uuid, name, spec)
 
             return target.get('name', list_uuid)
 
