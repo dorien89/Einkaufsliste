@@ -382,7 +382,7 @@ function updateBulkBar() {
     bar.style.display = selectMode ? 'flex' : 'none';
     const count = selectedIds.size;
     const total = getFilteredRecipes().length;
-    document.getElementById('bulk-count').textContent = count > 0 ? `${count} ausgewählt` : 'Alle auswählen';
+    document.getElementById('bulk-count').textContent = count > 0 ? `${count} ausgewählt` : 'Alle';
     const cb = document.getElementById('select-all-cb');
     if (cb) {
         cb.checked = count > 0 && count === total;
