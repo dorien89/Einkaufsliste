@@ -156,6 +156,14 @@ function applyAtHome() {
         sep.classList.toggle('at-home-sep', allDone);
     });
 
+    // Hide Vorrat separator if all staple items are ticked
+    const stapleSep = document.querySelector('.staple-separator');
+    if (stapleSep) {
+        const stapleItems = document.querySelectorAll('.sl-checkable[data-cat="__staple__"]');
+        const allDone = stapleItems.length > 0 && [...stapleItems].every(el => atHome.has(el.dataset.key));
+        stapleSep.classList.toggle('at-home-sep', allDone);
+    }
+
     // Show/hide reset link
     const resetBtn = document.getElementById('at-home-reset');
     if (resetBtn) resetBtn.style.display = atHome.size > 0 ? 'block' : 'none';
