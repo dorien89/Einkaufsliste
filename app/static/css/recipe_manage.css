@@ -68,7 +68,7 @@
 }
 
 .rm-list-item.active {
-    background: #007BFF;
+    background: var(--app-accent, #007BFF);
     color: #fff;
 }
 
@@ -104,10 +104,10 @@
 .rm-select-toggle {
     background: none;
     border: none;
-    color: #007BFF;
-    font-size: 0.85rem;
+    color: var(--app-accent, #007BFF);
+    font-size: 0.8rem;
     cursor: pointer;
-    padding: 4px 0;
+    padding: 4px 2px;
     font-weight: 600;
 }
 
@@ -145,32 +145,39 @@
 .rm-scroll-progress {
     height: 100%;
     width: 0%;
-    background: #007BFF;
+    background: var(--app-accent, #007BFF);
     transition: width 0.1s ease;
 }
 
-.rm-list-count {
-    padding: 4px 12px;
-    font-size: 0.72em;
-    color: #aaa;
+.rm-list-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 5px 10px;
+    border-bottom: 1px solid var(--app-border, #e8e8e8);
+    background: var(--app-surface, #fff);
     flex-shrink: 0;
-    text-align: right;
+}
+
+.rm-list-count {
+    font-size: 0.75em;
+    color: var(--app-muted, #aaa);
 }
 
 .rm-list-add-small {
-    background: #28a745;
+    background: var(--app-accent, #28a745);
     color: #fff;
     border: none;
     border-radius: 6px;
-    padding: 4px 10px;
-    font-size: 0.82em;
+    padding: 5px 10px;
+    font-size: 0.8em;
     font-weight: 700;
     cursor: pointer;
     white-space: nowrap;
 }
 
 .rm-list-add-small:hover {
-    background: #1e7e34;
+    filter: brightness(0.9);
 }
 
 /* ── Right panel: detail / form ─────────────────────── */
@@ -539,9 +546,9 @@
 }
 
 .rm-cat-btn.active {
-    background: #007BFF;
+    background: var(--app-accent, #007BFF);
     color: #fff;
-    border-color: #007BFF;
+    border-color: var(--app-accent, #007BFF);
 }
 
 /* ── Responsive ─────────────────────────────────────── */
