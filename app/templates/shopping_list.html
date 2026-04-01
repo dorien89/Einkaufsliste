@@ -82,6 +82,10 @@
         <span style="font-size:1.4rem;">📋</span>
         <div><strong>Kopieren</strong><div style="font-size:0.8rem;color:#888;">In Zwischenablage</div></div>
     </button>
+    <button id="bring-btn" onclick="pushToBring()" class="share-option-btn" style="background:#f0f8ff;width:100%;text-align:left;border:none;cursor:pointer;display:none;">
+        <span style="font-size:1.4rem;">🛍️</span>
+        <div><strong>→ Bring!</strong><div style="font-size:0.8rem;color:#888;">In Bring!-Liste übertragen</div></div>
+    </button>
     <button onclick="closeShareSheet()" style="width:100%;margin-top:8px;padding:14px;background:#f5f5f5;border:none;border-radius:12px;font-size:1rem;color:#555;cursor:pointer;">Abbrechen</button>
 </div>
 
@@ -188,8 +192,44 @@ function buildShareText() {
     return lines.join('\n');
 }
 
+// ── Bring! integration ───────────────────────────────
+async function checkBringConfig() {
+    try {
+        const r = await fetch('/api/bring/config');
+        const d = await r.json();
+        const btn = document.getElementById('bring-btn');
+        if (btn && d.email && d.has_password) btn.style.display = '';
+    } catch {}
+}
+
+function pushToBring() {
+    closeShareSheet();
+    const atHome = getAtHome();
+    const items = buyItems
+        .filter(i => !atHome.has(`${i.name}::${i.unit}`))
+        .map(i => ({ name: i.name, amount: i.amount, unit: i.unit }));
+
+    if (!items.length) {
+        showToast('Keine Artikel zum Übertragen.');
+        return;
+    }
+
+    showToast('Wird übertragen…');
+    fetch('/api/bring/push', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ items })
+    })
+    .then(r => r.json())
+    .then(d => {
+        if (d.success) showToast(`✓ ${d.count} Artikel → Bring! (${d.list})`);
+        else showToast('Fehler: ' + d.error);
+    })
+    .catch(e => showToast('Fehler: ' + e.message));
+}
+
 // Apply on page load
-document.addEventListener('DOMContentLoaded', applyAtHome);
+document.addEventListener('DOMContentLoaded', () => { applyAtHome(); checkBringConfig(); });
 
 function openShareSheet() {
     const text = buildShareText();

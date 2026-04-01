@@ -26,6 +26,7 @@ def create_app():
     from app.routes.kiosk_routes import bp as kiosk_bp
     from app.routes.shopping_routes import bp as shopping_bp
     from app.routes.data_routes import bp as data_bp
+    from app.routes.bring_routes import bp as bring_bp
 
     app.register_blueprint(main_bp)
     app.register_blueprint(recipe_bp)
@@ -33,6 +34,7 @@ def create_app():
     app.register_blueprint(kiosk_bp)
     app.register_blueprint(shopping_bp)
     app.register_blueprint(data_bp)
+    app.register_blueprint(bring_bp)
 
     with app.app_context():
         from app.models.week_plan import WeekPlan  # ensure Alembic & create_all see it
