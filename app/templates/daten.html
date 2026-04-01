@@ -53,6 +53,27 @@
     <div id="schema-copy-hint" style="display:none;text-align:center;font-size:0.8rem;color:#16a34a;margin-top:6px;">✓ Kopiert</div>
 </div>
 
+<!-- JSON paste import -->
+<div class="data-card">
+    <div class="data-card-title">⚡ JSON direkt einfügen</div>
+    <p style="color:var(--app-muted,#888);font-size:0.85rem;margin-bottom:12px;">
+        KI-Ausgabe hier einfügen und Vorschau prüfen, bevor gespeichert wird.
+    </p>
+    <textarea id="paste-json" rows="6" placeholder='[{ "name": "Rezept", "ingredients": [...] }]'
+        style="width:100%;padding:10px;border:1px solid var(--app-border,#ddd);border-radius:8px;font-size:0.82rem;font-family:monospace;box-sizing:border-box;resize:vertical;background:var(--app-bg,#fafafa);color:var(--app-text,#333);"
+        oninput="onPasteInput()"></textarea>
+    <div style="display:flex;gap:8px;margin-top:10px;align-items:center;">
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;flex:1;">
+            <input type="checkbox" id="paste-overwrite-cb" style="width:16px;height:16px;">
+            Duplikate überschreiben
+        </label>
+        <button class="data-btn data-btn-primary" id="paste-preview-btn" onclick="openPastePreview()" disabled>
+            Vorschau →
+        </button>
+    </div>
+    <div id="paste-error" style="display:none;margin-top:8px;padding:8px 12px;border-radius:8px;font-size:0.85rem;background:#fff3f3;border:1px solid #ffcdd2;color:#c62828;"></div>
+</div>
+
 <!-- Import -->
 <div class="data-card">
     <div class="data-card-title">Import / Wiederherstellen</div>
@@ -119,6 +140,20 @@
     </p>
 </div>
 
+<!-- Preview modal -->
+<div id="preview-backdrop" onclick="closePastePreview()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:800;"></div>
+<div id="preview-modal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:min(92vw,560px);max-height:80vh;background:var(--app-surface,#fff);border-radius:16px;box-shadow:0 8px 40px rgba(0,0,0,0.2);z-index:801;display:none;flex-direction:column;overflow:hidden;">
+    <div style="padding:16px 18px 12px;border-bottom:1px solid var(--app-border,#eee);flex-shrink:0;">
+        <div style="font-weight:700;font-size:1rem;color:var(--app-text,#333);">Vorschau</div>
+        <div id="preview-subtitle" style="font-size:0.82rem;color:var(--app-muted,#888);margin-top:2px;"></div>
+    </div>
+    <div id="preview-body" style="overflow-y:auto;padding:12px 18px 16px;flex:1;"></div>
+    <div style="padding:12px 18px;border-top:1px solid var(--app-border,#eee);display:flex;gap:10px;flex-shrink:0;">
+        <button onclick="closePastePreview()" style="flex:1;padding:12px;background:var(--app-border,#f0f0f0);border:none;border-radius:10px;font-size:0.95rem;color:var(--app-muted,#555);cursor:pointer;">Abbrechen</button>
+        <button onclick="confirmPasteImport()" id="preview-confirm-btn" style="flex:2;padding:12px;background:var(--app-accent,#28a745);color:#fff;border:none;border-radius:10px;font-size:0.95rem;font-weight:700;cursor:pointer;">✓ Importieren</button>
+    </div>
+</div>
+
 <script>
 let selectedFile = null;
 
@@ -173,6 +208,122 @@ async function runImport() {
 
 function showResult(success, msg) {
     const el = document.getElementById('import-result');
+    el.style.display = 'block';
+    el.style.background = success ? '#f0fff4' : '#fff3f3';
+    el.style.border = `1px solid ${success ? '#86efac' : '#ffcdd2'}`;
+    el.style.color = success ? '#166534' : '#c62828';
+    el.textContent = (success ? '✓ ' : '✗ ') + msg;
+}
+
+// ── JSON paste import ─────────────────────────────────
+let _parsedPasteRecipes = null;
+
+function onPasteInput() {
+    const txt = document.getElementById('paste-json').value.trim();
+    const btn = document.getElementById('paste-preview-btn');
+    const err = document.getElementById('paste-error');
+    _parsedPasteRecipes = null;
+    err.style.display = 'none';
+    btn.disabled = true;
+    if (!txt) return;
+    try {
+        const raw = JSON.parse(txt);
+        const recipes = _extractRecipes(raw);
+        if (!recipes || !recipes.length) throw new Error('Keine Rezepte gefunden.');
+        _parsedPasteRecipes = recipes;
+        btn.disabled = false;
+    } catch (e) {
+        err.style.display = 'block';
+        err.textContent = '✗ ' + e.message;
+    }
+}
+
+function _extractRecipes(raw) {
+    if (Array.isArray(raw)) return raw;
+    if (raw && raw.name && raw.ingredients) return [raw];
+    if (raw && Array.isArray(raw.recipes)) return raw.recipes;
+    return null;
+}
+
+function _esc(s) {
+    return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function openPastePreview() {
+    if (!_parsedPasteRecipes) return;
+    const recipes = _parsedPasteRecipes;
+
+    document.getElementById('preview-subtitle').textContent =
+        `${recipes.length} Rezept${recipes.length !== 1 ? 'e' : ''} gefunden`;
+
+    let html = '';
+    recipes.forEach((r, idx) => {
+        const ings = r.ingredients || [];
+        html += `<div style="padding:12px 0;${idx ? 'border-top:1px solid var(--app-border,#eee);' : ''}">`;
+        html += `<div style="font-weight:700;font-size:0.97rem;color:var(--app-text,#333);">${_esc(r.name)}</div>`;
+        if (r.category) html += `<div style="font-size:0.78rem;color:var(--app-muted,#888);margin-top:2px;">Kategorie: ${_esc(r.category)}</div>`;
+        if (r.description) html += `<div style="font-size:0.82rem;color:var(--app-muted,#777);margin:4px 0;font-style:italic;">${_esc(r.description)}</div>`;
+        if (ings.length) {
+            html += `<div style="margin-top:8px;display:flex;flex-direction:column;gap:3px;">`;
+            ings.forEach(i => {
+                const a = parseFloat(i.amount);
+                const aStr = Number.isInteger(a) ? a : a.toFixed(1);
+                html += `<div style="font-size:0.82rem;color:var(--app-text,#333);display:flex;gap:6px;">
+                    <span style="color:var(--app-muted,#aaa);min-width:70px;text-align:right;">${aStr} ${_esc(i.unit)}</span>
+                    <span>${_esc(i.name)}</span>
+                </div>`;
+            });
+            html += `</div>`;
+        }
+        html += `</div>`;
+    });
+    document.getElementById('preview-body').innerHTML = html;
+
+    document.getElementById('preview-backdrop').style.display = 'block';
+    const modal = document.getElementById('preview-modal');
+    modal.style.display = 'flex';
+}
+
+function closePastePreview() {
+    document.getElementById('preview-backdrop').style.display = 'none';
+    document.getElementById('preview-modal').style.display = 'none';
+}
+
+async function confirmPasteImport() {
+    if (!_parsedPasteRecipes) return;
+    const btn = document.getElementById('preview-confirm-btn');
+    btn.textContent = 'Wird importiert…';
+    btn.disabled = true;
+
+    const json = JSON.stringify(_parsedPasteRecipes);
+    const blob = new Blob([json], { type: 'application/json' });
+    const form = new FormData();
+    form.append('file', blob, 'paste.json');
+    form.append('on_duplicate', document.getElementById('paste-overwrite-cb').checked ? 'overwrite' : 'skip');
+
+    try {
+        const res = await fetch('/daten/import', { method: 'POST', body: form });
+        const data = await res.json();
+        closePastePreview();
+        if (data.success) {
+            document.getElementById('paste-json').value = '';
+            document.getElementById('paste-preview-btn').disabled = true;
+            _parsedPasteRecipes = null;
+            showPasteResult(true, data.message);
+        } else {
+            showPasteResult(false, data.error || 'Unbekannter Fehler');
+        }
+    } catch (e) {
+        closePastePreview();
+        showPasteResult(false, 'Netzwerkfehler: ' + e.message);
+    } finally {
+        btn.textContent = '✓ Importieren';
+        btn.disabled = false;
+    }
+}
+
+function showPasteResult(success, msg) {
+    const el = document.getElementById('paste-error');
     el.style.display = 'block';
     el.style.background = success ? '#f0fff4' : '#fff3f3';
     el.style.border = `1px solid ${success ? '#86efac' : '#ffcdd2'}`;
