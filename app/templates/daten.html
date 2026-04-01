@@ -31,11 +31,33 @@
     </div>
 </div>
 
+<!-- AI recipe format -->
+<div class="data-card">
+    <div class="data-card-title">📋 Rezept-Format für KI</div>
+    <p style="color:var(--app-muted,#888);font-size:0.85rem;margin-bottom:12px;">
+        Du kannst Rezepte mit einem KI-Chatbot (z.B. Claude) erstellen lassen und als JSON importieren.
+        Teile dem Chatbot diese Vorlage mit:
+    </p>
+    <pre id="ai-schema" style="background:var(--app-bg,#f5f5f5);border:1px solid var(--app-border,#ddd);border-radius:8px;padding:12px;font-size:0.78rem;overflow-x:auto;white-space:pre;margin-bottom:10px;color:var(--app-text,#333);">[
+  {
+    "name": "Rezeptname",
+    "category": "Kategoriename",
+    "description": "Kurze Beschreibung (optional)",
+    "ingredients": [
+      { "name": "Zutat 1", "amount": 200, "unit": "g" },
+      { "name": "Zutat 2", "amount": 2,   "unit": "Stück" }
+    ]
+  }
+]</pre>
+    <button class="data-btn data-btn-secondary" style="width:100%;justify-content:center;" onclick="copySchema()">📋 Vorlage kopieren</button>
+    <div id="schema-copy-hint" style="display:none;text-align:center;font-size:0.8rem;color:#16a34a;margin-top:6px;">✓ Kopiert</div>
+</div>
+
 <!-- Import -->
 <div class="data-card">
     <div class="data-card-title">Import / Wiederherstellen</div>
     <p style="color:#888;font-size:0.85rem;margin-bottom:16px;">
-        JSON-Datei aus einem Export oder Backup wählen. Der Typ wird automatisch erkannt.
+        JSON-Datei wählen — eigene Rezepte (KI-Format), Export oder Backup. Der Typ wird automatisch erkannt.
     </p>
 
     <div style="margin-bottom:14px;">
@@ -119,7 +141,10 @@ async function runImport() {
         return;
     }
 
-    if (payload.type === 'backup') {
+    // Only warn for backup — all other formats (incl. AI-generated) are safe imports
+    const isBackup = payload.type === 'backup' ||
+        (!Array.isArray(payload) && !payload.type && payload.week_plan);
+    if (isBackup) {
         if (!confirm('Achtung: Alle aktuellen Daten (Rezepte, Wochenplan, Einkaufsliste) werden gelöscht und durch das Backup ersetzt.\n\nFortfahren?')) return;
     }
 
@@ -153,6 +178,21 @@ function showResult(success, msg) {
     el.style.border = `1px solid ${success ? '#86efac' : '#ffcdd2'}`;
     el.style.color = success ? '#166534' : '#c62828';
     el.textContent = (success ? '✓ ' : '✗ ') + msg;
+}
+
+// ── AI schema copy ───────────────────────────────────
+function copySchema() {
+    const text = document.getElementById('ai-schema').textContent;
+    const el = document.createElement('textarea');
+    el.value = text;
+    el.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0;';
+    document.body.appendChild(el);
+    el.focus(); el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+    const hint = document.getElementById('schema-copy-hint');
+    hint.style.display = 'block';
+    setTimeout(() => hint.style.display = 'none', 2000);
 }
 
 // ── Bring! config ─────────────────────────────────────

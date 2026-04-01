@@ -110,6 +110,32 @@ def export_recipes_md():
 
 # ── Import / Restore ──────────────────────────────────────────────────────────
 
+def _normalize_import(raw):
+    """
+    Accept any of:
+      - array of recipe objects                → {type:'recipes', recipes:[...]}
+      - single recipe object (has 'name')      → {type:'recipes', recipes:[...]}
+      - {recipes:[...]} without type           → {type:'recipes', recipes:[...]}
+      - {type:'recipes', ...}  (our export)    → unchanged
+      - {type:'backup',  ...}  (our backup)    → unchanged
+    Returns normalised dict or None if unrecognised.
+    """
+    if isinstance(raw, list):
+        return {'type': 'recipes', 'recipes': raw, 'categories': [], 'ingredients': []}
+    if not isinstance(raw, dict):
+        return None
+    if raw.get('type') in ('recipes', 'backup'):
+        return raw
+    if 'name' in raw and 'ingredients' in raw:
+        # single recipe object
+        return {'type': 'recipes', 'recipes': [raw], 'categories': [], 'ingredients': []}
+    if 'recipes' in raw:
+        return {'type': 'recipes', 'recipes': raw['recipes'],
+                'categories': raw.get('categories', []),
+                'ingredients': raw.get('ingredients', [])}
+    return None
+
+
 @bp.route('/import', methods=['POST'])
 def import_data():
     try:
@@ -117,14 +143,14 @@ def import_data():
         if not file:
             return jsonify({'error': 'Keine Datei hochgeladen'}), 400
 
-        payload = json.loads(file.read().decode('utf-8'))
-        kind = payload.get('type')
-        on_duplicate = request.form.get('on_duplicate', 'skip')  # 'skip' or 'overwrite'
+        raw = json.loads(file.read().decode('utf-8'))
+        payload = _normalize_import(raw)
+        if payload is None:
+            return jsonify({'error': 'Unbekanntes Format. Bitte eine gültige Export-, Backup- oder Rezept-Datei wählen.'}), 400
 
-        if kind not in ('recipes', 'backup'):
-            return jsonify({'error': 'Unbekannter Dateityp. Bitte eine gültige Export- oder Backup-Datei wählen.'}), 400
+        on_duplicate = request.form.get('on_duplicate', 'skip')
 
-        if kind == 'backup':
+        if payload['type'] == 'backup':
             _restore_backup(payload)
             return jsonify({'success': True, 'type': 'backup', 'message': 'Backup erfolgreich wiederhergestellt.'})
         else:
