@@ -32,7 +32,8 @@
                     {% if staple_items %}
                         <div class="staple-separator">Vorrat</div>
                         {% for ingredient in staple_items %}
-                            <div class="shopping-list-item staple-item">
+                            <div class="shopping-list-item staple-item sl-checkable" data-key="{{ ingredient.name }}::{{ ingredient.unit }}" data-cat="__staple__" onclick="toggleAtHome(this)">
+                                <span class="sl-check-icon">○</span>
                                 <span class="item-name">{{ ingredient.name }}</span>
                                 <span class="item-amount">{{ "%.1f"|format(ingredient.amount) }} {{ ingredient.unit }}</span>
                             </div>
