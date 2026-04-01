@@ -341,9 +341,9 @@ h1 {
     text-decoration: line-through;
 }
 
-.category-separator.at-home-sep {
-    color: #ccc;
-    background: #fafafa;
+.category-separator.at-home-sep,
+.staple-separator.at-home-sep {
+    display: none;
 }
 
 @media print {
