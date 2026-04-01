@@ -318,6 +318,39 @@ h1 {
     color: #aaa;
 }
 
+.sl-check-icon {
+    font-size: 1rem;
+    color: #ccc;
+    margin-right: 8px;
+    flex-shrink: 0;
+    transition: color 0.15s;
+}
+
+.sl-checkable {
+    cursor: pointer;
+    user-select: none;
+}
+
+.sl-checkable.at-home .sl-check-icon {
+    color: #22c55e;
+}
+
+.sl-checkable.at-home .item-name,
+.sl-checkable.at-home .item-amount {
+    color: #bbb;
+    text-decoration: line-through;
+}
+
+.category-separator.at-home-sep {
+    color: #ccc;
+    background: #fafafa;
+}
+
+@media print {
+    .sl-checkable.at-home,
+    .category-separator.at-home-sep { display: none; }
+}
+
 .button-container {
     position: fixed;
     bottom: 62px; /* sit above bottom nav */

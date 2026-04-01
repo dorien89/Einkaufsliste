@@ -19,9 +19,10 @@
                     {% for cat in categories %}
                         {% set cat_items = buy_items | selectattr('shop_category', 'equalto', cat) | list %}
                         {% if cat_items %}
-                            <div class="category-separator">{{ cat }}</div>
+                            <div class="category-separator" data-cat="{{ cat }}">{{ cat }}</div>
                             {% for ingredient in cat_items %}
-                                <div class="shopping-list-item">
+                                <div class="shopping-list-item sl-checkable" data-key="{{ ingredient.name }}::{{ ingredient.unit }}" data-cat="{{ cat }}" onclick="toggleAtHome(this)">
+                                    <span class="sl-check-icon">○</span>
                                     <span class="item-name">{{ ingredient.name }}</span>
                                     <span class="item-amount">{{ "%.1f"|format(ingredient.amount) }} {{ ingredient.unit }}</span>
                                 </div>
@@ -42,6 +43,9 @@
                         <p>Keine aktiven Zutaten in der Einkaufsliste.</p>
                     </div>
                 {% endif %}
+            </div>
+            <div id="at-home-reset" style="display:none;text-align:center;padding:8px 0 4px;">
+                <button onclick="resetAtHome()" style="background:none;border:none;color:var(--app-muted,#aaa);font-size:0.8rem;cursor:pointer;text-decoration:underline;">Alle Häkchen entfernen</button>
             </div>
         {% endif %}
     </div>
@@ -107,10 +111,60 @@ const buyItems = {{ (ingredients | selectattr('is_staple', 'equalto', false) | l
 const stapleItems = {{ (ingredients | selectattr('is_staple', 'equalto', true) | list) | tojson if ingredients else '[]' }};
 const CATEGORIES = ['Obst & Gemüse','Fleisch & Fisch','Milch & Käse','Brot & Backwaren','Tiefkühl','Konserven & Fertiggerichte','Nudeln, Reis & Hülsenfrüchte','Öle & Gewürze','Getränke','Sonstiges'];
 
+// ── At-home state (localStorage) ─────────────────────
+const LS_KEY = 'sl_at_home';
+
+function getAtHome() {
+    try { return new Set(JSON.parse(localStorage.getItem(LS_KEY) || '[]')); }
+    catch { return new Set(); }
+}
+
+function saveAtHome(set) {
+    localStorage.setItem(LS_KEY, JSON.stringify([...set]));
+}
+
+function toggleAtHome(el) {
+    const key = el.dataset.key;
+    const atHome = getAtHome();
+    if (atHome.has(key)) atHome.delete(key);
+    else atHome.add(key);
+    saveAtHome(atHome);
+    applyAtHome();
+}
+
+function resetAtHome() {
+    localStorage.removeItem(LS_KEY);
+    applyAtHome();
+}
+
+function applyAtHome() {
+    const atHome = getAtHome();
+    const items = document.querySelectorAll('.sl-checkable');
+    items.forEach(el => {
+        const checked = atHome.has(el.dataset.key);
+        el.classList.toggle('at-home', checked);
+        el.querySelector('.sl-check-icon').textContent = checked ? '✓' : '○';
+    });
+
+    // Hide category separators where all items are at-home
+    CATEGORIES.forEach(cat => {
+        const sep = document.querySelector(`.category-separator[data-cat="${cat}"]`);
+        if (!sep) return;
+        const catItems = document.querySelectorAll(`.sl-checkable[data-cat="${cat}"]`);
+        const allDone = catItems.length > 0 && [...catItems].every(el => atHome.has(el.dataset.key));
+        sep.classList.toggle('at-home-sep', allDone);
+    });
+
+    // Show/hide reset link
+    const resetBtn = document.getElementById('at-home-reset');
+    if (resetBtn) resetBtn.style.display = atHome.size > 0 ? 'block' : 'none';
+}
+
 function buildShareText() {
+    const atHome = getAtHome();
     const lines = ['🛒 Einkaufsliste\n'];
     CATEGORIES.forEach(cat => {
-        const items = buyItems.filter(i => i.shop_category === cat);
+        const items = buyItems.filter(i => i.shop_category === cat && !atHome.has(`${i.name}::${i.unit}`));
         if (items.length === 0) return;
         lines.push(`\n── ${cat} ──`);
         items.forEach(i => {
@@ -124,6 +178,9 @@ function buildShareText() {
     }
     return lines.join('\n');
 }
+
+// Apply on page load
+document.addEventListener('DOMContentLoaded', applyAtHome);
 
 function openShareSheet() {
     const text = buildShareText();
@@ -182,7 +239,7 @@ function confirmBought() {
         method: 'POST', headers: { 'Content-Type': 'application/json' }
     })
     .then(r => r.json())
-    .then(data => { if (data.success) location.reload(); })
+    .then(data => { if (data.success) { localStorage.removeItem(LS_KEY); location.reload(); } })
     .catch(e => showToast('Fehler: ' + e.message));
 }
 
@@ -198,7 +255,7 @@ function confirmClear() {
     closeClearConfirm();
     fetch('/api/admin/shopping-list/clear', { method: 'POST' })
         .then(r => r.json())
-        .then(data => { if (data.message) location.reload(); })
+        .then(data => { if (data.message) { localStorage.removeItem(LS_KEY); location.reload(); } })
         .catch(() => showToast('Fehler beim Löschen'));
 }
 </script>
