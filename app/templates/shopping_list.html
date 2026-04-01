@@ -142,33 +142,55 @@ function resetAtHome() {
     applyAtHome();
 }
 
+function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function _itemRow(i, cat, isStaple, isAtHome) {
+    const key = `${i.name}::${i.unit}`;
+    const a = parseFloat(i.amount);
+    const aStr = Number.isInteger(a) ? a : a.toFixed(1);
+    const cls = ['shopping-list-item','sl-checkable', isStaple ? 'staple-item' : '', isAtHome ? 'at-home' : ''].filter(Boolean).join(' ');
+    return `<div class="${cls}" data-key="${esc(key)}" data-cat="${esc(cat)}" onclick="toggleAtHome(this)">
+        <span class="sl-check-icon">${isAtHome ? '✓' : '○'}</span>
+        <span class="item-name">${esc(i.name)}</span>
+        <span class="item-amount">${aStr} ${esc(i.unit)}</span>
+    </div>`;
+}
+
 function applyAtHome() {
+    const container = document.querySelector('.shopping-list-items');
+    if (!container || (buyItems.length === 0 && stapleItems.length === 0)) return;
+
     const atHome = getAtHome();
-    const items = document.querySelectorAll('.sl-checkable');
-    items.forEach(el => {
-        const checked = atHome.has(el.dataset.key);
-        el.classList.toggle('at-home', checked);
-        el.querySelector('.sl-check-icon').textContent = checked ? '✓' : '○';
-    });
+    const activeRegular = buyItems.filter(i => !atHome.has(`${i.name}::${i.unit}`));
+    const activeStaple  = stapleItems.filter(i => !atHome.has(`${i.name}::${i.unit}`));
+    const atHomeAll     = [...buyItems, ...stapleItems].filter(i => atHome.has(`${i.name}::${i.unit}`));
 
-    // Hide category separators where all items are at-home
+    let html = '';
+
     CATEGORIES.forEach(cat => {
-        const sep = document.querySelector(`.category-separator[data-cat="${cat}"]`);
-        if (!sep) return;
-        const catItems = document.querySelectorAll(`.sl-checkable[data-cat="${cat}"]`);
-        const allDone = catItems.length > 0 && [...catItems].every(el => atHome.has(el.dataset.key));
-        sep.classList.toggle('at-home-sep', allDone);
+        const items = activeRegular.filter(i => i.shop_category === cat);
+        if (!items.length) return;
+        html += `<div class="category-separator">${esc(cat)}</div>`;
+        items.forEach(i => { html += _itemRow(i, cat, false, false); });
     });
 
-    // Hide Vorrat separator if all staple items are ticked
-    const stapleSep = document.querySelector('.staple-separator');
-    if (stapleSep) {
-        const stapleItems = document.querySelectorAll('.sl-checkable[data-cat="__staple__"]');
-        const allDone = stapleItems.length > 0 && [...stapleItems].every(el => atHome.has(el.dataset.key));
-        stapleSep.classList.toggle('at-home-sep', allDone);
+    if (activeStaple.length) {
+        html += `<div class="staple-separator">Vorrat</div>`;
+        activeStaple.forEach(i => { html += _itemRow(i, '__staple__', true, false); });
     }
 
-    // Show/hide reset link
+    if (atHomeAll.length) {
+        html += `<div class="staple-separator" style="color:#16a34a;background:#f0fff4;border-color:#bbf7d0;">✓ Bereits zu Hause</div>`;
+        atHomeAll.forEach(i => {
+            const cat = i.is_staple ? '__staple__' : (i.shop_category || 'Sonstiges');
+            html += _itemRow(i, cat, i.is_staple, true);
+        });
+    }
+
+    container.innerHTML = html;
+
     const resetBtn = document.getElementById('at-home-reset');
     if (resetBtn) resetBtn.style.display = atHome.size > 0 ? 'block' : 'none';
 }
