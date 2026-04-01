@@ -75,6 +75,11 @@ def create_ingredient():
     db.session.commit()
     return jsonify({'id': ingredient.id, 'name': ingredient.name, 'default_unit': ''}), 201
 
+@bp.route('/ingredients/<int:ingredient_id>', methods=['GET'])
+def get_ingredient(ingredient_id):
+    ingredient = Ingredient.query.get_or_404(ingredient_id)
+    return jsonify({'id': ingredient.id, 'name': ingredient.name, 'default_unit': ingredient.default_unit or '', 'is_staple': ingredient.is_staple, 'shop_category': ingredient.shop_category})
+
 @bp.route('/ingredients/<int:ingredient_id>', methods=['PUT'])
 def update_ingredient(ingredient_id):
     ingredient = Ingredient.query.get_or_404(ingredient_id)
@@ -112,7 +117,10 @@ def get_recipe(recipe_id):
             'ingredient_id': ri.ingredient_id,
             'name': ingredient.name,
             'amount': ri.amount,
-            'unit': ri.unit
+            'unit': ri.unit,
+            'default_unit': ingredient.default_unit or '',
+            'is_staple': ingredient.is_staple,
+            'shop_category': ingredient.shop_category
         })
     return jsonify({
         'id': recipe.id,

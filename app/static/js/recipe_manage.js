@@ -150,7 +150,11 @@ async function openRecipe(recipeId) {
             <tbody>
                 ${recipe.ingredients.map(i => `
                     <tr>
-                        <td>${i.name}</td>
+                        <td>
+                            ${i.name}
+                            <button class="rm-ing-edit-btn" title="Zutat bearbeiten"
+                                onclick="openIngEdit(${i.ingredient_id}, '${escHtml(i.name)}', '${escHtml(i.default_unit)}', ${i.is_staple}, '${escHtml(i.shop_category)}')">✏️</button>
+                        </td>
                         <td>${i.amount}</td>
                         <td>${i.unit}</td>
                     </tr>`).join('')}
@@ -247,6 +251,8 @@ function addIngredientRow(data = null) {
                 autocomplete="off">
             <div class="typeahead-dropdown" id="dropdown-${rowId}" style="display:none"></div>
         </div>
+        <button class="rm-ing-edit-btn" id="ing-row-edit-${rowId}" title="Zutat bearbeiten" style="display:${data && data.ingredient_id ? 'inline-flex' : 'none'}"
+            onclick="openIngEditFromRow('${rowId}')">✏️</button>
         <input type="number" class="ing-amount" placeholder="Menge" min="0" step="0.1"
             value="${data ? data.amount : ''}" style="padding:10px;font-size:1em;border:1px solid #ccc;border-radius:6px;">
         <input type="text" class="ing-unit" placeholder="Einheit"
@@ -302,6 +308,8 @@ function selectIngredient(rowId, ingredientId, name, defaultUnit) {
     if (defaultUnit) {
         row.querySelector('.ing-unit').value = defaultUnit;
     }
+    const editBtn = document.getElementById(`ing-row-edit-${rowId}`);
+    if (editBtn) editBtn.style.display = ingredientId ? 'inline-flex' : 'none';
     row.querySelector('.ing-amount').focus();
 }
 
@@ -458,6 +466,64 @@ function showToast(msg) {
     t.style.display = 'block';
     clearTimeout(t._timer);
     t._timer = setTimeout(() => t.style.display = 'none', 2500);
+}
+
+// ── Ingredient quick-edit sheet ───────────────────────
+const SHOP_CATS = ['Obst & Gemüse','Fleisch & Fisch','Milch & Käse','Brot & Backwaren','Tiefkühl','Konserven & Fertiggerichte','Nudeln, Reis & Hülsenfrüchte','Öle & Gewürze','Getränke','Sonstiges'];
+let ingEditId = null;
+
+function openIngEdit(id, name, defaultUnit, isStaple, shopCat) {
+    ingEditId = id;
+    document.getElementById('ing-edit-name').value = name;
+    document.getElementById('ing-edit-unit').value = defaultUnit;
+    document.getElementById('ing-edit-staple').checked = isStaple;
+    document.getElementById('ing-edit-cat').value = shopCat;
+    document.getElementById('ing-edit-backdrop').style.display = 'block';
+    document.getElementById('ing-edit-sheet').style.display = 'block';
+}
+
+async function openIngEditFromRow(rowId) {
+    const row = document.querySelector(`[data-row-id="${rowId}"]`);
+    const id = parseInt(row.dataset.ingredientId);
+    if (!id) return;
+    const res = await fetch(`/api/ingredients/${id}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    openIngEdit(id, data.name, data.default_unit || '', data.is_staple, data.shop_category || 'Sonstiges');
+}
+
+function closeIngEdit() {
+    document.getElementById('ing-edit-backdrop').style.display = 'none';
+    document.getElementById('ing-edit-sheet').style.display = 'none';
+    ingEditId = null;
+}
+
+async function saveIngEdit() {
+    if (!ingEditId) return;
+    const name = document.getElementById('ing-edit-name').value.trim();
+    if (!name) return;
+    const res = await fetch(`/api/ingredients/${ingEditId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            name,
+            default_unit: document.getElementById('ing-edit-unit').value.trim(),
+            is_staple: document.getElementById('ing-edit-staple').checked,
+            shop_category: document.getElementById('ing-edit-cat').value
+        })
+    });
+    if (res.ok) {
+        closeIngEdit();
+        showToast('Zutat gespeichert');
+        // Refresh detail view if open so name change is visible
+        if (activeRecipeId) openRecipe(activeRecipeId);
+    } else {
+        showToast('Fehler beim Speichern');
+    }
+}
+
+function escHtml(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
 window.onload = init;

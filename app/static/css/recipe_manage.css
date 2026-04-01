@@ -82,6 +82,25 @@
     flex-shrink: 0;
 }
 
+.rm-ing-edit-btn {
+    display: inline-flex;
+    align-items: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.8rem;
+    opacity: 0.35;
+    padding: 2px 4px;
+    border-radius: 4px;
+    vertical-align: middle;
+    transition: opacity 0.15s;
+}
+
+.rm-ing-edit-btn:hover {
+    opacity: 1;
+    background: #f0f0f0;
+}
+
 .rm-select-toggle {
     background: none;
     border: none;
