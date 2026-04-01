@@ -31,7 +31,7 @@ def get_config():
 
 @bp.route('/config', methods=['POST'])
 def save_config():
-    data = request.get_json()
+    data = request.get_json(force=True, silent=True) or {}
     cfg = _load_config()
     if 'email' in data:
         cfg['email'] = data['email'].strip()
