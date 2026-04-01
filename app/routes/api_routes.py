@@ -474,17 +474,28 @@ def week_to_shopping_list(week_start):
         WeekPlan.recipe_id.isnot(None),
         WeekPlan.is_bought == False
     ).all()
-    added = 0
+
+    # Sum servings per recipe across all future slots in this week
+    totals = {}
     for s in slots:
-        slot_date = s.week_start + timedelta(days=s.day_index)
-        if slot_date < today:
+        if s.week_start + timedelta(days=s.day_index) < today:
             continue
-        if ShoppingList.query.filter_by(recipe_id=s.recipe_id, is_active=True).first():
-            continue
-        db.session.add(ShoppingList(recipe_id=s.recipe_id, servings=s.servings))
-        added += 1
+        totals[s.recipe_id] = totals.get(s.recipe_id, 0) + s.servings
+
+    added = 0
+    updated = 0
+    for recipe_id, servings in totals.items():
+        existing = ShoppingList.query.filter_by(recipe_id=recipe_id, is_active=True).first()
+        if existing:
+            if existing.servings != servings:
+                existing.servings = servings
+                updated += 1
+        else:
+            db.session.add(ShoppingList(recipe_id=recipe_id, servings=servings))
+            added += 1
+
     db.session.commit()
-    return jsonify({'success': True, 'added': added})
+    return jsonify({'success': True, 'added': added, 'updated': updated})
 
 @bp.route('/shopping-list/mark-bought', methods=['POST'])
 def mark_items_bought():

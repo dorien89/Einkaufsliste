@@ -326,7 +326,7 @@ document.getElementById('wp-to-list-btn').addEventListener('click', async () => 
         const r = await fetch(`/api/wochenplan/${weekStartStr()}/to-shopping-list`, { method: 'POST' });
         const data = await r.json();
         if (data.success) {
-            if (data.added > 0) {
+            if (data.added > 0 || data.updated > 0) {
                 window.location.href = '/shopping-list/';
             } else {
                 showToast('Keine neuen Rezepte');
