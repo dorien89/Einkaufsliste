@@ -205,7 +205,7 @@ async function checkBringConfig() {
 function pushToBring() {
     closeShareSheet();
     const atHome = getAtHome();
-    const items = buyItems
+    const items = [...buyItems, ...stapleItems]
         .filter(i => !atHome.has(`${i.name}::${i.unit}`))
         .map(i => ({ name: i.name, amount: i.amount, unit: i.unit }));
 
