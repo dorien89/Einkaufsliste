@@ -82,7 +82,7 @@
         <span style="font-size:1.4rem;">📋</span>
         <div><strong>Kopieren</strong><div style="font-size:0.8rem;color:#888;">In Zwischenablage</div></div>
     </button>
-    <button id="bring-btn" onclick="pushToBring()" class="share-option-btn" style="background:#f0f8ff;width:100%;text-align:left;border:none;cursor:pointer;display:none;">
+    <button id="bring-btn" onclick="openBringConfirm()" class="share-option-btn" style="background:#f0f8ff;width:100%;text-align:left;border:none;cursor:pointer;display:none;">
         <span style="font-size:1.4rem;">🛍️</span>
         <div><strong>→ Bring!</strong><div style="font-size:0.8rem;color:#888;">In Bring!-Liste übertragen</div></div>
     </button>
@@ -107,6 +107,19 @@
     <div style="font-size:0.85rem;color:var(--app-muted,#888);text-align:center;margin-bottom:22px;">Die Einkaufsliste wird endgültig geleert.</div>
     <button onclick="confirmClear()" style="width:100%;padding:15px;background:#ef4444;color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;margin-bottom:10px;">🗑️ Ja, leeren</button>
     <button onclick="closeClearConfirm()" style="width:100%;padding:14px;background:var(--app-border,#f5f5f5);border:none;border-radius:12px;font-size:1rem;color:var(--app-muted,#555);cursor:pointer;">Abbrechen</button>
+</div>
+
+<!-- Bring! confirm sheet -->
+<div id="bring-confirm-backdrop" onclick="closeBringConfirm()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:700;"></div>
+<div id="bring-confirm-sheet" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--app-surface,#fff);border-radius:18px 18px 0 0;padding:20px 16px 40px;z-index:701;box-shadow:0 -4px 20px rgba(0,0,0,0.15);">
+    <div style="width:40px;height:4px;background:var(--app-border,#ddd);border-radius:2px;margin:0 auto 18px;"></div>
+    <div style="font-weight:700;font-size:1.05rem;margin-bottom:6px;color:var(--app-text,#333);text-align:center;">🛍️ An Bring! übertragen</div>
+    <div id="bring-confirm-info" style="font-size:0.85rem;color:var(--app-muted,#888);text-align:center;margin-bottom:10px;"></div>
+    <div id="bring-confirm-warning" style="display:none;margin-bottom:14px;padding:10px 14px;background:#fff8e1;border:1px solid #ffca28;border-radius:10px;font-size:0.85rem;color:#7c5a00;text-align:center;">
+        ⚠️ Diese Liste wurde bereits an Bring! übertragen. Trotzdem erneut übertragen?
+    </div>
+    <button onclick="confirmBringPush()" style="width:100%;padding:15px;background:var(--app-accent,#22c55e);color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;margin-bottom:10px;">🛍️ Übertragen</button>
+    <button onclick="closeBringConfirm()" style="width:100%;padding:14px;background:var(--app-border,#f5f5f5);border:none;border-radius:12px;font-size:1rem;color:var(--app-muted,#555);cursor:pointer;">Abbrechen</button>
 </div>
 
 <div id="sl-toast" style="display:none;position:fixed;bottom:150px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 20px;border-radius:20px;font-size:0.9rem;z-index:800;white-space:nowrap;"></div>
@@ -215,6 +228,19 @@ function buildShareText() {
 }
 
 // ── Bring! integration ───────────────────────────────
+const BRING_LS_KEY = 'bring_last_push';
+
+function _bringItems() {
+    const atHome = getAtHome();
+    return [...buyItems, ...stapleItems]
+        .filter(i => !atHome.has(`${i.name}::${i.unit}`))
+        .map(i => ({ name: i.name, amount: i.amount, unit: i.unit }));
+}
+
+function _bringHash(items) {
+    return items.map(i => `${i.name}::${i.unit}::${i.amount}`).sort().join('|');
+}
+
 async function checkBringConfig() {
     try {
         const r = await fetch('/api/bring/config');
@@ -224,18 +250,28 @@ async function checkBringConfig() {
     } catch {}
 }
 
-function pushToBring() {
+function openBringConfirm() {
     closeShareSheet();
-    const atHome = getAtHome();
-    const items = [...buyItems, ...stapleItems]
-        .filter(i => !atHome.has(`${i.name}::${i.unit}`))
-        .map(i => ({ name: i.name, amount: i.amount, unit: i.unit }));
+    const items = _bringItems();
+    if (!items.length) { showToast('Keine Artikel zum Übertragen.'); return; }
 
-    if (!items.length) {
-        showToast('Keine Artikel zum Übertragen.');
-        return;
-    }
+    const last = (() => { try { return JSON.parse(localStorage.getItem(BRING_LS_KEY) || 'null'); } catch { return null; } })();
+    const alreadySent = last && last.hash === _bringHash(items);
 
+    document.getElementById('bring-confirm-info').textContent = `${items.length} Artikel werden in deine Bring!-Liste übertragen.`;
+    document.getElementById('bring-confirm-warning').style.display = alreadySent ? 'block' : 'none';
+    document.getElementById('bring-confirm-backdrop').style.display = 'block';
+    document.getElementById('bring-confirm-sheet').style.display = 'block';
+}
+
+function closeBringConfirm() {
+    document.getElementById('bring-confirm-backdrop').style.display = 'none';
+    document.getElementById('bring-confirm-sheet').style.display = 'none';
+}
+
+function confirmBringPush() {
+    closeBringConfirm();
+    const items = _bringItems();
     showToast('Wird übertragen…');
     fetch('/api/bring/push', {
         method: 'POST',
@@ -244,8 +280,12 @@ function pushToBring() {
     })
     .then(r => r.json())
     .then(d => {
-        if (d.success) showToast(`✓ ${d.count} Artikel → Bring! (${d.list})`);
-        else showToast('Fehler: ' + d.error);
+        if (d.success) {
+            localStorage.setItem(BRING_LS_KEY, JSON.stringify({ hash: _bringHash(items), time: Date.now() }));
+            showToast(`✓ ${d.count} Artikel → Bring! (${d.list})`);
+        } else {
+            showToast('Fehler: ' + d.error);
+        }
     })
     .catch(e => showToast('Fehler: ' + e.message));
 }
