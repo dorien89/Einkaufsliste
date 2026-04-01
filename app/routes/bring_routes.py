@@ -66,36 +66,38 @@ def push_to_bring():
         return jsonify({'error': 'Keine Artikel zum Übertragen.'}), 400
 
     async def _push():
-        bring = Bring(email, password)
-        await bring.login()
-        lists_data = await bring.loadLists()
-        bring_lists = lists_data.get('lists', [])
-        if not bring_lists:
-            raise RuntimeError('Keine Bring!-Listen gefunden.')
+        import aiohttp
+        async with aiohttp.ClientSession() as session:
+            bring = Bring(session)
+            await bring.login(email, password)
+            lists_data = await bring.loadLists()
+            bring_lists = lists_data.get('lists', [])
+            if not bring_lists:
+                raise RuntimeError('Keine Bring!-Listen gefunden.')
 
-        # Find by name, fall back to first list
-        target = next((l for l in bring_lists if l.get('name', '').lower() == list_name.lower()), None)
-        if target is None:
-            target = bring_lists[0]
+            # Find by name, fall back to first list
+            target = next((l for l in bring_lists if l.get('name', '').lower() == list_name.lower()), None)
+            if target is None:
+                target = bring_lists[0]
 
-        list_uuid = target['listUuid']
+            list_uuid = target['listUuid']
 
-        for item in items:
-            name = item['name']
-            a = item.get('amount', '')
-            u = item.get('unit', '')
-            # Format specification like "500 g" or "3 Stück"
-            if a and u:
-                try:
-                    a_val = float(a)
-                    spec = f"{int(a_val) if a_val == int(a_val) else round(a_val, 1)} {u}".strip()
-                except (ValueError, TypeError):
-                    spec = f"{a} {u}".strip()
-            else:
-                spec = ''
-            await bring.saveItem(list_uuid, name, spec)
+            for item in items:
+                name = item['name']
+                a = item.get('amount', '')
+                u = item.get('unit', '')
+                # Format specification like "500 g" or "3 Stück"
+                if a and u:
+                    try:
+                        a_val = float(a)
+                        spec = f"{int(a_val) if a_val == int(a_val) else round(a_val, 1)} {u}".strip()
+                    except (ValueError, TypeError):
+                        spec = f"{a} {u}".strip()
+                else:
+                    spec = ''
+                await bring.saveItem(list_uuid, name, spec)
 
-        return target.get('name', list_uuid)
+            return target.get('name', list_uuid)
 
     try:
         list_name_used = asyncio.run(_push())
