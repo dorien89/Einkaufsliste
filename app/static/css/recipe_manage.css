@@ -725,6 +725,44 @@
     }
 }
 
+/* ── Desktop base (≥768px) ──────────────────────────── */
+@media (min-width: 768px) {
+    /* Correct height: viewport minus top-nav (~78px) minus page-header (~48px) minus body padding (20px) */
+    .rm-container {
+        height: calc(100vh - 160px);
+        border: 1px solid var(--app-border, #e0e0e0);
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .rm-list-panel {
+        background: var(--app-bg, #f9f9f9);
+        border-right: 1px solid var(--app-border, #ddd);
+    }
+
+    /* Header nav: tone down to outlined/subtle buttons */
+    .rm-header-nav {
+        display: flex;
+        gap: 8px;
+    }
+
+    .rm-header-nav .rm-btn {
+        background: transparent;
+        color: var(--app-accent, #007BFF);
+        border: 1.5px solid var(--app-accent, #007BFF);
+        min-height: 36px;
+        padding: 6px 14px;
+        font-size: 0.9em;
+        font-weight: 600;
+    }
+
+    .rm-header-nav .rm-btn:hover {
+        background: var(--app-accent-light, rgba(0,123,255,0.08));
+        filter: none;
+    }
+}
+
+/* ── Large desktop (≥1200px) ────────────────────────── */
 @media (min-width: 1200px) {
     .rm-list-panel {
         width: 360px;
@@ -737,5 +775,24 @@
     .rm-ingredient-table td,
     .rm-ingredient-table th {
         padding: 12px 14px;
+    }
+}
+
+/* ── Wide screens (≥1440px) ─────────────────────────── */
+@media (min-width: 1440px) {
+    .rm-list-panel {
+        width: 420px;
+    }
+}
+
+/* ── 2K / ultrawide (≥1920px) ───────────────────────── */
+@media (min-width: 1920px) {
+    .rm-list-panel {
+        width: 480px;
+    }
+
+    /* Cap detail content width for readability */
+    .rm-detail-content {
+        max-width: 900px;
     }
 }
