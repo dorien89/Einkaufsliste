@@ -71,16 +71,27 @@ def push_to_bring():
             bring = Bring(session, email, password)
             await bring.login()
             lists_data = await bring.load_lists()
-            bring_lists = lists_data.get('lists', [])
+            bring_lists = lists_data.lists if hasattr(lists_data, 'lists') else lists_data.get('lists', [])
             if not bring_lists:
                 raise RuntimeError('Keine Bring!-Listen gefunden.')
 
+            def _attr(obj, *keys):
+                for k in keys:
+                    v = getattr(obj, k, None)
+                    if v is not None:
+                        return v
+                    if isinstance(obj, dict):
+                        v = obj.get(k)
+                        if v is not None:
+                            return v
+                return ''
+
             # Find by name, fall back to first list
-            target = next((l for l in bring_lists if l.get('name', '').lower() == list_name.lower()), None)
+            target = next((l for l in bring_lists if _attr(l, 'name').lower() == list_name.lower()), None)
             if target is None:
                 target = bring_lists[0]
 
-            list_uuid = target['listUuid']
+            list_uuid = _attr(target, 'listUuid', 'list_uuid')
 
             for item in items:
                 name = item['name']
@@ -97,7 +108,7 @@ def push_to_bring():
                     spec = ''
                 await bring.save_item(list_uuid, name, spec)
 
-            return target.get('name', list_uuid)
+            return _attr(target, 'name') or list_uuid
 
     try:
         list_name_used = asyncio.run(_push())
