@@ -87,10 +87,13 @@ function renderSlots() {
     const container = document.getElementById('wp-slots');
     const past = isSlotPast();
 
-    container.innerHTML = SLOTS.map((label, s) => {
-        const key     = `${activeDay}_${s}`;
-        const entries = plan[key] || [];
+    const filledSlots = SLOTS
+        .map((label, s) => ({ label, s, entries: plan[`${activeDay}_${s}`] || [] }))
+        .filter(({ entries }) => entries.length > 0);
 
+    let html = '';
+
+    filledSlots.forEach(({ label, s, entries }) => {
         let entriesHtml = '';
         entries.forEach(e => {
             const bought = e.is_bought;
@@ -118,23 +121,25 @@ function renderSlots() {
             }
         });
 
-        const emptyLine = entries.length === 0 && !past
-            ? `<div class="wp-slot-add wp-slot-add-empty" data-day="${activeDay}" data-slot="${s}">+ Rezept wählen</div>`
-            : entries.length === 0 && past
-            ? `<span class="wp-slot-empty-past">—</span>` : '';
-
-        const addMore = entries.length > 0 && !past
+        const addMore = !past
             ? `<div class="wp-slot-add" data-day="${activeDay}" data-slot="${s}">＋ Rezept</div>` : '';
 
-        return `<div class="wp-slot${past ? ' wp-slot-past' : ''}">
+        html += `<div class="wp-slot${past ? ' wp-slot-past' : ''}">
             <span class="wp-slot-label">${label}</span>
             <div class="wp-slot-entries">
                 ${entriesHtml}
-                ${emptyLine}
                 ${addMore}
             </div>
         </div>`;
-    }).join('');
+    });
+
+    if (!past) {
+        html += `<div class="wp-add-slot-btn" onclick="openSlotPicker(${activeDay})">＋ Mahlzeit hinzufügen</div>`;
+    } else if (filledSlots.length === 0) {
+        html += `<div class="wp-day-empty-past">Nichts geplant</div>`;
+    }
+
+    container.innerHTML = html;
 }
 
 function setDay(i) { activeDay = i; renderDayTabs(); renderSlots(); }
@@ -254,6 +259,35 @@ function closePicker() {
 }
 
 document.getElementById('wp-picker-backdrop').addEventListener('click', closePicker);
+
+// ── Slot-type picker ──────────────────────────────────
+
+let slotPickerDay = null;
+
+function openSlotPicker(day) {
+    slotPickerDay = day;
+    const list = document.getElementById('wp-slot-picker-list');
+    list.innerHTML = SLOTS.map((label, s) => {
+        const count = (plan[`${day}_${s}`] || []).length;
+        const badge = count > 0
+            ? `<span class="wp-slot-option-count">${count} Rezept${count > 1 ? 'e' : ''}</span>` : '';
+        return `<div class="wp-slot-option" onclick="selectSlotType(${s})">${escHtml(label)}${badge}</div>`;
+    }).join('');
+    document.getElementById('wp-slot-picker-backdrop').style.display = 'block';
+    document.getElementById('wp-slot-picker').style.display = 'block';
+}
+
+function closeSlotPicker() {
+    document.getElementById('wp-slot-picker-backdrop').style.display = 'none';
+    document.getElementById('wp-slot-picker').style.display = 'none';
+    slotPickerDay = null;
+}
+
+function selectSlotType(slotIndex) {
+    const day = slotPickerDay;
+    closeSlotPicker();
+    openPicker(day, slotIndex);
+}
 
 function filterPicker() {
     const q = document.getElementById('wp-picker-search').value.toLowerCase().trim();

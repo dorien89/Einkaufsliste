@@ -274,6 +274,50 @@
     padding: 6px 2px;
 }
 
+.wp-add-slot-btn {
+    margin: 12px 0 4px;
+    padding: 12px;
+    border: 1.5px dashed var(--app-border, #ddd);
+    border-radius: 10px;
+    text-align: center;
+    color: #aaa;
+    font-size: 0.9rem;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+.wp-add-slot-btn:active { background: #f0f7ff; }
+
+.wp-day-empty-past {
+    text-align: center;
+    color: #ccc;
+    font-size: 0.88rem;
+    padding: 32px 0;
+    font-style: italic;
+}
+
+.wp-slot-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 4px;
+    border-bottom: 1px solid var(--app-border, #f0f0f0);
+    cursor: pointer;
+    font-size: 0.95rem;
+    color: var(--app-text, #333);
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+}
+.wp-slot-option:active { background: var(--app-accent-light, #f0f7ff); border-radius: 6px; padding-left: 8px; }
+
+.wp-slot-option-count {
+    font-size: 0.75rem;
+    color: #999;
+    background: #f0f0f0;
+    border-radius: 10px;
+    padding: 2px 8px;
+}
+
 .wp-slot-icon { font-style: normal; }
 
 /* Footer */

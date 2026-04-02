@@ -38,6 +38,15 @@
 
 <div id="wp-toast" class="wp-toast" style="display:none;"></div>
 
+<!-- Slot type picker -->
+<div id="wp-slot-picker-backdrop" onclick="closeSlotPicker()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:800;"></div>
+<div id="wp-slot-picker" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--app-surface,#fff);border-radius:18px 18px 0 0;padding:16px 16px 40px;z-index:801;box-shadow:0 -4px 20px rgba(0,0,0,0.15);">
+    <div style="width:40px;height:4px;background:var(--app-border,#ddd);border-radius:2px;margin:0 auto 14px;"></div>
+    <div style="font-weight:700;font-size:1rem;margin-bottom:4px;color:var(--app-text,#333);">Mahlzeit wählen</div>
+    <div id="wp-slot-picker-list"></div>
+    <button onclick="closeSlotPicker()" style="margin-top:12px;width:100%;padding:14px;background:var(--app-border,#f5f5f5);border:none;border-radius:12px;font-size:1rem;color:var(--app-muted,#555);cursor:pointer;">Abbrechen</button>
+</div>
+
 <!-- Clear-week confirm sheet -->
 <div id="wp-clear-backdrop" onclick="closeClearConfirm()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:900;"></div>
 <div id="wp-clear-sheet" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--app-surface,#fff);border-radius:18px 18px 0 0;padding:20px 16px 40px;z-index:901;box-shadow:0 -4px 20px rgba(0,0,0,0.15);">
