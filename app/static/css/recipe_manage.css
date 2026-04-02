@@ -247,14 +247,22 @@
 }
 
 .rm-ing-section-row td {
-    padding: 6px 10px;
-    font-size: 0.78em;
+    padding: 8px 10px 5px;
+    font-size: 0.75em;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.07em;
     color: var(--app-muted, #888);
     background: var(--app-bg, #f8f8f8);
+    border-top: 2px solid var(--app-border, #e0e0e0);
     border-bottom: none;
+}
+
+/* Vorrat rows: slightly muted background to reinforce the grouping */
+.rm-ingredient-table tr.rm-ing-vorrat td {
+    background: var(--app-bg, #f8f8f8);
+    color: var(--app-muted, #777);
+    font-style: italic;
 }
 
 .rm-ingredient-table td {

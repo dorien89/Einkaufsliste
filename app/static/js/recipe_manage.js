@@ -163,7 +163,7 @@ async function openRecipe(recipeId) {
                 ${renderIngredientRows(recipe.ingredients.filter(i => !i.is_staple))}
                 ${recipe.ingredients.some(i => i.is_staple) ? `
                 <tr class="rm-ing-section-row"><td colspan="3">Vorrat</td></tr>
-                ${renderIngredientRows(recipe.ingredients.filter(i => i.is_staple))}` : ''}
+                ${renderIngredientRows(recipe.ingredients.filter(i => i.is_staple), 'rm-ing-vorrat')}` : ''}
             </tbody>
         </table>
     `;
@@ -592,9 +592,9 @@ function escHtml(str) {
     return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
-function renderIngredientRows(ingredients) {
+function renderIngredientRows(ingredients, extraClass = '') {
     return ingredients.map(i => `
-        <tr>
+        <tr${extraClass ? ` class="${extraClass}"` : ''}>
             <td>
                 ${i.name}
                 <button class="rm-ing-edit-btn" title="Zutat bearbeiten"
