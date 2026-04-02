@@ -89,17 +89,19 @@ function renderFilterBar() {
 
     bar.innerHTML = pills.map(p => `
         <button class="rm-cat-btn${activeFilter === p.key ? ' active' : ''}"
-            onclick="setFilter(${JSON.stringify(p.key)})">${p.label}</button>
+            data-filter="${esc(p.key)}">${esc(p.label)}</button>
     `).join('');
 }
 
-function setFilter(key) {
-    activeFilter = key;
+document.getElementById('ing-filter-bar').addEventListener('click', e => {
+    const btn = e.target.closest('[data-filter]');
+    if (!btn) return;
+    activeFilter = btn.dataset.filter;
     renderFilterBar();
     render();
-}
+});
 
-// ── Filtering ─────────────────────────────────────────
+// ── Filter logic ─────────────────────────────────────
 function getFiltered() {
     const q = (document.getElementById('ing-search').value || '').toLowerCase().trim();
     return allIngredients.filter(i => {
