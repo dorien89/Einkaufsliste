@@ -338,7 +338,13 @@ def get_draft():
         for item in items:
             recipe = Recipe.query.get(item.recipe_id)
             if recipe:
-                result.append({'id': recipe.id, 'name': recipe.name, 'servings': item.servings})
+                from_planner = WeekPlan.query.filter_by(recipe_id=recipe.id).first() is not None
+                result.append({
+                    'id': recipe.id,
+                    'name': recipe.name,
+                    'servings': item.servings,
+                    'from_planner': from_planner
+                })
         return jsonify({'success': True, 'items': result})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
