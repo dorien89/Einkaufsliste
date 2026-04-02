@@ -618,6 +618,57 @@
     min-height: 48px;
 }
 
+/* ── Detail footer (sticky action bar) ──────────────── */
+.rm-detail-footer {
+    flex-shrink: 0;
+    padding: 10px 20px;
+    border-top: 1px solid var(--app-border, #eee);
+    display: flex;
+    gap: 10px;
+    background: var(--app-surface, #fff);
+}
+
+/* ── Custom confirm modal ────────────────────────────── */
+.rm-confirm-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 800;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.rm-confirm-card {
+    background: var(--app-surface, #fff);
+    border-radius: 16px;
+    padding: 24px;
+    max-width: 360px;
+    width: 100%;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}
+
+.rm-confirm-card-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: var(--app-text, #333);
+}
+
+.rm-confirm-card-msg {
+    font-size: 0.9rem;
+    color: var(--app-muted, #666);
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
+
+.rm-confirm-card-btns {
+    display: flex;
+    gap: 10px;
+}
+
 /* ── Category filter bar ────────────────────────────── */
 .rm-category-filter {
     display: flex;

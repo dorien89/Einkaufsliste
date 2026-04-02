@@ -7,7 +7,7 @@
 <div class="page-header-row" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
     <h1 style="margin:0;">Zutaten</h1>
     <div style="display:flex;gap:8px;align-items:center;">
-        <button class="rm-list-add-small" onclick="openSheet(null)">＋ Neu</button>
+        <button class="rm-btn rm-btn-save" onclick="openSheet(null)" style="min-height:0;padding:8px 14px;">＋ Neu</button>
         <a href="{{ url_for('recipe.list_recipes') }}" class="rm-btn rm-btn-cancel" style="text-decoration:none;padding:8px 14px;min-height:0;">← Rezepte</a>
     </div>
 </div>
@@ -17,7 +17,7 @@
     style="width:100%;max-width:600px;padding:10px 14px;border:1px solid var(--app-border,#ddd);border-radius:8px;font-size:1rem;box-sizing:border-box;background:var(--app-surface,#fff);color:var(--app-text,#333);margin-bottom:10px;display:block;">
 
 <!-- Filter pills -->
-<div id="ing-filter-bar" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;max-width:600px;"></div>
+<div id="ing-filter-bar" style="display:flex;flex-direction:column;gap:0;margin-bottom:12px;max-width:600px;"></div>
 
 <!-- Count -->
 <div id="ing-count" style="font-size:0.78rem;color:var(--app-muted,#aaa);margin-bottom:8px;max-width:600px;"></div>
@@ -72,8 +72,9 @@ let allIngredients = [
     {% endfor %}
 ];
 
-let activeFilter = 'all'; // 'all' | 'vorrat' | shop_category_name
-let sheetIngId = null;     // null = new ingredient
+let activeFilters = new Set(['all']); // multi-select; 'all' means no filter
+let filterExpanded = window.innerWidth > 767;
+let sheetIngId = null; // null = new ingredient
 
 // ── Filter pills ─────────────────────────────────────
 function renderFilterBar() {
@@ -87,16 +88,36 @@ function renderFilterBar() {
         ...SHOP_CATS.filter(c => usedCats.has(c)).map(c => ({ key: c, label: c }))
     ];
 
-    bar.innerHTML = pills.map(p => `
-        <button class="rm-cat-btn${activeFilter === p.key ? ' active' : ''}"
-            data-filter="${esc(p.key)}">${esc(p.label)}</button>
-    `).join('');
+    const activeCount = activeFilters.has('all') ? 0 : activeFilters.size;
+    const toggleLabel = activeCount > 0 ? `Filter (${activeCount}) ${filterExpanded ? '▴' : '▾'}` : `Filter ${filterExpanded ? '▴' : '▾'}`;
+
+    bar.innerHTML = `
+        <button class="rm-filter-toggle" data-toggle="filter">${esc(toggleLabel)}</button>
+        <div class="rm-filter-pills${filterExpanded ? '' : ' collapsed'}">
+            ${pills.map(p => `
+                <button class="rm-cat-btn${activeFilters.has(p.key) ? ' active' : ''}"
+                    data-filter="${esc(p.key)}">${esc(p.label)}</button>
+            `).join('')}
+        </div>`;
 }
 
 document.getElementById('ing-filter-bar').addEventListener('click', e => {
+    if (e.target.closest('[data-toggle="filter"]')) {
+        filterExpanded = !filterExpanded;
+        renderFilterBar();
+        return;
+    }
     const btn = e.target.closest('[data-filter]');
     if (!btn) return;
-    activeFilter = btn.dataset.filter;
+    const key = btn.dataset.filter;
+    if (key === 'all') {
+        activeFilters = new Set(['all']);
+    } else {
+        activeFilters.delete('all');
+        if (activeFilters.has(key)) activeFilters.delete(key);
+        else activeFilters.add(key);
+        if (activeFilters.size === 0) activeFilters.add('all');
+    }
     renderFilterBar();
     render();
 });
@@ -106,9 +127,10 @@ function getFiltered() {
     const q = (document.getElementById('ing-search').value || '').toLowerCase().trim();
     return allIngredients.filter(i => {
         if (q && !i.name.toLowerCase().includes(q)) return false;
-        if (activeFilter === 'vorrat') return i.is_staple;
-        if (activeFilter !== 'all') return i.shop_category === activeFilter;
-        return true;
+        if (activeFilters.has('all')) return true;
+        if (activeFilters.has('vorrat') && i.is_staple) return true;
+        if ([...activeFilters].some(f => f !== 'vorrat' && i.shop_category === f)) return true;
+        return false;
     });
 }
 

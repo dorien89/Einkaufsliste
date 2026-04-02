@@ -150,10 +150,6 @@ async function openRecipe(recipeId) {
                 <div class="rm-detail-title">${recipe.name}</div>
                 <span class="rm-detail-category">${recipe.category || '—'}</span>
             </div>
-            <div class="rm-action-btns">
-                <button class="rm-btn rm-btn-edit" onclick="openEditForm(${recipe.id})">Bearbeiten</button>
-                <button class="rm-btn rm-btn-delete" onclick="deleteRecipe(${recipe.id})">Löschen</button>
-            </div>
         </div>
         ${recipe.description ? `<p class="rm-detail-description">${recipe.description}</p>` : ''}
         <div class="rm-portion-label">${portionLabel(familySize)}</div>
@@ -167,24 +163,36 @@ async function openRecipe(recipeId) {
             </tbody>
         </table>
     `;
+    const footer = document.getElementById('rm-detail-footer');
+    footer.innerHTML = `
+        <button class="rm-btn rm-btn-edit" style="flex:1" onclick="openEditForm(${recipe.id})">Bearbeiten</button>
+        <button class="rm-btn rm-btn-delete" style="flex:1" onclick="deleteRecipe(${recipe.id})">Löschen</button>
+    `;
+    footer.style.display = 'flex';
     document.getElementById('rm-container').classList.add('detail-open');
 }
 
 function closeDetail() {
     activeRecipeId = null;
     document.getElementById('rm-detail-content').innerHTML = '<div class="rm-detail-empty">Wähle ein Rezept oder füge ein neues hinzu.</div>';
+    const footer = document.getElementById('rm-detail-footer');
+    if (footer) { footer.style.display = 'none'; footer.innerHTML = ''; }
     document.getElementById('rm-container').classList.remove('detail-open');
     renderList(allRecipes);
 }
 
 // ── Delete ───────────────────────────────────────────
 async function deleteRecipe(recipeId) {
-    if (!confirm('Rezept wirklich löschen?')) return;
+    const ok = await showConfirmModal(
+        'Rezept löschen?',
+        'Das Rezept wird in den Papierkorb verschoben und kann dort wiederhergestellt werden.',
+        'Löschen', 'rm-btn-delete'
+    );
+    if (!ok) return;
     await fetch(`/api/recipe/${recipeId}`, { method: 'DELETE' });
     activeRecipeId = null;
     await loadRecipeList();
-    document.getElementById('rm-detail-content').innerHTML = '<div class="rm-detail-empty">Wähle ein Rezept oder füge ein neues hinzu.</div>';
-    document.getElementById('rm-container').classList.remove('detail-open');
+    closeDetail();
 }
 
 // ── Add / Edit form ──────────────────────────────────
@@ -227,11 +235,13 @@ function renderForm(recipe) {
             <div class="rm-ingredient-rows" id="ingredient-rows"></div>
             <button class="rm-add-ingredient-btn" onclick="addIngredientRow()">+ Zutat hinzufügen</button>
         </div>
-        <div class="rm-action-btns">
-            <button class="rm-btn rm-btn-save" onclick="saveRecipe(${isEdit ? recipe.id : 'null'})">Speichern</button>
-            <button class="rm-btn rm-btn-cancel" onclick="${isEdit ? `openRecipe(${recipe.id})` : 'closeDetail()'}">Abbrechen</button>
-        </div>
     `;
+    const footer = document.getElementById('rm-detail-footer');
+    footer.innerHTML = `
+        <button class="rm-btn rm-btn-cancel" style="flex:1" onclick="${isEdit ? `openRecipe(${recipe.id})` : 'closeDetail()'}">Abbrechen</button>
+        <button class="rm-btn rm-btn-save" style="flex:1" onclick="saveRecipe(${isEdit ? recipe.id : 'null'})">Speichern</button>
+    `;
+    footer.style.display = 'flex';
 
     if (isEdit) {
         recipe.ingredients.forEach(i => addIngredientRow(i));
@@ -263,8 +273,6 @@ function addIngredientRow(data = null) {
                 autocomplete="off">
             <div class="typeahead-dropdown" id="dropdown-${rowId}" style="display:none"></div>
         </div>
-        <button class="rm-ing-edit-btn" id="ing-row-edit-${rowId}" title="Zutat bearbeiten" style="display:${data && data.ingredient_id ? 'inline-flex' : 'none'}"
-            onclick="openIngEditFromRow('${rowId}')">✏️</button>
         <input type="number" class="ing-amount" placeholder="Menge" min="0" step="0.1"
             value="${data ? data.amount : ''}" style="padding:10px;font-size:1em;border:1px solid #ccc;border-radius:6px;">
         <input type="text" class="ing-unit" placeholder="Einheit"
@@ -374,8 +382,6 @@ function selectIngredient(rowId, ingredientId, name, defaultUnit) {
     if (defaultUnit) {
         row.querySelector('.ing-unit').value = defaultUnit;
     }
-    const editBtn = document.getElementById(`ing-row-edit-${rowId}`);
-    if (editBtn) editBtn.style.display = ingredientId ? 'inline-flex' : 'none';
     row.querySelector('.ing-amount').focus();
 }
 
@@ -548,15 +554,6 @@ function openIngEdit(id, name, defaultUnit, isStaple, shopCat) {
     document.getElementById('ing-edit-sheet').style.display = 'block';
 }
 
-async function openIngEditFromRow(rowId) {
-    const row = document.querySelector(`[data-row-id="${rowId}"]`);
-    const id = parseInt(row.dataset.ingredientId);
-    if (!id) return;
-    const res = await fetch(`/api/ingredients/${id}`);
-    if (!res.ok) return;
-    const data = await res.json();
-    openIngEdit(id, data.name, data.default_unit || '', data.is_staple, data.shop_category || 'Sonstiges');
-}
 
 function closeIngEdit() {
     document.getElementById('ing-edit-backdrop').style.display = 'none';
@@ -568,6 +565,12 @@ async function saveIngEdit() {
     if (!ingEditId) return;
     const name = document.getElementById('ing-edit-name').value.trim();
     if (!name) return;
+    const ok = await showConfirmModal(
+        'Zutat global ändern?',
+        'Diese Änderungen wirken sich auf alle Rezepte aus, die diese Zutat verwenden.',
+        'Fortfahren', 'rm-btn-edit'
+    );
+    if (!ok) return;
     const res = await fetch(`/api/ingredients/${ingEditId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -613,6 +616,31 @@ function fmtAmt(n) {
 function portionLabel(n) {
     const s = parseFloat(n.toFixed(2));
     return `für ${s} ${s === 1 ? 'Person' : 'Personen'}`;
+}
+
+// ── Generic confirm modal ─────────────────────────────
+function showConfirmModal(title, message, confirmText, confirmClass) {
+    return new Promise(resolve => {
+        const modal = document.getElementById('rm-confirm-modal');
+        document.getElementById('rm-confirm-title').textContent = title;
+        document.getElementById('rm-confirm-message').textContent = message;
+        const okBtn = document.getElementById('rm-confirm-ok');
+        okBtn.textContent = confirmText;
+        okBtn.className = `rm-btn ${confirmClass}`;
+        okBtn.style.flex = '1';
+        modal.style.display = 'flex';
+
+        const cleanup = val => {
+            modal.style.display = 'none';
+            okBtn.onclick = null;
+            document.getElementById('rm-confirm-cancel').onclick = null;
+            modal.onclick = null;
+            resolve(val);
+        };
+        okBtn.onclick = () => cleanup(true);
+        document.getElementById('rm-confirm-cancel').onclick = () => cleanup(false);
+        modal.onclick = e => { if (e.target === modal) cleanup(false); };
+    });
 }
 
 window.onload = init;
