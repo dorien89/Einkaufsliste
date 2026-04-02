@@ -59,9 +59,10 @@
                                 <div class="shopping-list-item sl-checkable" data-key="{{ ingredient.name }}::{{ ingredient.unit }}" data-cat="{{ cat }}" onclick="toggleAtHome(this)">
                                     <span class="sl-check-icon">○</span>
                                     <span class="item-name">{{ ingredient.name }}</span>
-                                    <span class="item-amount">
-                                        {%- if ingredient.amount %}{{ "%.1f"|format(ingredient.amount)|replace('.0','') }} {{ ingredient.unit }}{% endif -%}
-                                        {%- if ingredient.manual_id %} <span class="sl-manual-chip">+</span>{% endif -%}
+                                    <span class="item-amount" style="display:flex;align-items:center;gap:5px;">
+                                        {%- if ingredient.amount %}{{ "%.1g"|format(ingredient.amount) }}{% if ingredient.unit %} {{ ingredient.unit }}{% endif %}{% endif -%}
+                                        {%- if ingredient.is_manual or ingredient.manual_id %}<span class="sl-manual-chip">+</span>{% endif -%}
+                                        {%- if ingredient.manual_id %}<button class="sl-manual-delete" data-id="{{ ingredient.manual_id }}" data-name="{{ ingredient.name | e }}" onclick="deleteManualItem(parseInt(this.dataset.id),this.dataset.name,event)" title="Entfernen">✕</button>{% endif -%}
                                     </span>
                                 </div>
                             {% endfor %}
@@ -85,19 +86,6 @@
                     {% endif %}
                 {% endif %}
 
-                {% if manual_items %}
-                    <div class="staple-separator" style="color:var(--app-accent,#28a745);">Zusätzlich</div>
-                    {% for mi in manual_items %}
-                        <div class="shopping-list-item sl-checkable" data-key="manual_{{ mi.id }}" data-cat="__manual__" onclick="toggleAtHome(this)">
-                            <span class="sl-check-icon">○</span>
-                            <span class="item-name">{{ mi.name }}</span>
-                            <span class="item-amount" style="display:flex;align-items:center;gap:6px;">
-                                {%- if mi.amount %}{{ "%.1g"|format(mi.amount) }}{% if mi.unit %} {{ mi.unit }}{% endif %}{% endif %}
-                                <button class="sl-manual-delete" data-id="{{ mi.id }}" data-name="{{ mi.name | e }}" onclick="deleteManualItem(parseInt(this.dataset.id), this.dataset.name, event)" title="Entfernen">✕</button>
-                            </span>
-                        </div>
-                    {% endfor %}
-                {% endif %}
             </div>
             <div id="at-home-reset" style="display:none;text-align:center;padding:8px 0 4px;">
                 <button onclick="resetAtHome()" style="background:none;border:none;color:var(--app-muted,#aaa);font-size:0.8rem;cursor:pointer;text-decoration:underline;">Alle Häkchen entfernen</button>
@@ -213,7 +201,6 @@
 <script>
 const buyItems    = {{ (ingredients | selectattr('is_staple', 'equalto', false) | list) | tojson if ingredients else '[]' }};
 const stapleItems = {{ (ingredients | selectattr('is_staple', 'equalto', true)  | list) | tojson if ingredients else '[]' }};
-const manualItemsData = [{% for mi in manual_items %}{ id: {{ mi.id }}, name: {{ mi.name | tojson }}, amount: {{ mi.amount if mi.amount is not none else 'null' }}, unit: {{ (mi.unit or '') | tojson }} }{% if not loop.last %},{% endif %}{% endfor %}];
 const CATEGORIES  = ['Obst & Gemüse','Fleisch & Fisch','Milch & Käse','Brot & Backwaren','Tiefkühl','Konserven & Fertiggerichte','Nudeln, Reis & Hülsenfrüchte','Öle & Gewürze','Getränke','Sonstiges'];
 
 // ── At-home state (localStorage) ─────────────────────
@@ -249,44 +236,28 @@ function esc(s) {
 function _itemRow(i, cat, isStaple, isAtHome) {
     const key = `${i.name}::${i.unit}`;
     const a = parseFloat(i.amount);
-    const aStr = Number.isInteger(a) ? a : a.toFixed(1);
+    const aStr = (Number.isInteger(a) ? a : a.toFixed(1));
+    const manualBadge = (i.is_manual || i.manual_id)
+        ? `<span class="sl-manual-chip">+</span>` : '';
+    const deleteBtn = i.manual_id
+        ? `<button class="sl-manual-delete" data-id="${i.manual_id}" data-name="${esc(i.name)}"
+               onclick="deleteManualItem(parseInt(this.dataset.id),this.dataset.name,event)" title="Entfernen">✕</button>` : '';
     const cls = ['shopping-list-item','sl-checkable', isStaple ? 'staple-item' : '', isAtHome ? 'at-home' : ''].filter(Boolean).join(' ');
     return `<div class="${cls}" data-key="${esc(key)}" data-cat="${esc(cat)}" onclick="toggleAtHome(this)">
         <span class="sl-check-icon">${isAtHome ? '✓' : '○'}</span>
         <span class="item-name">${esc(i.name)}</span>
-        <span class="item-amount">${aStr} ${esc(i.unit)}</span>
-    </div>`;
-}
-
-function _manualItemRow(mi, isAtHome) {
-    const key = `manual_${mi.id}`;
-    const aStr = mi.amount ? (Number.isInteger(mi.amount) ? mi.amount : parseFloat(mi.amount).toFixed(1)) : '';
-    const amountStr = [aStr, mi.unit].filter(Boolean).join(' ');
-    const cls = ['shopping-list-item', 'sl-checkable', isAtHome ? 'at-home' : ''].filter(Boolean).join(' ');
-    return `<div class="${cls}" data-key="${esc(key)}" data-cat="__manual__" onclick="toggleAtHome(this)">
-        <span class="sl-check-icon">${isAtHome ? '✓' : '○'}</span>
-        <span class="item-name">${esc(mi.name)}</span>
-        <span class="item-amount" style="display:flex;align-items:center;gap:6px;">
-            ${esc(amountStr)}
-            <button class="sl-manual-delete" data-id="${mi.id}" data-name="${esc(mi.name)}"
-                onclick="deleteManualItem(parseInt(this.dataset.id), this.dataset.name, event)" title="Entfernen">✕</button>
-        </span>
+        <span class="item-amount" style="display:flex;align-items:center;gap:5px;">${aStr} ${esc(i.unit)}${manualBadge}${deleteBtn}</span>
     </div>`;
 }
 
 function applyAtHome() {
     const container = document.querySelector('.shopping-list-items');
-    if (!container) return;
-
-    const hasRecipeItems = buyItems.length > 0 || stapleItems.length > 0;
-    if (!hasRecipeItems && !manualItemsData.length) return;
+    if (!container || (buyItems.length === 0 && stapleItems.length === 0)) return;
 
     const atHome = getAtHome();
     const activeRegular = buyItems.filter(i => !atHome.has(`${i.name}::${i.unit}`));
     const activeStaple  = stapleItems.filter(i => !atHome.has(`${i.name}::${i.unit}`));
     const atHomeAll     = [...buyItems, ...stapleItems].filter(i => atHome.has(`${i.name}::${i.unit}`));
-    const activeManual  = manualItemsData.filter(i => !atHome.has(`manual_${i.id}`));
-    const atHomeManual  = manualItemsData.filter(i => atHome.has(`manual_${i.id}`));
 
     let html = '';
 
@@ -302,18 +273,12 @@ function applyAtHome() {
         activeStaple.forEach(i => { html += _itemRow(i, '__staple__', true, false); });
     }
 
-    if (activeManual.length) {
-        html += `<div class="staple-separator" style="color:var(--app-accent,#28a745);">Zusätzlich</div>`;
-        activeManual.forEach(i => { html += _manualItemRow(i, false); });
-    }
-
-    if (atHomeAll.length || atHomeManual.length) {
+    if (atHomeAll.length) {
         html += `<div class="staple-separator" style="color:#16a34a;background:#f0fff4;border-color:#bbf7d0;">✓ Bereits zu Hause</div>`;
         atHomeAll.forEach(i => {
             const cat = i.is_staple ? '__staple__' : (i.shop_category || 'Sonstiges');
             html += _itemRow(i, cat, i.is_staple, true);
         });
-        atHomeManual.forEach(i => { html += _manualItemRow(i, true); });
     }
 
     container.innerHTML = html;
@@ -567,10 +532,12 @@ function confirmClear() {
 let _slTaTimer = null;
 let _slTaItems = [];
 let _slTaCursor = -1;
+let _slTaCategory = '';
 
 function slNameTypeahead(input) {
     clearTimeout(_slTaTimer);
     _slTaCursor = -1;
+    _slTaCategory = '';
     const q = input.value.trim();
     if (!q) { slCloseDropdown(); return; }
     _slTaTimer = setTimeout(async () => {
@@ -601,6 +568,7 @@ function slSelectOption(idx) {
     if (!item) return;
     document.getElementById('sl-m-name').value = item.name;
     if (item.default_unit) document.getElementById('sl-m-unit').value = item.default_unit;
+    _slTaCategory = item.shop_category || '';
     slCloseDropdown();
     document.getElementById('sl-m-amount').focus();
 }
@@ -659,8 +627,9 @@ async function addManualItem() {
         const res = await fetch('/api/shopping-list/manual', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, amount: amount ? parseFloat(amount) : null, unit: unit || null })
+            body: JSON.stringify({ name, amount: amount ? parseFloat(amount) : null, unit: unit || null, shop_category: _slTaCategory || null })
         });
+        _slTaCategory = '';
         if (res.ok) { location.reload(); }
         else { const d = await res.json(); errEl.textContent = d.error || 'Fehler'; errEl.style.display = ''; }
     } catch(e) {

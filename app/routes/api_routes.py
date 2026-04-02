@@ -61,7 +61,7 @@ def search_ingredients():
     if q:
         query = query.filter(Ingredient.name.ilike(f'%{q}%'))
     ingredients = query.order_by(Ingredient.name).all()
-    return jsonify([{'id': i.id, 'name': i.name, 'default_unit': i.default_unit or ''} for i in ingredients])
+    return jsonify([{'id': i.id, 'name': i.name, 'default_unit': i.default_unit or '', 'shop_category': i.shop_category or 'Sonstiges'} for i in ingredients])
 
 @bp.route('/ingredients', methods=['POST'])
 def create_ingredient():
@@ -313,8 +313,18 @@ def get_shopping_list():
                     v['manual_id'] = mi.id   # attach for delete button
                     matched = True
                     break
-            # Unmatched manual items are served separately via the manual_items
-            # template variable — don't add them to consolidated to avoid duplication.
+            if not matched:
+                mkey = f"manual_{mi.id}"
+                consolidated[mkey] = {
+                    'id': None,
+                    'name': mi.name,
+                    'amount': mi.amount or 0,
+                    'unit': mi.unit or '',
+                    'is_staple': False,
+                    'shop_category': mi.shop_category or 'Sonstiges',
+                    'is_manual': True,
+                    'manual_id': mi.id
+                }
 
         return jsonify({'success': True, 'ingredients': list(consolidated.values())})
     except Exception as e:
@@ -375,10 +385,16 @@ def add_manual_item():
             return jsonify({'error': 'Name required'}), 400
         amount = data.get('amount')
         unit   = (data.get('unit') or '').strip() or None
+        # Auto-detect category from ingredient database
+        shop_category = (data.get('shop_category') or '').strip()
+        if not shop_category:
+            ing = Ingredient.query.filter(Ingredient.name.ilike(name)).first()
+            shop_category = (ing.shop_category if ing and ing.shop_category else 'Sonstiges')
         item = ManualShoppingItem(
             name=name,
             amount=float(amount) if amount else None,
-            unit=unit
+            unit=unit,
+            shop_category=shop_category
         )
         db.session.add(item)
         db.session.commit()
