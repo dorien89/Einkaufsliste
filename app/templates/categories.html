@@ -5,39 +5,43 @@
 {% block content %}
 <div class="page-header-row" style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
     <h1 style="margin:0">Kategorien</h1>
-    <a href="{{ url_for('recipe.list_recipes') }}" class="rm-btn rm-btn-cancel" style="text-decoration:none;min-height:0;padding:8px 14px;">← Rezepte</a>
+    <div style="display:flex;gap:8px;align-items:center;flex-shrink:0;">
+        <button class="rm-btn rm-btn-save" onclick="openSheet(null)" style="min-height:0;padding:8px 14px;">＋ Neu</button>
+        <a href="{{ url_for('recipe.list_recipes') }}" class="rm-btn rm-btn-cancel" style="text-decoration:none;min-height:0;padding:8px 14px;">← Rezepte</a>
+    </div>
 </div>
 <p class="mgmt-desc">Kategorien werden Rezepten zugewiesen. Löschen ist nur möglich, wenn kein Rezept diese Kategorie verwendet.</p>
-
-<!-- Add form -->
-<div style="display:flex;gap:8px;margin-bottom:20px;max-width:560px;">
-    <input type="text" id="new-cat-name" placeholder="Neue Kategorie hinzufügen…"
-        style="flex:1;min-width:0;padding:10px 14px;border:1px solid var(--app-border,#ddd);border-radius:8px;font-size:1rem;box-sizing:border-box;background:var(--app-surface,#fff);color:var(--app-text,#333);"
-        onkeydown="if(event.key==='Enter') addCat()">
-    <button onclick="addCat()" class="rm-btn rm-btn-save" style="min-height:0;padding:8px 14px;flex-shrink:0;">+ Hinzufügen</button>
-</div>
 
 <div id="cat-list">
     {% for category in categories %}
     <div class="ing-row cat-item" id="cat-{{ category.id }}">
         <div class="ing-row-main">
-            <div class="cat-display">
-                <span class="ing-row-name">{{ category.name }}</span>
-            </div>
-            <input type="text" class="cat-edit-input" value="{{ category.name }}" placeholder="Name"
-                style="display:none;padding:8px 10px;border:1px solid var(--app-border,#ddd);border-radius:8px;font-size:0.95rem;box-sizing:border-box;background:var(--app-surface,#fff);color:var(--app-text,#333);width:100%;"
-                onkeydown="if(event.key==='Enter') saveCat({{ category.id }})">
+            <div class="ing-row-name">{{ category.name }}</div>
         </div>
-        <div class="ing-row-actions cat-view-btns">
-            <button class="ing-row-btn" title="Bearbeiten" onclick="editCat({{ category.id }})">✏️</button>
+        <div class="ing-row-actions">
+            <button class="ing-row-btn" title="Bearbeiten" onclick="openSheet({{ category.id }}, {{ category.name | tojson }})">✏️</button>
             <button class="ing-row-btn delete" title="Löschen" onclick="deleteCat({{ category.id }}, {{ category.name | tojson }})">🗑️</button>
-        </div>
-        <div class="cat-edit-btns" style="display:none;gap:6px;">
-            <button class="rm-btn rm-btn-cancel" style="padding:8px 14px;font-size:0.85rem;min-height:0;" onclick="cancelCat({{ category.id }})">Abbrechen</button>
-            <button class="rm-btn rm-btn-save" style="padding:8px 14px;font-size:0.85rem;min-height:0;" onclick="saveCat({{ category.id }})">Speichern</button>
         </div>
     </div>
     {% endfor %}
+</div>
+
+<!-- ── Add / Edit bottom sheet ───────────────────────── -->
+<div id="cat-backdrop" onclick="closeSheet()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:700;"></div>
+<div id="cat-sheet" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--app-surface,#fff);border-radius:18px 18px 0 0;padding:20px 16px 40px;z-index:701;box-shadow:0 -4px 20px rgba(0,0,0,0.15);max-width:600px;margin:0 auto;">
+    <div style="width:40px;height:4px;background:var(--app-border,#ddd);border-radius:2px;margin:0 auto 18px;"></div>
+    <div style="font-weight:700;font-size:1rem;margin-bottom:16px;" id="cat-sheet-title">Kategorie hinzufügen</div>
+    <div>
+        <label style="font-size:0.82rem;color:var(--app-muted,#888);display:block;margin-bottom:4px;">Name</label>
+        <input id="cat-sheet-name" type="text" placeholder="Kategoriename…"
+            style="width:100%;padding:10px;border:1px solid var(--app-border,#ddd);border-radius:8px;font-size:1rem;box-sizing:border-box;background:var(--app-surface,#fff);color:var(--app-text,#333);"
+            onkeydown="if(event.key==='Enter') saveSheet()">
+    </div>
+    <div style="display:flex;gap:10px;margin-top:20px;">
+        <button onclick="saveSheet()" style="flex:1;padding:14px;background:var(--app-accent,#28a745);color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;">Speichern</button>
+        <button onclick="closeSheet()" style="flex:1;padding:14px;background:var(--app-border,#f5f5f5);border:none;border-radius:12px;font-size:1rem;color:var(--app-muted,#555);cursor:pointer;">Abbrechen</button>
+    </div>
+    <div id="cat-sheet-error" style="display:none;margin-top:10px;padding:8px 12px;border-radius:8px;font-size:0.85rem;background:#fff3f3;border:1px solid #ffcdd2;color:#c62828;"></div>
 </div>
 
 <!-- Confirm modal -->
@@ -53,38 +57,85 @@
 </div>
 
 <script>
-function editCat(id) {
-    const row = document.getElementById('cat-' + id);
-    row.querySelector('.cat-display').style.display = 'none';
-    row.querySelector('.cat-edit-input').style.display = '';
-    row.querySelector('.cat-view-btns').style.display = 'none';
-    row.querySelector('.cat-edit-btns').style.display = 'flex';
-    row.querySelector('.cat-edit-input').focus();
+function esc(s) {
+    return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-function cancelCat(id) {
-    const row = document.getElementById('cat-' + id);
-    row.querySelector('.cat-edit-input').value = row.querySelector('.ing-row-name').textContent;
-    row.querySelector('.cat-display').style.display = '';
-    row.querySelector('.cat-edit-input').style.display = 'none';
-    row.querySelector('.cat-view-btns').style.display = '';
-    row.querySelector('.cat-edit-btns').style.display = 'none';
-}
+let sheetCatId = null; // null = new category
 
-async function saveCat(id) {
-    const row = document.getElementById('cat-' + id);
-    const name = row.querySelector('.cat-edit-input').value.trim();
-    if (!name) return;
-    const res = await fetch('/api/categories/' + id, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name })
-    });
-    if (res.ok) {
-        row.querySelector('.ing-row-name').textContent = name;
-        cancelCat(id);
+function openSheet(id, name) {
+    sheetCatId = id;
+    const errEl = document.getElementById('cat-sheet-error');
+    errEl.style.display = 'none';
+    if (id === null) {
+        document.getElementById('cat-sheet-title').textContent = 'Kategorie hinzufügen';
+        document.getElementById('cat-sheet-name').value = '';
     } else {
-        alert('Fehler beim Speichern.');
+        document.getElementById('cat-sheet-title').textContent = 'Kategorie bearbeiten';
+        document.getElementById('cat-sheet-name').value = name || '';
+    }
+    document.getElementById('cat-backdrop').style.display = 'block';
+    document.getElementById('cat-sheet').style.display = 'block';
+    setTimeout(() => document.getElementById('cat-sheet-name').focus(), 80);
+}
+
+function closeSheet() {
+    document.getElementById('cat-backdrop').style.display = 'none';
+    document.getElementById('cat-sheet').style.display = 'none';
+    sheetCatId = null;
+}
+
+async function saveSheet() {
+    const name = document.getElementById('cat-sheet-name').value.trim();
+    const errEl = document.getElementById('cat-sheet-error');
+    errEl.style.display = 'none';
+    if (!name) { errEl.textContent = 'Bitte einen Namen eingeben.'; errEl.style.display = 'block'; return; }
+
+    try {
+        let res, data;
+        if (sheetCatId === null) {
+            res = await fetch('/api/categories', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name })
+            });
+            data = await res.json();
+            if (!res.ok) { errEl.textContent = data.error || 'Fehler'; errEl.style.display = 'block'; return; }
+
+            const div = document.createElement('div');
+            div.className = 'ing-row cat-item';
+            div.id = 'cat-' + data.id;
+            div.innerHTML = `
+                <div class="ing-row-main">
+                    <div class="ing-row-name">${esc(name)}</div>
+                </div>
+                <div class="ing-row-actions">
+                    <button class="ing-row-btn" title="Bearbeiten" onclick="openSheet(${data.id}, ${JSON.stringify(name)})">✏️</button>
+                    <button class="ing-row-btn delete" title="Löschen" onclick="deleteCat(${data.id}, ${JSON.stringify(name)})">🗑️</button>
+                </div>`;
+            document.getElementById('cat-list').appendChild(div);
+        } else {
+            res = await fetch('/api/categories/' + sheetCatId, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name })
+            });
+            data = await res.json();
+            if (!res.ok) { errEl.textContent = data.error || 'Fehler'; errEl.style.display = 'block'; return; }
+
+            const row = document.getElementById('cat-' + sheetCatId);
+            if (row) {
+                row.querySelector('.ing-row-name').textContent = name;
+                const editBtn = row.querySelector('.ing-row-btn');
+                editBtn.setAttribute('onclick', `openSheet(${sheetCatId}, ${JSON.stringify(name)})`);
+                const delBtn = row.querySelector('.ing-row-btn.delete');
+                delBtn.setAttribute('onclick', `deleteCat(${sheetCatId}, ${JSON.stringify(name)})`);
+            }
+        }
+        closeSheet();
+    } catch (e) {
+        errEl.textContent = 'Netzwerkfehler: ' + e.message;
+        errEl.style.display = 'block';
     }
 }
 
@@ -115,45 +166,6 @@ async function deleteCat(id, name) {
             }
         }
     );
-}
-
-async function addCat() {
-    const nameEl = document.getElementById('new-cat-name');
-    const name = nameEl.value.trim();
-    if (!name) return;
-    const res = await fetch('/api/categories', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name })
-    });
-    const data = await res.json();
-    if (res.ok) {
-        const div = document.createElement('div');
-        div.className = 'ing-row cat-item';
-        div.id = 'cat-' + data.id;
-        const escapedName = name.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-        const jsonName = JSON.stringify(name);
-        div.innerHTML = `
-            <div class="ing-row-main">
-                <div class="cat-display"><span class="ing-row-name">${escapedName}</span></div>
-                <input type="text" class="cat-edit-input" value="${escapedName}" placeholder="Name"
-                    style="display:none;padding:8px 10px;border:1px solid var(--app-border,#ddd);border-radius:8px;font-size:0.95rem;box-sizing:border-box;background:var(--app-surface,#fff);color:var(--app-text,#333);width:100%;"
-                    onkeydown="if(event.key==='Enter') saveCat(${data.id})">
-            </div>
-            <div class="ing-row-actions cat-view-btns">
-                <button class="ing-row-btn" title="Bearbeiten" onclick="editCat(${data.id})">✏️</button>
-                <button class="ing-row-btn delete" title="Löschen" onclick="deleteCat(${data.id}, ${jsonName})">🗑️</button>
-            </div>
-            <div class="cat-edit-btns" style="display:none;gap:6px;">
-                <button class="rm-btn rm-btn-cancel" style="padding:8px 14px;font-size:0.85rem;min-height:0;" onclick="cancelCat(${data.id})">Abbrechen</button>
-                <button class="rm-btn rm-btn-save" style="padding:8px 14px;font-size:0.85rem;min-height:0;" onclick="saveCat(${data.id})">Speichern</button>
-            </div>`;
-        document.getElementById('cat-list').appendChild(div);
-        nameEl.value = '';
-        nameEl.focus();
-    } else {
-        alert('Fehler: ' + (data.error || 'Unbekannt'));
-    }
 }
 </script>
 {% endblock %}
