@@ -93,7 +93,7 @@
                             <span class="item-name">{{ mi.name }}</span>
                             <span class="item-amount" style="display:flex;align-items:center;gap:6px;">
                                 {%- if mi.amount %}{{ "%.1g"|format(mi.amount) }}{% if mi.unit %} {{ mi.unit }}{% endif %}{% endif %}
-                                <button class="sl-manual-delete" onclick="deleteManualItem({{ mi.id }}, event)" title="Entfernen">✕</button>
+                                <button class="sl-manual-delete" data-id="{{ mi.id }}" data-name="{{ mi.name | e }}" onclick="deleteManualItem(parseInt(this.dataset.id), this.dataset.name, event)" title="Entfernen">✕</button>
                             </span>
                         </div>
                     {% endfor %}
@@ -117,6 +117,16 @@
             <button onclick="openClearConfirm()" class="action-button button-clear">🗑️ Leeren</button>
         </div>
     </div>
+</div>
+
+<!-- Generic confirm sheet (recipe remove / manual item delete) -->
+<div id="sl-confirm-backdrop" onclick="closeSlConfirm()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:700;"></div>
+<div id="sl-confirm-sheet" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--app-surface,#fff);border-radius:18px 18px 0 0;padding:20px 16px 40px;z-index:701;box-shadow:0 -4px 20px rgba(0,0,0,0.15);">
+    <div style="width:40px;height:4px;background:var(--app-border,#ddd);border-radius:2px;margin:0 auto 18px;"></div>
+    <div id="sl-confirm-title" style="font-weight:700;font-size:1rem;margin-bottom:8px;"></div>
+    <div id="sl-confirm-msg" style="font-size:0.88rem;color:var(--app-muted,#666);margin-bottom:22px;line-height:1.5;"></div>
+    <button id="sl-confirm-ok" style="width:100%;padding:14px;background:#ef4444;color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;margin-bottom:10px;"></button>
+    <button onclick="closeSlConfirm()" style="width:100%;padding:14px;background:var(--app-border,#f5f5f5);border:none;border-radius:12px;font-size:1rem;color:var(--app-muted,#555);cursor:pointer;">Abbrechen</button>
 </div>
 
 <!-- Planner-recipe warning sheet -->
@@ -406,6 +416,21 @@ async function loadRecipeList() {
     }
 }
 
+function showSlConfirm(title, message, confirmLabel, onConfirm) {
+    document.getElementById('sl-confirm-title').textContent = title;
+    document.getElementById('sl-confirm-msg').textContent = message;
+    const ok = document.getElementById('sl-confirm-ok');
+    ok.textContent = confirmLabel;
+    ok.onclick = () => { closeSlConfirm(); onConfirm(); };
+    document.getElementById('sl-confirm-backdrop').style.display = 'block';
+    document.getElementById('sl-confirm-sheet').style.display = 'block';
+}
+
+function closeSlConfirm() {
+    document.getElementById('sl-confirm-backdrop').style.display = 'none';
+    document.getElementById('sl-confirm-sheet').style.display = 'none';
+}
+
 function removeRecipe(recipeId, fromPlanner, recipeName) {
     if (fromPlanner) {
         document.getElementById('sl-planner-msg').textContent =
@@ -413,10 +438,15 @@ function removeRecipe(recipeId, fromPlanner, recipeName) {
         document.getElementById('sl-planner-backdrop').style.display = 'block';
         document.getElementById('sl-planner-sheet').style.display = 'block';
     } else {
-        fetch(`/api/shopping-list/item/${recipeId}`, { method: 'DELETE' })
-            .then(r => r.json())
-            .then(d => { if (d.success) location.reload(); else showToast('Fehler'); })
-            .catch(() => showToast('Fehler'));
+        showSlConfirm(
+            'Rezept entfernen?',
+            `"${recipeName}" und alle seine Zutaten werden aus der Einkaufsliste entfernt.`,
+            'Entfernen',
+            () => fetch(`/api/shopping-list/item/${recipeId}`, { method: 'DELETE' })
+                    .then(r => r.json())
+                    .then(d => { if (d.success) location.reload(); else showToast('Fehler'); })
+                    .catch(() => showToast('Fehler'))
+        );
     }
 }
 
@@ -611,11 +641,18 @@ async function addManualItem() {
     }
 }
 
-async function deleteManualItem(id, event) {
+function deleteManualItem(id, name, event) {
     event.stopPropagation();
-    const res = await fetch(`/api/shopping-list/manual/${id}`, { method: 'DELETE' });
-    if (res.ok) { location.reload(); }
-    else { showToast('Fehler beim Löschen'); }
+    showSlConfirm(
+        'Artikel entfernen?',
+        `"${name}" wird aus der Einkaufsliste entfernt.`,
+        'Entfernen',
+        async () => {
+            const res = await fetch(`/api/shopping-list/manual/${id}`, { method: 'DELETE' });
+            if (res.ok) location.reload();
+            else showToast('Fehler beim Löschen');
+        }
+    );
 }
 </script>
 {% endblock %}
