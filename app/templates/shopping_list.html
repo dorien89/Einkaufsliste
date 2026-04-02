@@ -56,14 +56,13 @@
                         {% if cat_items %}
                             <div class="category-separator" data-cat="{{ cat }}">{{ cat }}</div>
                             {% for ingredient in cat_items %}
-                                <div class="shopping-list-item sl-checkable" data-key="{{ ingredient.name }}::{{ ingredient.unit }}" data-cat="{{ cat }}" onclick="toggleAtHome(this)">
+                                <div class="shopping-list-item sl-checkable{% if ingredient.is_manual or ingredient.manual_id %} sl-is-manual{% endif %}" data-key="{{ ingredient.name }}::{{ ingredient.unit }}" data-cat="{{ cat }}" onclick="toggleAtHome(this)">
                                     <span class="sl-check-icon">○</span>
                                     <span class="item-name">{{ ingredient.name }}</span>
-                                    <span class="item-amount" style="display:flex;align-items:center;gap:5px;">
+                                    <span class="item-amount">
                                         {%- if ingredient.amount %}{{ "%.1g"|format(ingredient.amount) }}{% if ingredient.unit %} {{ ingredient.unit }}{% endif %}{% endif -%}
-                                        {%- if ingredient.is_manual or ingredient.manual_id %}<span class="sl-manual-chip">+</span>{% endif -%}
-                                        {%- if ingredient.manual_id %}<button class="sl-manual-delete" data-id="{{ ingredient.manual_id }}" data-name="{{ ingredient.name | e }}" onclick="deleteManualItem(parseInt(this.dataset.id),this.dataset.name,event)" title="Entfernen">✕</button>{% endif -%}
                                     </span>
+                                    {%- if ingredient.manual_id %}<button class="sl-manual-delete" data-id="{{ ingredient.manual_id }}" data-name="{{ ingredient.name | e }}" onclick="deleteManualItem(parseInt(this.dataset.id),this.dataset.name,event)" title="Entfernen">✕</button>{% endif -%}
                                 </div>
                             {% endfor %}
                         {% endif %}
@@ -187,15 +186,23 @@
 <div id="sl-toast" style="display:none;position:fixed;bottom:150px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 20px;border-radius:20px;font-size:0.9rem;z-index:800;white-space:nowrap;"></div>
 
 <style>
-.sl-manual-chip {
-    display:inline-block;background:#e8f5e9;color:#2e7d32;border-radius:4px;
-    font-size:0.72rem;font-weight:700;padding:1px 4px;vertical-align:middle;
+.sl-is-manual {
+    border-left: 3px solid #81c784;
+    padding-left: calc(1rem - 3px);
 }
 .sl-manual-delete {
-    background:none;border:none;color:#bbb;font-size:0.8rem;cursor:pointer;
-    padding:2px 4px;line-height:1;flex-shrink:0;
+    flex-shrink: 0;
+    margin-left: 8px;
+    background: none;
+    border: none;
+    color: #ccc;
+    font-size: 0.8rem;
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 4px;
+    line-height: 1;
 }
-.sl-manual-delete:active { color:#c62828; }
+.sl-manual-delete:active { color: #c62828; }
 </style>
 
 <script>
@@ -237,16 +244,16 @@ function _itemRow(i, cat, isStaple, isAtHome) {
     const key = `${i.name}::${i.unit}`;
     const a = parseFloat(i.amount);
     const aStr = (Number.isInteger(a) ? a : a.toFixed(1));
-    const manualBadge = (i.is_manual || i.manual_id)
-        ? `<span class="sl-manual-chip">+</span>` : '';
+    const isManual = (i.is_manual || i.manual_id);
     const deleteBtn = i.manual_id
         ? `<button class="sl-manual-delete" data-id="${i.manual_id}" data-name="${esc(i.name)}"
                onclick="deleteManualItem(parseInt(this.dataset.id),this.dataset.name,event)" title="Entfernen">✕</button>` : '';
-    const cls = ['shopping-list-item','sl-checkable', isStaple ? 'staple-item' : '', isAtHome ? 'at-home' : ''].filter(Boolean).join(' ');
+    const cls = ['shopping-list-item','sl-checkable', isStaple ? 'staple-item' : '', isManual ? 'sl-is-manual' : '', isAtHome ? 'at-home' : ''].filter(Boolean).join(' ');
     return `<div class="${cls}" data-key="${esc(key)}" data-cat="${esc(cat)}" onclick="toggleAtHome(this)">
         <span class="sl-check-icon">${isAtHome ? '✓' : '○'}</span>
         <span class="item-name">${esc(i.name)}</span>
-        <span class="item-amount" style="display:flex;align-items:center;gap:5px;">${aStr} ${esc(i.unit)}${manualBadge}${deleteBtn}</span>
+        <span class="item-amount">${aStr} ${esc(i.unit)}</span>
+        ${deleteBtn}
     </div>`;
 }
 
