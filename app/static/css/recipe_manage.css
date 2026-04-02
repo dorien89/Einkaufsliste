@@ -618,6 +618,31 @@
     min-height: 48px;
 }
 
+/* ── Shared management page helpers ─────────────────── */
+.mgmt-desc {
+    font-size: 0.88rem;
+    color: var(--app-muted, #888);
+    margin-bottom: 16px;
+    max-width: 560px;
+}
+
+/* Small labeled action buttons used in bin/category rows */
+.mgmt-row-btn {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    line-height: 1.4;
+}
+
+.mgmt-row-btn-restore { background: #e8f5e9; color: #2e7d32; }
+.mgmt-row-btn-restore:hover { background: #c8e6c9; }
+.mgmt-row-btn-danger  { background: #ffebee; color: #c62828; }
+.mgmt-row-btn-danger:hover  { background: #ffcdd2; }
+
 /* ── Detail footer (sticky action bar) ──────────────── */
 .rm-detail-footer {
     flex-shrink: 0;
@@ -803,7 +828,8 @@
         flex-direction: column;
     }
 
-    .rm-btn {
+    .rm-action-btns .rm-btn,
+    .rm-detail-footer .rm-btn {
         width: 100%;
         text-align: center;
     }

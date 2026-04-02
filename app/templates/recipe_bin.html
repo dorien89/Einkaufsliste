@@ -3,47 +3,82 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/recipe_manage.css') }}">
 {% endblock %}
 {% block content %}
-<div class="page-header-row" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+
+<div class="page-header-row" style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
     <h1 style="margin:0">Papierkorb</h1>
-    <div style="display:flex;gap:8px;">
-        <button class="rm-btn rm-btn-delete" id="empty-bin-btn" onclick="emptyBin()" style="display:none;">Alles löschen</button>
-        <a href="{{ url_for('recipe.list_recipes') }}" class="rm-btn rm-btn-cancel" style="text-decoration:none;padding:10px 16px;">← Rezepte</a>
+    <div style="display:flex;gap:8px;align-items:center;flex-shrink:0;">
+        <button class="rm-btn rm-btn-delete" id="empty-bin-btn" onclick="confirmEmptyBin()" style="display:none;min-height:0;padding:8px 14px;">🗑 Alles löschen</button>
+        <a href="{{ url_for('recipe.list_recipes') }}" class="rm-btn rm-btn-cancel" style="text-decoration:none;min-height:0;padding:8px 14px;">← Rezepte</a>
     </div>
 </div>
-<p style="color:#888;font-size:0.9rem;margin-bottom:16px;">Gelöschte Rezepte können wiederhergestellt oder endgültig gelöscht werden.</p>
-<ul class="ing-manage-list" id="bin-list">
-    <li style="padding:16px;color:#aaa" id="bin-empty-msg">Papierkorb wird geladen…</li>
-</ul>
+
+<p class="mgmt-desc">Gelöschte Rezepte können wiederhergestellt oder endgültig entfernt werden.</p>
+
+<div id="bin-list">
+    <div class="ing-empty">Papierkorb wird geladen…</div>
+</div>
+
+<!-- Confirm modal -->
+<div class="rm-confirm-overlay" id="bin-confirm-modal">
+    <div class="rm-confirm-card">
+        <div class="rm-confirm-card-title" id="bin-confirm-title"></div>
+        <div class="rm-confirm-card-msg" id="bin-confirm-message"></div>
+        <div class="rm-confirm-card-btns">
+            <button id="bin-confirm-cancel" class="rm-btn rm-btn-cancel" style="flex:1;">Abbrechen</button>
+            <button id="bin-confirm-ok" class="rm-btn rm-btn-delete" style="flex:1;"></button>
+        </div>
+    </div>
+</div>
 
 <script>
+function showBinConfirm(title, message, confirmText, onConfirm) {
+    const modal = document.getElementById('bin-confirm-modal');
+    document.getElementById('bin-confirm-title').textContent = title;
+    document.getElementById('bin-confirm-message').textContent = message;
+    const ok = document.getElementById('bin-confirm-ok');
+    ok.textContent = confirmText;
+    modal.style.display = 'flex';
+    const cleanup = () => { modal.style.display = 'none'; ok.onclick = null; document.getElementById('bin-confirm-cancel').onclick = null; modal.onclick = null; };
+    ok.onclick = () => { cleanup(); onConfirm(); };
+    document.getElementById('bin-confirm-cancel').onclick = cleanup;
+    modal.onclick = e => { if (e.target === modal) cleanup(); };
+}
+
 async function loadBin() {
     const res = await fetch('/api/recipes/bin');
     const recipes = await res.json();
-    const ul = document.getElementById('bin-list');
+    const container = document.getElementById('bin-list');
     const emptyBtn = document.getElementById('empty-bin-btn');
 
     if (recipes.length === 0) {
-        ul.innerHTML = '<li style="padding:16px;color:#aaa">Papierkorb ist leer.</li>';
+        container.innerHTML = '<div class="ing-empty">Papierkorb ist leer.</div>';
         emptyBtn.style.display = 'none';
         return;
     }
 
     emptyBtn.style.display = '';
-    ul.innerHTML = recipes.map(r => {
+    container.innerHTML = recipes.map(r => {
         const date = new Date(r.deleted_at).toLocaleDateString('de-DE', { day:'2-digit', month:'2-digit', year:'numeric' });
+        const catChip = r.category ? `<span class="ing-chip">${esc(r.category)}</span>` : '';
         return `
-        <li class="ing-manage-item" id="bin-${r.id}" style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
-            <div>
-                <strong>${r.name}</strong>
-                <span style="color:#aaa;font-size:0.82rem;margin-left:8px;">${r.category || ''}</span>
-                <div style="color:#bbb;font-size:0.78rem;">Gelöscht am ${date}</div>
+        <div class="ing-row" id="bin-${r.id}">
+            <div class="ing-row-main">
+                <div class="ing-row-name">${esc(r.name)}</div>
+                <div class="ing-row-meta">
+                    ${catChip}
+                    <span class="ing-chip" style="color:var(--app-muted,#aaa);">Gelöscht ${date}</span>
+                </div>
             </div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                <button class="ing-small-btn" style="background:#28a745;color:#fff;" onclick="restore(${r.id})">↩ Wiederherstellen</button>
-                <button class="ing-small-btn ing-btn-delete" onclick="permanentDelete(${r.id}, '${r.name.replace(/'/g, "\\'")}')">Endgültig löschen</button>
+            <div style="display:flex;gap:6px;flex-shrink:0;align-items:center;">
+                <button class="mgmt-row-btn mgmt-row-btn-restore" onclick="restore(${r.id})">↩ Zurück</button>
+                <button class="mgmt-row-btn mgmt-row-btn-danger" onclick="permanentDelete(${r.id}, ${JSON.stringify(r.name)})">Löschen</button>
             </div>
-        </li>`;
+        </div>`;
     }).join('');
+}
+
+function esc(s) {
+    return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 async function restore(id) {
@@ -52,24 +87,36 @@ async function restore(id) {
     checkEmpty();
 }
 
-async function permanentDelete(id, name) {
-    if (!confirm(`"${name}" endgültig löschen? Dies kann nicht rückgängig gemacht werden.`)) return;
-    await fetch(`/api/recipe/${id}/permanent`, { method: 'DELETE' });
-    document.getElementById(`bin-${id}`).remove();
-    checkEmpty();
+function permanentDelete(id, name) {
+    showBinConfirm(
+        'Endgültig löschen?',
+        `"${name}" wird dauerhaft gelöscht. Dies kann nicht rückgängig gemacht werden.`,
+        'Endgültig löschen',
+        async () => {
+            await fetch(`/api/recipe/${id}/permanent`, { method: 'DELETE' });
+            document.getElementById(`bin-${id}`).remove();
+            checkEmpty();
+        }
+    );
 }
 
-async function emptyBin() {
-    if (!confirm('Alle Rezepte im Papierkorb endgültig löschen?')) return;
-    await fetch('/api/recipes/bin/empty', { method: 'DELETE' });
-    document.getElementById('bin-list').innerHTML = '<li style="padding:16px;color:#aaa">Papierkorb ist leer.</li>';
-    document.getElementById('empty-bin-btn').style.display = 'none';
+function confirmEmptyBin() {
+    showBinConfirm(
+        'Papierkorb leeren?',
+        'Alle Rezepte im Papierkorb werden dauerhaft gelöscht. Dies kann nicht rückgängig gemacht werden.',
+        'Alles löschen',
+        async () => {
+            await fetch('/api/recipes/bin/empty', { method: 'DELETE' });
+            document.getElementById('bin-list').innerHTML = '<div class="ing-empty">Papierkorb ist leer.</div>';
+            document.getElementById('empty-bin-btn').style.display = 'none';
+        }
+    );
 }
 
 function checkEmpty() {
-    const ul = document.getElementById('bin-list');
-    if (ul.querySelectorAll('li[id^="bin-"]').length === 0) {
-        ul.innerHTML = '<li style="padding:16px;color:#aaa">Papierkorb ist leer.</li>';
+    const items = document.querySelectorAll('#bin-list .ing-row');
+    if (items.length === 0) {
+        document.getElementById('bin-list').innerHTML = '<div class="ing-empty">Papierkorb ist leer.</div>';
         document.getElementById('empty-bin-btn').style.display = 'none';
     }
 }

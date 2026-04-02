@@ -3,18 +3,18 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/recipe_manage.css') }}">
 {% endblock %}
 {% block content %}
-<div class="page-header-row" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+<div class="page-header-row" style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
     <h1 style="margin:0">Kategorien</h1>
-    <a href="{{ url_for('recipe.list_recipes') }}" style="text-decoration:none;padding:10px 16px;border-radius:8px;background:var(--app-muted,#aaa);color:#fff;font-size:1rem;cursor:pointer;white-space:nowrap;">← Rezepte</a>
+    <a href="{{ url_for('recipe.list_recipes') }}" class="rm-btn rm-btn-cancel" style="text-decoration:none;min-height:0;padding:8px 14px;">← Rezepte</a>
 </div>
-<p style="font-size:0.88rem;color:var(--app-muted,#888);margin-bottom:16px;max-width:540px;">Kategorien werden Rezepten zugewiesen. Löschen ist nur möglich, wenn kein Rezept diese Kategorie verwendet.</p>
+<p class="mgmt-desc">Kategorien werden Rezepten zugewiesen. Löschen ist nur möglich, wenn kein Rezept diese Kategorie verwendet.</p>
 
 <!-- Add form -->
-<div style="display:flex;gap:8px;margin-bottom:20px;">
+<div style="display:flex;gap:8px;margin-bottom:20px;max-width:560px;">
     <input type="text" id="new-cat-name" placeholder="Neue Kategorie hinzufügen…"
         style="flex:1;min-width:0;padding:10px 14px;border:1px solid var(--app-border,#ddd);border-radius:8px;font-size:1rem;box-sizing:border-box;background:var(--app-surface,#fff);color:var(--app-text,#333);"
         onkeydown="if(event.key==='Enter') addCat()">
-    <button onclick="addCat()" style="padding:10px 16px;background:var(--app-accent,#28a745);color:#fff;border:none;border-radius:8px;font-size:1rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;">+ Hinzufügen</button>
+    <button onclick="addCat()" class="rm-btn rm-btn-save" style="min-height:0;padding:8px 14px;flex-shrink:0;">+ Hinzufügen</button>
 </div>
 
 <div id="cat-list">
