@@ -4,6 +4,7 @@ from app.models.recipe import Recipe, RecipeIngredient, Ingredient, Category
 from app.models.shopping_list import ShoppingList
 from app.models.week_plan import WeekPlan
 from app.models.settings import Settings
+from app.models.manual_shopping_item import ManualShoppingItem
 from app.services.recipe_service import RecipeService
 import random
 from datetime import datetime, date as date_type, timedelta
@@ -214,6 +215,7 @@ def empty_bin():
 def clear_shopping_list():
     try:
         ShoppingList.query.delete()
+        ManualShoppingItem.query.delete()
         db.session.commit()
         return jsonify({'message': 'Shopping list cleared successfully'})
     except Exception as e:
@@ -281,14 +283,12 @@ def get_shopping_list():
     try:
         shopping_items = ShoppingList.query.filter_by(is_active=True).all()
         consolidated = {}
-        
+
         for item in shopping_items:
             recipe_ingredients = RecipeIngredient.query.filter_by(recipe_id=item.recipe_id).all()
-            
             for ri in recipe_ingredients:
                 ingredient = Ingredient.query.get(ri.ingredient_id)
                 key = f"{ri.ingredient_id}_{ri.unit}"
-                
                 if key in consolidated:
                     consolidated[key]['amount'] += ri.amount * item.servings
                 else:
@@ -297,20 +297,38 @@ def get_shopping_list():
                         'name': ingredient.name,
                         'amount': ri.amount * item.servings,
                         'unit': ri.unit,
-                        'shopping_list_id': item.id,
                         'is_staple': ingredient.is_staple,
-                        'shop_category': ingredient.shop_category
+                        'shop_category': ingredient.shop_category,
+                        'is_manual': False,
+                        'manual_id': None
                     }
-        
-        return jsonify({
-            'success': True,
-            'ingredients': list(consolidated.values())
-        })
+
+        # Append manual items — merge by (name, unit) if an entry already exists
+        for mi in ManualShoppingItem.query.order_by(ManualShoppingItem.created_at).all():
+            matched = False
+            for k, v in consolidated.items():
+                if v['name'].lower() == mi.name.lower() and v['unit'] == (mi.unit or ''):
+                    if mi.amount:
+                        v['amount'] += mi.amount
+                    v['manual_id'] = mi.id   # attach for delete button
+                    matched = True
+                    break
+            if not matched:
+                mkey = f"manual_{mi.id}"
+                consolidated[mkey] = {
+                    'id': None,
+                    'name': mi.name,
+                    'amount': mi.amount or 0,
+                    'unit': mi.unit or '',
+                    'is_staple': False,
+                    'shop_category': 'Sonstiges',
+                    'is_manual': True,
+                    'manual_id': mi.id
+                }
+
+        return jsonify({'success': True, 'ingredients': list(consolidated.values())})
     except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
+        return jsonify({'success': False, 'error': str(e)}), 500
     
 @bp.route('/shopping-list/draft', methods=['GET'])
 def get_draft():
@@ -332,11 +350,52 @@ def upsert_item():
         recipe_id = data.get('id')
         if not recipe_id:
             return jsonify({'error': 'Missing recipe id'}), 400
+        explicit_servings = data.get('servings')
         item = ShoppingList.query.filter_by(recipe_id=recipe_id, is_active=True).first()
-        if item:
-            item.servings += 1
+        if explicit_servings is not None:
+            # Caller provided explicit servings — set directly (used by quick-add sheet)
+            s = max(0.5, round(float(explicit_servings), 1))
+            if item:
+                item.servings = s
+            else:
+                db.session.add(ShoppingList(recipe_id=recipe_id, servings=s))
         else:
-            db.session.add(ShoppingList(recipe_id=recipe_id, servings=1))
+            if item:
+                item.servings += 1
+            else:
+                db.session.add(ShoppingList(recipe_id=recipe_id, servings=1))
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@bp.route('/shopping-list/manual', methods=['POST'])
+def add_manual_item():
+    try:
+        data = request.get_json()
+        name = (data.get('name') or '').strip()
+        if not name:
+            return jsonify({'error': 'Name required'}), 400
+        amount = data.get('amount')
+        unit   = (data.get('unit') or '').strip() or None
+        item = ManualShoppingItem(
+            name=name,
+            amount=float(amount) if amount else None,
+            unit=unit
+        )
+        db.session.add(item)
+        db.session.commit()
+        return jsonify({'success': True, 'id': item.id}), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@bp.route('/shopping-list/manual/<int:item_id>', methods=['DELETE'])
+def delete_manual_item(item_id):
+    try:
+        item = ManualShoppingItem.query.get_or_404(item_id)
+        db.session.delete(item)
         db.session.commit()
         return jsonify({'success': True})
     except Exception as e:
@@ -384,6 +443,7 @@ def get_week_plan(week_start):
     for s in slots:
         recipe = Recipe.query.get(s.recipe_id) if s.recipe_id else None
         result.append({
+            'id': s.id,
             'day_index': s.day_index,
             'slot_index': s.slot_index,
             'recipe_id': s.recipe_id,
@@ -421,43 +481,59 @@ def set_week_slot(week_start, day_index, slot_index):
     data = request.get_json()
     recipe_id = data.get('recipe_id')
     servings = max(0.5, round(float(data.get('servings', 1)), 1))
-    entry = WeekPlan.query.filter_by(week_start=start, day_index=day_index, slot_index=slot_index).first()
+    # Upsert by (week, day, slot, recipe) — allows multiple different recipes per slot
+    entry = WeekPlan.query.filter_by(
+        week_start=start, day_index=day_index, slot_index=slot_index, recipe_id=recipe_id
+    ).first()
     if entry:
-        entry.recipe_id = recipe_id
-        entry.is_bought = False
         entry.servings = servings
+        entry.is_bought = False
     else:
-        entry = WeekPlan(week_start=start, day_index=day_index, slot_index=slot_index, recipe_id=recipe_id, servings=servings)
+        entry = WeekPlan(week_start=start, day_index=day_index, slot_index=slot_index,
+                         recipe_id=recipe_id, servings=servings)
         db.session.add(entry)
     db.session.commit()
-    return jsonify({'success': True})
+    return jsonify({'success': True, 'entry_id': entry.id})
 
-@bp.route('/wochenplan/<week_start>/<int:day_index>/<int:slot_index>/servings', methods=['PATCH'])
-def patch_week_slot_servings(week_start, day_index, slot_index):
-    try:
-        start = date_type.fromisoformat(week_start)
-    except ValueError:
-        return jsonify({'error': 'Invalid date'}), 400
-    entry = WeekPlan.query.filter_by(week_start=start, day_index=day_index, slot_index=slot_index).first_or_404()
+@bp.route('/wochenplan/entry/<int:entry_id>/servings', methods=['PATCH'])
+def patch_entry_servings(entry_id):
+    entry = WeekPlan.query.get_or_404(entry_id)
     servings = request.get_json().get('servings', 1)
     entry.servings = max(0.5, round(float(servings), 1))
     db.session.commit()
     return jsonify({'success': True, 'servings': entry.servings})
 
-@bp.route('/wochenplan/<week_start>/<int:day_index>/<int:slot_index>', methods=['DELETE'])
-def delete_week_slot(week_start, day_index, slot_index):
+@bp.route('/wochenplan/entry/<int:entry_id>', methods=['DELETE'])
+def delete_entry(entry_id):
     try:
-        start = date_type.fromisoformat(week_start)
-    except ValueError:
-        return jsonify({'error': 'Invalid date'}), 400
-    entry = WeekPlan.query.filter_by(week_start=start, day_index=day_index, slot_index=slot_index).first()
-    if entry:
+        entry = WeekPlan.query.get_or_404(entry_id)
         recipe_id = entry.recipe_id
         db.session.delete(entry)
         db.session.flush()
         # Remove from shopping list if no other planner slot still uses this recipe
         if recipe_id and not WeekPlan.query.filter_by(recipe_id=recipe_id).first():
             ShoppingList.query.filter_by(recipe_id=recipe_id, is_active=True).delete()
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@bp.route('/wochenplan/<week_start>/<int:day_index>/<int:slot_index>', methods=['DELETE'])
+def delete_week_slot(week_start, day_index, slot_index):
+    """Clear all entries in a slot (used by legacy code paths)."""
+    try:
+        start = date_type.fromisoformat(week_start)
+    except ValueError:
+        return jsonify({'error': 'Invalid date'}), 400
+    entries = WeekPlan.query.filter_by(week_start=start, day_index=day_index, slot_index=slot_index).all()
+    recipe_ids = {e.recipe_id for e in entries if e.recipe_id}
+    for e in entries:
+        db.session.delete(e)
+    db.session.flush()
+    for rid in recipe_ids:
+        if not WeekPlan.query.filter_by(recipe_id=rid).first():
+            ShoppingList.query.filter_by(recipe_id=rid, is_active=True).delete()
     db.session.commit()
     return jsonify({'success': True})
 
@@ -525,6 +601,9 @@ def mark_items_bought():
             for entry in WeekPlan.query.filter(WeekPlan.is_bought == False).all():
                 if entry.recipe_id in bought_recipe_ids:
                     entry.is_bought = True
+
+        # Clear manual items too
+        ManualShoppingItem.query.delete()
 
         db.session.commit()
         return jsonify({'success': True, 'message': 'All items marked as bought'})

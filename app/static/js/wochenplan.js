@@ -1,16 +1,14 @@
-const DAYS = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+const DAYS  = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
 const SLOTS = ['Frühstück', 'Vormittag', 'Mittagessen', 'Nachmittag', 'Abendessen'];
 
-let weekStart = getMonday(new Date());
-let activeDay = (() => {
-    const d = new Date().getDay(); // 0=Sun
-    return d === 0 ? 6 : d - 1;   // 0=Mon..6=Sun
-})();
+let weekStart  = getMonday(new Date());
+let activeDay  = (() => { const d = new Date().getDay(); return d === 0 ? 6 : d - 1; })();
 
-let plan = {}; // "dayIndex_slotIndex" -> { recipe_id, name }
+// plan["day_slot"] = [ { id, recipe_id, name, servings, is_bought, in_shopping_list }, … ]
+let plan       = {};
 let allRecipes = [];
 let pickerTarget = null;
-let familySize = 1.0;
+let familySize   = 1.0;
 
 function getMonday(d) {
     d = new Date(d);
@@ -21,9 +19,7 @@ function getMonday(d) {
     return d;
 }
 
-function formatDate(d) {
-    return `${d.getDate()}.${d.getMonth() + 1}.`;
-}
+function formatDate(d) { return `${d.getDate()}.${d.getMonth() + 1}.`; }
 
 function weekStartStr() {
     const y = weekStart.getFullYear();
@@ -34,11 +30,15 @@ function weekStartStr() {
 
 function escHtml(str) {
     return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
+
+function fmtSrv(n) {
+    const v = Math.round(n * 10) / 10;
+    return (Number.isInteger(v) ? v : v.toFixed(1)) + ' Pers.';
+}
+
+// ── Week label ────────────────────────────────────────
 
 function renderWeekLabel() {
     const end = new Date(weekStart);
@@ -52,16 +52,18 @@ function isToday(dayIndex) {
     d.setDate(d.getDate() + dayIndex);
     const t = new Date();
     return d.getFullYear() === t.getFullYear() &&
-           d.getMonth() === t.getMonth() &&
-           d.getDate() === t.getDate();
+           d.getMonth()    === t.getMonth()    &&
+           d.getDate()     === t.getDate();
 }
+
+// ── Day tabs ──────────────────────────────────────────
 
 function renderDayTabs() {
     const container = document.getElementById('wp-day-tabs');
     container.innerHTML = DAYS.map((name, i) => {
         const d = new Date(weekStart);
         d.setDate(d.getDate() + i);
-        const hasFilled = SLOTS.some((_, s) => plan[`${i}_${s}`]);
+        const hasFilled = SLOTS.some((_, s) => (plan[`${i}_${s}`] || []).length > 0);
         const today = isToday(i);
         return `<div class="wp-day-tab${i === activeDay ? ' active' : ''}${hasFilled ? ' has-entries' : ''}${today ? ' today' : ''}" data-day="${i}">
             <div class="day-name">${today ? '•' + name : name}</div>
@@ -70,6 +72,8 @@ function renderDayTabs() {
         </div>`;
     }).join('');
 }
+
+// ── Slot rendering ────────────────────────────────────
 
 function isSlotPast() {
     const d = new Date(weekStart);
@@ -82,45 +86,60 @@ function isSlotPast() {
 function renderSlots() {
     const container = document.getElementById('wp-slots');
     const past = isSlotPast();
+
     container.innerHTML = SLOTS.map((label, s) => {
-        const key = `${activeDay}_${s}`;
-        const entry = plan[key];
-        const bought = entry && entry.is_bought;
-        const inList = entry && !bought && entry.in_shopping_list;
-        let slotClass = 'empty';
-        let icon = '';
-        if (past && entry)  { slotClass = 'past'; }
-        else if (bought)    { slotClass = 'bought';  icon = '<span class="wp-slot-icon">✓</span>'; }
-        else if (inList)    { slotClass = 'in-list'; icon = '<span class="wp-slot-icon">🛒</span>'; }
-        else if (entry)     { slotClass = 'filled'; }
-        const clickable = !past && !bought;
+        const key     = `${activeDay}_${s}`;
+        const entries = plan[key] || [];
+
+        let entriesHtml = '';
+        entries.forEach(e => {
+            const bought = e.is_bought;
+            const inList = !bought && e.in_shopping_list;
+            const icon   = bought ? '<span class="wp-slot-icon">✓</span>'
+                         : inList ? '<span class="wp-slot-icon">🛒</span>' : '';
+            const cls    = bought ? 'bought' : inList ? 'in-list' : 'filled';
+
+            if (past || bought) {
+                entriesHtml += `<div class="wp-entry ${cls}">
+                    <span class="wp-entry-name">${icon}${escHtml(e.name)}</span>
+                </div>`;
+            } else {
+                entriesHtml += `<div class="wp-entry ${cls}">
+                    <div class="wp-entry-top">
+                        <span class="wp-entry-name">${icon}${escHtml(e.name)}</span>
+                        <button class="wp-slot-clear" data-entry-id="${e.id}" title="Entfernen">✕</button>
+                    </div>
+                    <div class="wp-entry-servings">
+                        <button class="wp-srv-btn" data-entry-id="${e.id}" data-delta="-0.5">−</button>
+                        <span class="wp-srv-count" data-srv-entry="${e.id}">${fmtSrv(e.servings)}</span>
+                        <button class="wp-srv-btn" data-entry-id="${e.id}" data-delta="0.5">+</button>
+                    </div>
+                </div>`;
+            }
+        });
+
+        const emptyLine = entries.length === 0 && !past
+            ? `<div class="wp-slot-add wp-slot-add-empty" data-day="${activeDay}" data-slot="${s}">+ Rezept wählen</div>`
+            : entries.length === 0 && past
+            ? `<span class="wp-slot-empty-past">—</span>` : '';
+
+        const addMore = entries.length > 0 && !past
+            ? `<div class="wp-slot-add" data-day="${activeDay}" data-slot="${s}">＋ Rezept</div>` : '';
+
         return `<div class="wp-slot${past ? ' wp-slot-past' : ''}">
             <span class="wp-slot-label">${label}</span>
-            <div class="wp-slot-recipe ${slotClass}"${clickable ? ` data-day="${activeDay}" data-slot="${s}"` : ''}>
-                <span class="wp-slot-recipe-name">${icon}${entry ? escHtml(entry.name) : (past ? '—' : '+ Rezept wählen')}</span>
+            <div class="wp-slot-entries">
+                ${entriesHtml}
+                ${emptyLine}
+                ${addMore}
             </div>
-            ${entry ? `<button class="wp-slot-clear" data-day="${activeDay}" data-slot="${s}" title="Entfernen">✕</button>` : ''}
-            ${entry && !past && !bought ? `
-            <div class="wp-slot-servings">
-                <button class="wp-srv-btn" data-day="${activeDay}" data-slot="${s}" data-delta="-0.5">−</button>
-                <span class="wp-srv-count">${fmtSrv(entry.servings)}</span>
-                <button class="wp-srv-btn" data-day="${activeDay}" data-slot="${s}" data-delta="0.5">+</button>
-            </div>` : ''}
         </div>`;
     }).join('');
 }
 
-function setDay(i) {
-    activeDay = i;
-    renderDayTabs();
-    renderSlots();
-}
+function setDay(i) { activeDay = i; renderDayTabs(); renderSlots(); }
 
-function render() {
-    renderWeekLabel();
-    renderDayTabs();
-    renderSlots();
-}
+function render() { renderWeekLabel(); renderDayTabs(); renderSlots(); }
 
 // ── Event delegation ──────────────────────────────────
 
@@ -130,45 +149,20 @@ document.getElementById('wp-day-tabs').addEventListener('click', e => {
 });
 
 document.getElementById('wp-slots').addEventListener('click', e => {
-    const recipe = e.target.closest('.wp-slot-recipe');
-    if (recipe) { openPicker(parseInt(recipe.dataset.day), parseInt(recipe.dataset.slot)); return; }
+    // Open picker
+    const add = e.target.closest('.wp-slot-add');
+    if (add) { openPicker(parseInt(add.dataset.day), parseInt(add.dataset.slot)); return; }
 
+    // Servings
     const srv = e.target.closest('.wp-srv-btn');
-    if (srv) { changeServings(parseInt(srv.dataset.day), parseInt(srv.dataset.slot), parseFloat(srv.dataset.delta)); return; }
+    if (srv && srv.dataset.entryId) {
+        changeServings(parseInt(srv.dataset.entryId), parseFloat(srv.dataset.delta));
+        return;
+    }
 
+    // Clear entry
     const clear = e.target.closest('.wp-slot-clear');
-    if (clear) clearSlot(parseInt(clear.dataset.day), parseInt(clear.dataset.slot));
-});
-
-async function changeServings(day, slot, delta) {
-    const key = `${day}_${slot}`;
-    const entry = plan[key];
-    if (!entry) return;
-    const newServings = Math.max(0.5, Math.round(((entry.servings || familySize) + delta) * 10) / 10);
-    entry.servings = newServings;
-    // Update count display without full re-render
-    const countEl = document.querySelector(`.wp-srv-btn[data-day="${day}"][data-slot="${slot}"][data-delta="-0.5"]`)
-        ?.parentElement?.querySelector('.wp-srv-count');
-    if (countEl) countEl.textContent = fmtSrv(newServings);
-    try {
-        await fetch(`/api/wochenplan/${weekStartStr()}/${day}/${slot}/servings`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ servings: newServings })
-        });
-        if (entry.in_shopping_list) {
-            await fetch(`/api/shopping-list/item/${entry.recipe_id}/servings`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ servings: newServings })
-            });
-        }
-    } catch(e) {}
-}
-
-document.getElementById('wp-picker-list').addEventListener('click', e => {
-    const item = e.target.closest('.wp-picker-item');
-    if (item) selectRecipe(parseInt(item.dataset.id), item.dataset.name);
+    if (clear && clear.dataset.entryId) clearEntry(parseInt(clear.dataset.entryId));
 });
 
 // ── Data loading ──────────────────────────────────────
@@ -181,13 +175,16 @@ async function loadWeek() {
         if (data.slots) {
             data.slots.forEach(s => {
                 if (s.recipe_id) {
-                    plan[`${s.day_index}_${s.slot_index}`] = {
+                    const key = `${s.day_index}_${s.slot_index}`;
+                    if (!plan[key]) plan[key] = [];
+                    plan[key].push({
+                        id: s.id,
                         recipe_id: s.recipe_id,
                         name: s.recipe_name,
                         servings: s.servings,
                         is_bought: s.is_bought,
                         in_shopping_list: s.in_shopping_list
-                    };
+                    });
                 }
             });
         }
@@ -209,7 +206,7 @@ async function loadRecipes() {
 const TODAY_MONDAY = getMonday(new Date());
 
 function updateNavButtons() {
-    const msPerWeek = 7 * 24 * 3600 * 1000;
+    const msPerWeek  = 7 * 24 * 3600 * 1000;
     const weeksAhead = (weekStart - TODAY_MONDAY) / msPerWeek;
     document.getElementById('wp-prev').disabled = weeksAhead <= -4;
     document.getElementById('wp-next').disabled = weeksAhead >= 2;
@@ -285,6 +282,11 @@ function filterPicker() {
     list.innerHTML = html;
 }
 
+document.getElementById('wp-picker-list').addEventListener('click', e => {
+    const item = e.target.closest('.wp-picker-item');
+    if (item) selectRecipe(parseInt(item.dataset.id), item.dataset.name);
+});
+
 async function selectRecipe(id, name) {
     if (!pickerTarget) return;
     const { day, slot } = pickerTarget;
@@ -297,7 +299,13 @@ async function selectRecipe(id, name) {
             body: JSON.stringify({ recipe_id: id, servings: familySize })
         });
         if (!r.ok) throw new Error();
-        plan[`${day}_${slot}`] = { recipe_id: id, name, servings: familySize, is_bought: false, in_shopping_list: false };
+        const data = await r.json();
+        const key = `${day}_${slot}`;
+        if (!plan[key]) plan[key] = [];
+        // Avoid duplicate in local state (same recipe added twice to same slot)
+        if (!plan[key].find(e => e.id === data.entry_id)) {
+            plan[key].push({ id: data.entry_id, recipe_id: id, name, servings: familySize, is_bought: false, in_shopping_list: false });
+        }
         renderDayTabs();
         renderSlots();
     } catch(e) {
@@ -305,10 +313,23 @@ async function selectRecipe(id, name) {
     }
 }
 
-async function clearSlot(day, slot) {
+// ── Entry management ──────────────────────────────────
+
+function findEntry(entryId) {
+    for (const key of Object.keys(plan)) {
+        const idx = plan[key].findIndex(e => e.id === entryId);
+        if (idx !== -1) return { key, idx, entry: plan[key][idx] };
+    }
+    return null;
+}
+
+async function clearEntry(entryId) {
     try {
-        await fetch(`/api/wochenplan/${weekStartStr()}/${day}/${slot}`, { method: 'DELETE' });
-        delete plan[`${day}_${slot}`];
+        await fetch(`/api/wochenplan/entry/${entryId}`, { method: 'DELETE' });
+        for (const key of Object.keys(plan)) {
+            plan[key] = plan[key].filter(e => e.id !== entryId);
+            if (plan[key].length === 0) delete plan[key];
+        }
         renderDayTabs();
         renderSlots();
     } catch(e) {
@@ -316,10 +337,30 @@ async function clearSlot(day, slot) {
     }
 }
 
+async function changeServings(entryId, delta) {
+    const found = findEntry(entryId);
+    if (!found) return;
+    const { entry } = found;
+    const newServings = Math.max(0.5, Math.round(((entry.servings || familySize) + delta) * 10) / 10);
+    entry.servings = newServings;
+
+    // Update count in DOM without full re-render
+    const countEl = document.querySelector(`.wp-srv-count[data-srv-entry="${entryId}"]`);
+    if (countEl) countEl.textContent = fmtSrv(newServings);
+
+    try {
+        await fetch(`/api/wochenplan/entry/${entryId}/servings`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ servings: newServings })
+        });
+    } catch(e) {}
+}
+
 // ── Shopping list button ──────────────────────────────
 
 document.getElementById('wp-to-list-btn').addEventListener('click', async () => {
-    if (!Object.keys(plan).length) {
+    if (!Object.values(plan).some(arr => arr.length > 0)) {
         showToast('Keine Rezepte geplant');
         return;
     }
@@ -378,9 +419,9 @@ function toggleOverview() {
     overviewMode = !overviewMode;
     const label = document.getElementById('wp-week-label');
     label.classList.toggle('active', overviewMode);
-    document.getElementById('wp-day-tabs').style.display = overviewMode ? 'none' : '';
-    document.getElementById('wp-slots').style.display = overviewMode ? 'none' : '';
-    document.getElementById('wp-overview').style.display = overviewMode ? 'block' : 'none';
+    document.getElementById('wp-day-tabs').style.display  = overviewMode ? 'none' : '';
+    document.getElementById('wp-slots').style.display     = overviewMode ? 'none' : '';
+    document.getElementById('wp-overview').style.display  = overviewMode ? 'block' : 'none';
     if (overviewMode) renderOverview();
 }
 
@@ -391,17 +432,17 @@ function renderOverview() {
     container.innerHTML = DAYS.map((name, i) => {
         const d = new Date(weekStart);
         d.setDate(d.getDate() + i);
-        const isPast = d < today;
-        const isToday = d.getTime() === today.getTime();
+        const isPast  = d < today;
+        const isTod   = d.getTime() === today.getTime();
 
-        const entries = SLOTS.map((slotName, s) => {
-            const entry = plan[`${i}_${s}`];
-            return entry ? { slotName, ...entry } : null;
-        }).filter(Boolean);
+        // Flatten all entries for this day across all slots
+        const entries = SLOTS.flatMap((slotName, s) =>
+            (plan[`${i}_${s}`] || []).map(e => ({ slotName, ...e }))
+        );
 
-        let html = `<div class="wp-overview-day${isPast ? ' past' : ''}${isToday ? ' today' : ''}" data-day="${i}">
+        let html = `<div class="wp-overview-day${isPast ? ' past' : ''}${isTod ? ' today' : ''}" data-day="${i}">
             <div class="wp-overview-day-header">
-                <span class="wp-overview-day-name">${isToday ? '• ' : ''}${name}</span>
+                <span class="wp-overview-day-name">${isTod ? '• ' : ''}${name}</span>
                 <span class="wp-overview-day-date">${d.getDate()}.${d.getMonth()+1}.</span>
             </div>
             <div class="wp-overview-entries">`;
@@ -422,21 +463,13 @@ function renderOverview() {
     }).join('');
 
     container.querySelectorAll('.wp-overview-day:not(.past)').forEach(el => {
-        el.addEventListener('click', () => {
-            toggleOverview();
-            setDay(parseInt(el.dataset.day));
-        });
+        el.addEventListener('click', () => { toggleOverview(); setDay(parseInt(el.dataset.day)); });
     });
 }
 
-function fmtSrv(n) {
-    // Show as integer if whole, otherwise 1 decimal (e.g. 2.5)
-    const v = Math.round(n * 10) / 10;
-    return (Number.isInteger(v) ? v : v.toFixed(1)) + ' Pers.';
-}
+// ── Init ──────────────────────────────────────────────
 
 window.onload = async () => {
-    // Load settings alongside week/recipes
     const [, , settingsRes] = await Promise.all([
         loadWeek(),
         loadRecipes(),

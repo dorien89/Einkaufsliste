@@ -136,11 +136,10 @@
 
 .wp-slot {
     display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 6px 10px;
+    gap: 8px 10px;
     padding: 10px 0;
     border-bottom: 1px solid #f0f0f0;
+    align-items: flex-start;
 }
 
 .wp-slot-label {
@@ -149,68 +148,50 @@
     width: 76px;
     flex-shrink: 0;
     line-height: 1.2;
+    padding-top: 10px;
 }
 
-.wp-slot-recipe {
+.wp-slot-past .wp-slot-label { color: #ccc; }
+
+/* Container for all entries + add button */
+.wp-slot-entries {
     flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
+/* Individual recipe entry within a slot */
+.wp-entry {
+    background: #e8f5e9;
+    border: 1.5px solid #a5d6a7;
+    border-radius: 8px;
+    padding: 8px 10px;
+    min-width: 0;
+}
+
+.wp-entry.in-list {
+    background: #fff8e1;
+    border-color: #ffca28;
+}
+
+.wp-entry.bought {
+    background: #f5f5f5;
+    border-color: #ddd;
+}
+
+.wp-entry-top {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: #f8f9fa;
-    border: 1.5px dashed #ddd;
-    border-radius: 8px;
-    padding: 10px 8px 10px 12px;
-    cursor: pointer;
-    min-height: 44px;
-    min-width: 0;
-    -webkit-tap-highlight-color: transparent;
+    gap: 6px;
 }
 
-.wp-slot-recipe.filled {
-    background: #e8f5e9;
-    border: 1.5px solid #a5d6a7;
-}
-
-.wp-slot-recipe.in-list {
-    background: #fff8e1;
-    border: 1.5px solid #ffca28;
-}
-
-.wp-slot-recipe.past {
-    background: #f5f5f5;
-    border: 1.5px dashed #e0e0e0;
-    cursor: default;
-}
-
-.wp-slot-recipe.past .wp-slot-recipe-name {
-    color: #bbb;
-}
-
-.wp-slot-past .wp-slot-label {
-    color: #ccc;
-}
-
-.wp-slot-recipe.bought {
-    background: #f5f5f5;
-    border: 1.5px solid #ddd;
-    cursor: default;
-}
-
-.wp-slot-recipe.bought .wp-slot-recipe-name {
-    color: #aaa;
-    text-decoration: line-through;
-}
-
-.wp-slot-icon {
-    margin-right: 6px;
-    flex-shrink: 0;
-    font-style: normal;
-}
-
-.wp-slot-recipe-name {
+.wp-entry-name {
     font-size: 0.88rem;
-    color: #333;
     font-weight: 500;
+    color: #333;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -218,17 +199,16 @@
     min-width: 0;
 }
 
-.wp-slot-recipe.empty .wp-slot-recipe-name {
-    color: #bbb;
-    font-weight: 400;
+.wp-entry.bought .wp-entry-name {
+    color: #aaa;
+    text-decoration: line-through;
 }
 
-.wp-slot-servings {
-    flex-basis: 100%;
-    padding-left: 86px;
+.wp-entry-servings {
     display: flex;
     align-items: center;
     gap: 4px;
+    margin-top: 6px;
 }
 
 .wp-srv-btn {
@@ -249,25 +229,52 @@
     font-size: 0.8rem;
     font-weight: 700;
     color: #555;
-    min-width: 16px;
+    min-width: 40px;
     text-align: center;
-}
-
-.wp-srv-locked {
-    color: #aaa;
 }
 
 .wp-slot-clear {
     background: none;
     border: none;
-    color: #ccc;
-    font-size: 0.85rem;
-    padding: 6px 4px;
+    color: #bbb;
+    font-size: 0.8rem;
+    padding: 2px 4px;
     cursor: pointer;
     flex-shrink: 0;
-    min-height: 44px;
-    min-width: 24px;
+    line-height: 1;
 }
+
+.wp-slot-icon {
+    margin-right: 4px;
+    flex-shrink: 0;
+}
+
+/* "＋ Rezept wählen" / "＋ Rezept" add button */
+.wp-slot-add {
+    font-size: 0.82rem;
+    color: #bbb;
+    cursor: pointer;
+    padding: 8px 10px;
+    border: 1.5px dashed #ddd;
+    border-radius: 8px;
+    text-align: center;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+}
+
+.wp-slot-add:active { background: #f0f7ff; }
+
+.wp-slot-add-empty {
+    font-size: 0.85rem;
+}
+
+.wp-slot-empty-past {
+    font-size: 0.85rem;
+    color: #ccc;
+    padding: 6px 2px;
+}
+
+.wp-slot-icon { font-style: normal; }
 
 /* Footer */
 .wp-footer {

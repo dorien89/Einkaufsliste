@@ -165,6 +165,7 @@ async function openRecipe(recipeId) {
     `;
     const footer = document.getElementById('rm-detail-footer');
     footer.innerHTML = `
+        <button class="rm-btn rm-btn-save" style="flex:1" onclick="openCartSheet(${recipe.id}, ${JSON.stringify(recipe.name)})">🛒</button>
         <button class="rm-btn rm-btn-edit" style="flex:1" onclick="openEditForm(${recipe.id})">Bearbeiten</button>
         <button class="rm-btn rm-btn-delete" style="flex:1" onclick="deleteRecipe(${recipe.id})">Löschen</button>
     `;
@@ -538,6 +539,51 @@ function showToast(msg) {
     t.style.display = 'block';
     clearTimeout(t._timer);
     t._timer = setTimeout(() => t.style.display = 'none', 2500);
+}
+
+// ── Cart (quick-add to shopping list) ────────────────
+let cartRecipeId = null;
+let cartServings  = 1.0;
+
+function fmtSrv(n) {
+    const v = Math.round(n * 10) / 10;
+    return `${Number.isInteger(v) ? v : v.toFixed(1)} Personen`;
+}
+
+function openCartSheet(recipeId, recipeName) {
+    cartRecipeId = recipeId;
+    cartServings  = familySize;
+    document.getElementById('rm-cart-recipe-name').textContent = recipeName;
+    document.getElementById('rm-cart-servings').textContent = fmtSrv(cartServings);
+    document.getElementById('rm-cart-backdrop').style.display = 'block';
+    document.getElementById('rm-cart-sheet').style.display = 'block';
+}
+
+function closeCartSheet() {
+    document.getElementById('rm-cart-backdrop').style.display = 'none';
+    document.getElementById('rm-cart-sheet').style.display = 'none';
+    cartRecipeId = null;
+}
+
+function cartDelta(delta) {
+    cartServings = Math.max(0.5, Math.round((cartServings + delta) * 10) / 10);
+    document.getElementById('rm-cart-servings').textContent = fmtSrv(cartServings);
+}
+
+async function confirmAddToCart() {
+    if (!cartRecipeId) return;
+    closeCartSheet();
+    try {
+        const res = await fetch('/api/shopping-list/item', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: cartRecipeId, servings: cartServings })
+        });
+        if (res.ok) showToast('Zur Einkaufsliste hinzugefügt ✓');
+        else showToast('Fehler beim Hinzufügen');
+    } catch(e) {
+        showToast('Netzwerkfehler');
+    }
 }
 
 // ── Ingredient quick-edit sheet ───────────────────────

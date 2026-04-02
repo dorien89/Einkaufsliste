@@ -17,7 +17,3 @@ class WeekPlan(db.Model):
     recipe = db.relationship('Recipe',
                  backref=db.backref('week_plans', passive_deletes=True))
 
-    __table_args__ = (
-        db.UniqueConstraint('week_start', 'day_index', 'slot_index',
-                            name='uq_week_day_slot'),
-    )
