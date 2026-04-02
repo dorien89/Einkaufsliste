@@ -39,14 +39,15 @@ class Ingredient(db.Model):
 
 class RecipeIngredient(db.Model):
     __tablename__ = 'recipe_ingredients'
-    
+
     recipe_id = db.Column(db.Integer, db.ForeignKey('recipes.id', ondelete="CASCADE"), primary_key=True)
     ingredient_id = db.Column(db.Integer, db.ForeignKey('ingredients.id', ondelete="CASCADE"), primary_key=True)
     amount = db.Column(db.Float, nullable=False)
     unit = db.Column(db.String, nullable=False)
-    
+    sort_order = db.Column(db.Integer, nullable=True, default=0)
+
     # Relationships (optional, for ORM convenience)
-    recipe = db.relationship('Recipe', backref=db.backref('recipe_ingredients', cascade='all, delete-orphan'))
+    recipe = db.relationship('Recipe', backref=db.backref('recipe_ingredients', cascade='all, delete-orphan', order_by='RecipeIngredient.sort_order'))
     ingredient = db.relationship('Ingredient', backref=db.backref('recipe_ingredients', cascade='all, delete-orphan'))
     
     def __repr__(self):

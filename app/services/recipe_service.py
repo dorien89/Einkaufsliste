@@ -42,7 +42,7 @@ class RecipeService:
             db.session.add(recipe)
             db.session.flush()
 
-        for ing_data in ingredients_data:
+        for idx, ing_data in enumerate(ingredients_data):
             ingredient_id = ing_data.get('ingredient_id')
             if not ingredient_id:
                 existing = Ingredient.query.filter(Ingredient.name.ilike(ing_data['name'].strip())).first()
@@ -57,7 +57,8 @@ class RecipeService:
                 recipe_id=recipe.id,
                 ingredient_id=ingredient_id,
                 amount=ing_data['amount'],
-                unit=ing_data['unit']
+                unit=ing_data['unit'],
+                sort_order=idx,
             )
             db.session.add(ri)
 

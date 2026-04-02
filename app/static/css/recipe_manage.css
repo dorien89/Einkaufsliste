@@ -308,6 +308,21 @@
     min-height: 60px;
 }
 
+/* ── Portion hint in detail table header ─────────────── */
+.rm-portion-hint {
+    font-weight: normal;
+    color: #999;
+    font-size: 0.82em;
+}
+
+/* Mobile label (shown only when thead is hidden) */
+.rm-portion-label {
+    display: none;
+    font-size: 0.8rem;
+    color: #999;
+    margin-bottom: 6px;
+}
+
 /* ── Ingredient rows in form ────────────────────────── */
 .rm-ingredient-rows {
     margin-bottom: 10px;
@@ -319,6 +334,30 @@
     align-items: center;
     margin-bottom: 8px;
     flex-wrap: wrap;
+}
+
+.rm-ingredient-row.dragging {
+    opacity: 0.4;
+    background: #f0f4ff;
+    border-radius: 6px;
+}
+
+.rm-drag-handle {
+    cursor: grab;
+    font-size: 1.2rem;
+    color: #bbb;
+    padding: 4px 2px;
+    flex-shrink: 0;
+    user-select: none;
+    line-height: 1;
+}
+
+.rm-drag-handle:hover {
+    color: #888;
+}
+
+.rm-drag-handle:active {
+    cursor: grabbing;
 }
 
 .rm-ingredient-row .ing-name {
@@ -648,6 +687,13 @@
         margin-bottom: 12px;
     }
 
+    .rm-ingredient-row .rm-drag-handle {
+        align-self: flex-end;
+        font-size: 1.4rem;
+        padding: 0 4px;
+        color: #ccc;
+    }
+
     .rm-ingredient-row .ing-name  { flex: none; width: 100%; }
     .rm-ingredient-row .ing-amount { width: 100%; }
     .rm-ingredient-row .ing-unit   { width: 100%; }
@@ -660,6 +706,10 @@
     }
 
     /* Ingredient table in detail view: collapse to readable format */
+    .rm-portion-label {
+        display: block;
+    }
+
     .rm-ingredient-table thead {
         display: none;
     }

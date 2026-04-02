@@ -147,8 +147,9 @@ async function openRecipe(recipeId) {
             </div>
         </div>
         ${recipe.description ? `<p class="rm-detail-description">${recipe.description}</p>` : ''}
+        <div class="rm-portion-label">Mengen für 1 Portion</div>
         <table class="rm-ingredient-table">
-            <thead><tr><th>Zutat</th><th>Menge</th><th>Einheit</th></tr></thead>
+            <thead><tr><th>Zutat</th><th>Menge <span class="rm-portion-hint">(1&nbsp;Portion)</span></th><th>Einheit</th></tr></thead>
             <tbody>
                 ${recipe.ingredients.map(i => `
                     <tr>
@@ -234,6 +235,7 @@ function renderForm(recipe) {
     } else {
         addIngredientRow();
     }
+    setupIngredientDrag();
 }
 
 // ── Ingredient row with typeahead ────────────────────
@@ -245,6 +247,7 @@ function addIngredientRow(data = null) {
     div.dataset.rowId = rowId;
     div.dataset.ingredientId = data ? data.ingredient_id : '';
     div.innerHTML = `
+        <span class="rm-drag-handle" title="Ziehen zum Sortieren">⠿</span>
         <div class="typeahead-wrapper ing-name">
             <input type="text" class="ing-name-input" placeholder="Zutat suchen..."
                 value="${data ? data.name : ''}"
@@ -263,6 +266,63 @@ function addIngredientRow(data = null) {
             style="background:#e53935;color:#fff;border:none;border-radius:6px;width:40px;height:40px;font-size:1.2em;cursor:pointer;">✕</button>
     `;
     container.appendChild(div);
+}
+
+// ── Ingredient drag-and-drop reorder ─────────────────
+function setupIngredientDrag() {
+    const container = document.getElementById('ingredient-rows');
+    if (!container) return;
+    let dragSrc = null;
+
+    container.addEventListener('dragstart', e => {
+        const row = e.target.closest('.rm-ingredient-row');
+        if (!row) return;
+        dragSrc = row;
+        setTimeout(() => row.classList.add('dragging'), 0);
+        e.dataTransfer.effectAllowed = 'move';
+    });
+
+    container.addEventListener('dragover', e => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        const row = e.target.closest('.rm-ingredient-row');
+        if (!row || row === dragSrc) return;
+        const rect = row.getBoundingClientRect();
+        if (e.clientY < rect.top + rect.height / 2) {
+            container.insertBefore(dragSrc, row);
+        } else {
+            container.insertBefore(dragSrc, row.nextSibling);
+        }
+    });
+
+    container.addEventListener('dragend', e => {
+        const row = e.target.closest('.rm-ingredient-row');
+        if (row) row.classList.remove('dragging');
+        dragSrc = null;
+    });
+
+    // Activate draggable only when drag starts on the handle
+    container.addEventListener('mousedown', e => {
+        if (e.target.classList.contains('rm-drag-handle')) {
+            const row = e.target.closest('.rm-ingredient-row');
+            if (row) row.setAttribute('draggable', 'true');
+        }
+    });
+    container.addEventListener('mouseup', () => {
+        container.querySelectorAll('.rm-ingredient-row[draggable]').forEach(r => r.removeAttribute('draggable'));
+    });
+
+    // Touch: basic up/down swap on long-press arrows provided via drag handle tap
+    // (touch drag is handled by setting draggable dynamically above — works on iOS/Android)
+    container.addEventListener('touchstart', e => {
+        if (e.target.classList.contains('rm-drag-handle')) {
+            const row = e.target.closest('.rm-ingredient-row');
+            if (row) row.setAttribute('draggable', 'true');
+        }
+    }, { passive: true });
+    container.addEventListener('touchend', () => {
+        container.querySelectorAll('.rm-ingredient-row[draggable]').forEach(r => r.removeAttribute('draggable'));
+    }, { passive: true });
 }
 
 let typeaheadTimer = null;

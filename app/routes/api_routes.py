@@ -110,14 +110,18 @@ def delete_ingredient(ingredient_id):
 @bp.route('/recipe/<int:recipe_id>', methods=['GET'])
 def get_recipe(recipe_id):
     recipe = Recipe.query.get_or_404(recipe_id)
+    ris = RecipeIngredient.query.filter_by(recipe_id=recipe_id).order_by(
+        db.func.coalesce(RecipeIngredient.sort_order, 9999).asc()
+    ).all()
     ingredients = []
-    for ri in recipe.recipe_ingredients:
+    for ri in ris:
         ingredient = Ingredient.query.get(ri.ingredient_id)
         ingredients.append({
             'ingredient_id': ri.ingredient_id,
             'name': ingredient.name,
             'amount': ri.amount,
             'unit': ri.unit,
+            'sort_order': ri.sort_order if ri.sort_order is not None else 9999,
             'default_unit': ingredient.default_unit or '',
             'is_staple': ingredient.is_staple,
             'shop_category': ingredient.shop_category
