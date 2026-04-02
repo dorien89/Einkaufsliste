@@ -352,12 +352,30 @@
     line-height: 1;
 }
 
-.rm-drag-handle:hover {
-    color: #888;
+.rm-drag-handle:hover { color: #888; }
+.rm-drag-handle:active { cursor: grabbing; }
+
+/* ↑↓ buttons — mobile only, hidden on desktop */
+.rm-row-move-btns {
+    display: none;
 }
 
-.rm-drag-handle:active {
-    cursor: grabbing;
+.rm-move-btn {
+    background: #f0f0f0;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    width: 38px;
+    height: 38px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    color: #555;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.rm-move-btn:active {
+    background: #e0e0e0;
 }
 
 .rm-ingredient-row .ing-name {
@@ -688,10 +706,13 @@
     }
 
     .rm-ingredient-row .rm-drag-handle {
+        display: none;
+    }
+
+    .rm-row-move-btns {
+        display: flex;
+        gap: 6px;
         align-self: flex-end;
-        font-size: 1.4rem;
-        padding: 0 4px;
-        color: #ccc;
     }
 
     .rm-ingredient-row .ing-name  { flex: none; width: 100%; }

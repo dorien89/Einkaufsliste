@@ -248,6 +248,10 @@ function addIngredientRow(data = null) {
     div.dataset.ingredientId = data ? data.ingredient_id : '';
     div.innerHTML = `
         <span class="rm-drag-handle" title="Ziehen zum Sortieren">⠿</span>
+        <div class="rm-row-move-btns">
+            <button class="rm-move-btn" title="Nach oben" onclick="moveIngRow(this.closest('.rm-ingredient-row'), -1)">▲</button>
+            <button class="rm-move-btn" title="Nach unten" onclick="moveIngRow(this.closest('.rm-ingredient-row'), 1)">▼</button>
+        </div>
         <div class="typeahead-wrapper ing-name">
             <input type="text" class="ing-name-input" placeholder="Zutat suchen..."
                 value="${data ? data.name : ''}"
@@ -311,18 +315,15 @@ function setupIngredientDrag() {
     container.addEventListener('mouseup', () => {
         container.querySelectorAll('.rm-ingredient-row[draggable]').forEach(r => r.removeAttribute('draggable'));
     });
+}
 
-    // Touch: basic up/down swap on long-press arrows provided via drag handle tap
-    // (touch drag is handled by setting draggable dynamically above — works on iOS/Android)
-    container.addEventListener('touchstart', e => {
-        if (e.target.classList.contains('rm-drag-handle')) {
-            const row = e.target.closest('.rm-ingredient-row');
-            if (row) row.setAttribute('draggable', 'true');
-        }
-    }, { passive: true });
-    container.addEventListener('touchend', () => {
-        container.querySelectorAll('.rm-ingredient-row[draggable]').forEach(r => r.removeAttribute('draggable'));
-    }, { passive: true });
+function moveIngRow(row, direction) {
+    const container = row.parentElement;
+    if (direction === -1 && row.previousElementSibling) {
+        container.insertBefore(row, row.previousElementSibling);
+    } else if (direction === 1 && row.nextElementSibling) {
+        container.insertBefore(row.nextElementSibling, row);
+    }
 }
 
 let typeaheadTimer = null;
