@@ -484,39 +484,106 @@
     margin-bottom: 10px;
 }
 
-/* ── Ingredients management page ────────────────────── */
-.ing-manage-list {
-    list-style: none;
-    padding: 0;
-    max-width: 600px;
-}
+/* ── Ingredients management page (redesigned) ────────── */
 
-.ing-manage-item {
+/* Compact list rows */
+.ing-row {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 10px 0;
-    border-bottom: 1px solid #eee;
+    padding: 10px 2px;
+    border-bottom: 1px solid var(--app-border, #eee);
+    max-width: 600px;
 }
 
-.ing-manage-item span {
+.ing-row-main {
     flex: 1;
-    font-size: 1em;
+    min-width: 0;
 }
 
-.ing-manage-item input {
-    padding: 8px;
-    font-size: 1em;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    display: none;
+.ing-row-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--app-text, #333);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
-.ing-manage-item .ing-name-field { flex: 2; min-width: 100px; }
-.ing-manage-item .ing-unit-field { width: 100px; flex-shrink: 0; }
 
-.ing-manage-item.editing input  { display: block; }
-.ing-manage-item.editing span   { display: none; }
+.ing-row-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 3px;
+}
 
+/* Chips */
+.ing-chip {
+    font-size: 0.7rem;
+    padding: 2px 7px;
+    border-radius: 10px;
+    background: var(--app-border, #eee);
+    color: var(--app-muted, #666);
+    white-space: nowrap;
+}
+
+.ing-chip-staple {
+    background: #fff3e0;
+    color: #b45309;
+    font-weight: 600;
+}
+
+/* Row action buttons */
+.ing-row-actions {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+.ing-row-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.45;
+    transition: opacity 0.15s, background 0.15s;
+}
+
+.ing-row-btn:hover {
+    opacity: 1;
+    background: var(--app-border, #f0f0f0);
+}
+
+.ing-row-btn.delete:hover { background: #ffebee; }
+
+/* Alphabet section headers */
+.ing-alpha-header {
+    padding: 8px 2px 4px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--app-muted, #aaa);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    max-width: 600px;
+    border-bottom: 1px solid var(--app-border, #eee);
+    margin-top: 4px;
+}
+
+/* Empty state */
+.ing-empty {
+    color: var(--app-muted, #aaa);
+    text-align: center;
+    padding: 32px 0;
+    font-size: 0.95rem;
+}
+
+/* Keep old classes used by recipe edit sheet */
 .ing-staple-label {
     display: none;
     align-items: center;
@@ -525,10 +592,6 @@
     color: #555;
     white-space: nowrap;
 }
-.ing-manage-item.editing .ing-staple-label { display: flex; }
-
-.ing-category-field { display: none; }
-.ing-manage-item.editing .ing-category-field { display: block; }
 
 .ing-small-btn {
     padding: 8px 12px;
@@ -543,26 +606,6 @@
 .ing-btn-save   { background: #28a745; color: #fff; display: none; }
 .ing-btn-cancel { background: #aaa; color: #fff; display: none; }
 .ing-btn-delete { background: #e53935; color: #fff; }
-
-.ing-manage-item.editing .ing-btn-edit   { display: none; }
-.ing-manage-item.editing .ing-btn-save   { display: inline-block; }
-.ing-manage-item.editing .ing-btn-cancel { display: inline-block; }
-.ing-manage-item.editing .ing-btn-delete { display: none; }
-
-.ing-add-form {
-    display: flex;
-    gap: 10px;
-    margin-top: 20px;
-    max-width: 600px;
-}
-
-.ing-add-form input {
-    flex: 1;
-    padding: 10px;
-    font-size: 1em;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-}
 
 .ing-add-form button {
     padding: 10px 20px;
@@ -773,27 +816,11 @@
         padding-bottom: 2px;
     }
 
-    /* Ingredient management list: raise touch targets */
-    .ing-manage-item {
-        flex-wrap: wrap;
-        padding: 12px 0;
-        gap: 8px;
-    }
-
-    .ing-manage-item > span {
-        flex-basis: 100%;
-        font-size: 1.05em;
-    }
-
-    .ing-manage-item.editing {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .ing-manage-item .ing-name-field,
-    .ing-manage-item .ing-unit-field {
-        width: 100% !important;
-        min-height: 44px;
+    /* Ingredient management: larger touch targets */
+    .ing-row-btn {
+        width: 40px;
+        height: 40px;
+        opacity: 0.6;
     }
 
     .ing-small-btn {
@@ -801,19 +828,6 @@
         padding: 10px 16px;
         font-size: 0.95em;
         flex: 1;
-    }
-
-    .ing-add-form {
-        flex-direction: column;
-    }
-
-    .ing-add-form input {
-        width: 100% !important;
-        min-height: 44px;
-    }
-
-    .ing-add-form button {
-        width: 100%;
     }
 }
 

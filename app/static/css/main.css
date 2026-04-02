@@ -304,20 +304,26 @@ h1 {
 }
 
 .staple-separator {
-    padding: 0.5rem 1rem;
+    padding: 0.6rem 1rem 0.5rem;
     font-size: 0.75rem;
-    font-weight: 600;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.08em;
     color: var(--app-muted, #999);
     background: var(--app-bg, #f5f5f5);
+    border-top: 3px solid var(--app-border, #ddd);
     border-bottom: 1px solid var(--app-border, #eee);
-    margin-top: 0.5rem;
+    margin-top: 10px;
+}
+
+.staple-item {
+    background: var(--app-bg, #fafafa);
 }
 
 .staple-item .item-name,
 .staple-item .item-amount {
-    color: #aaa;
+    color: var(--app-muted, #aaa);
+    font-style: italic;
 }
 
 .sl-check-icon {

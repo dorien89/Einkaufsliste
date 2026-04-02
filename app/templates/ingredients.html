@@ -3,126 +3,268 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/recipe_manage.css') }}">
 {% endblock %}
 {% block content %}
-<div class="page-header-row" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-    <h1 style="margin:0">Zutaten verwalten</h1>
-    <a href="{{ url_for('recipe.list_recipes') }}" class="rm-btn rm-btn-cancel" style="text-decoration:none;padding:10px 16px;">← Rezepte</a>
+
+<div class="page-header-row" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+    <h1 style="margin:0;">Zutaten</h1>
+    <div style="display:flex;gap:8px;align-items:center;">
+        <button class="rm-list-add-small" onclick="openSheet(null)">＋ Neu</button>
+        <a href="{{ url_for('recipe.list_recipes') }}" class="rm-btn rm-btn-cancel" style="text-decoration:none;padding:8px 14px;min-height:0;">← Rezepte</a>
+    </div>
 </div>
-<p style="color:#666;margin-bottom:16px;">Standardeinheit wird beim Hinzufügen zu einem Rezept automatisch eingetragen. <strong>Vorrat</strong> = immer zu Hause, wird in der Einkaufsliste unten angezeigt. <strong>Kategorie</strong> = Bereich im Supermarkt.</p>
-{% set shop_cats = ['Obst & Gemüse','Fleisch & Fisch','Milch & Käse','Brot & Backwaren','Tiefkühl','Konserven & Fertiggerichte','Nudeln, Reis & Hülsenfrüchte','Öle & Gewürze','Getränke','Sonstiges'] %}
-<ul class="ing-manage-list" id="ing-list">
-    {% for ingredient in ingredients %}
-    <li class="ing-manage-item" id="ing-{{ ingredient.id }}">
-        <span>{{ ingredient.name }}</span>
-        <input type="text" class="ing-name-field" value="{{ ingredient.name }}" placeholder="Name">
-        <input type="text" class="ing-unit-field" value="{{ ingredient.default_unit or '' }}" placeholder="Einheit (z.B. g, Stück, ml)">
-        <label class="ing-staple-label"><input type="checkbox" class="ing-staple-field" {% if ingredient.is_staple %}checked{% endif %}> Vorrat</label>
-        <select class="ing-category-field">
-            {% for cat in shop_cats %}<option value="{{ cat }}" {% if ingredient.shop_category == cat %}selected{% endif %}>{{ cat }}</option>{% endfor %}
-        </select>
-        <button class="ing-small-btn ing-btn-edit" onclick="editIng({{ ingredient.id }})">Bearbeiten</button>
-        <button class="ing-small-btn ing-btn-save" onclick="saveIng({{ ingredient.id }})">Speichern</button>
-        <button class="ing-small-btn ing-btn-cancel" onclick="cancelIng({{ ingredient.id }})">Abbrechen</button>
-        <button class="ing-small-btn ing-btn-delete" onclick="deleteIng({{ ingredient.id }}, '{{ ingredient.name }}')">Löschen</button>
-    </li>
-    {% endfor %}
-</ul>
-<div class="ing-add-form">
-    <input type="text" id="new-ing-name" placeholder="Name...">
-    <input type="text" id="new-ing-unit" placeholder="Einheit...">
-    <button onclick="addIng()">+ Hinzufügen</button>
+
+<!-- Search -->
+<input type="search" id="ing-search" placeholder="Suchen…" oninput="render()"
+    style="width:100%;max-width:600px;padding:10px 14px;border:1px solid var(--app-border,#ddd);border-radius:8px;font-size:1rem;box-sizing:border-box;background:var(--app-surface,#fff);color:var(--app-text,#333);margin-bottom:10px;display:block;">
+
+<!-- Filter pills -->
+<div id="ing-filter-bar" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;max-width:600px;"></div>
+
+<!-- Count -->
+<div id="ing-count" style="font-size:0.78rem;color:var(--app-muted,#aaa);margin-bottom:8px;max-width:600px;"></div>
+
+<!-- List -->
+<div id="ing-list"></div>
+
+<!-- ── Edit / Add bottom sheet ───────────────────────── -->
+<div id="ing-backdrop" onclick="closeSheet()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:700;"></div>
+<div id="ing-sheet" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--app-surface,#fff);border-radius:18px 18px 0 0;padding:20px 16px 40px;z-index:701;box-shadow:0 -4px 20px rgba(0,0,0,0.15);max-width:600px;margin:0 auto;">
+    <div style="width:40px;height:4px;background:var(--app-border,#ddd);border-radius:2px;margin:0 auto 18px;"></div>
+    <div style="font-weight:700;font-size:1rem;margin-bottom:16px;" id="ing-sheet-title">Zutat bearbeiten</div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+        <div>
+            <label style="font-size:0.82rem;color:var(--app-muted,#888);display:block;margin-bottom:4px;">Name</label>
+            <input id="ing-sheet-name" type="text"
+                style="width:100%;padding:10px;border:1px solid var(--app-border,#ddd);border-radius:8px;font-size:1rem;box-sizing:border-box;background:var(--app-surface,#fff);color:var(--app-text,#333);">
+        </div>
+        <div>
+            <label style="font-size:0.82rem;color:var(--app-muted,#888);display:block;margin-bottom:4px;">Standardeinheit</label>
+            <input id="ing-sheet-unit" type="text" placeholder="z.B. g, Stück, ml"
+                style="width:100%;padding:10px;border:1px solid var(--app-border,#ddd);border-radius:8px;font-size:1rem;box-sizing:border-box;background:var(--app-surface,#fff);color:var(--app-text,#333);">
+        </div>
+        <div>
+            <label style="font-size:0.82rem;color:var(--app-muted,#888);display:block;margin-bottom:4px;">Kategorie (Supermarkt)</label>
+            <select id="ing-sheet-cat"
+                style="width:100%;padding:10px;border:1px solid var(--app-border,#ddd);border-radius:8px;font-size:1rem;box-sizing:border-box;background:var(--app-surface,#fff);color:var(--app-text,#333);">
+                {% for cat in ['Obst & Gemüse','Fleisch & Fisch','Milch & Käse','Brot & Backwaren','Tiefkühl','Konserven & Fertiggerichte','Nudeln, Reis & Hülsenfrüchte','Öle & Gewürze','Getränke','Sonstiges'] %}
+                <option value="{{ cat }}">{{ cat }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:0.95rem;color:var(--app-text,#333);">
+            <input id="ing-sheet-staple" type="checkbox" style="width:20px;height:20px;">
+            Vorrat (immer zu Hause — erscheint separat in der Einkaufsliste)
+        </label>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:20px;">
+        <button onclick="saveSheet()" style="flex:1;padding:14px;background:var(--app-accent,#28a745);color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;">Speichern</button>
+        <button onclick="closeSheet()" style="flex:1;padding:14px;background:var(--app-border,#f5f5f5);border:none;border-radius:12px;font-size:1rem;color:var(--app-muted,#555);cursor:pointer;">Abbrechen</button>
+    </div>
+    <div id="ing-sheet-error" style="display:none;margin-top:10px;padding:8px 12px;border-radius:8px;font-size:0.85rem;background:#fff3f3;border:1px solid #ffcdd2;color:#c62828;"></div>
 </div>
+
 <script>
 const SHOP_CATS = ['Obst & Gemüse','Fleisch & Fisch','Milch & Käse','Brot & Backwaren','Tiefkühl','Konserven & Fertiggerichte','Nudeln, Reis & Hülsenfrüchte','Öle & Gewürze','Getränke','Sonstiges'];
-function editIng(id) {
-    const li = document.getElementById('ing-' + id);
-    li.dataset.origName = document.querySelector('#ing-' + id + ' .ing-name-field').value;
-    li.dataset.origUnit = document.querySelector('#ing-' + id + ' .ing-unit-field').value;
-    li.dataset.origStaple = document.querySelector('#ing-' + id + ' .ing-staple-field').checked;
-    li.dataset.origCat = document.querySelector('#ing-' + id + ' .ing-category-field').value;
-    li.classList.add('editing');
-    document.querySelector('#ing-' + id + ' .ing-name-field').focus();
+
+// Load all data server-side into JS
+let allIngredients = [
+    {% for i in ingredients %}
+    { id: {{ i.id }}, name: {{ i.name | tojson }}, default_unit: {{ (i.default_unit or '') | tojson }}, is_staple: {{ 'true' if i.is_staple else 'false' }}, shop_category: {{ i.shop_category | tojson }} }{% if not loop.last %},{% endif %}
+    {% endfor %}
+];
+
+let activeFilter = 'all'; // 'all' | 'vorrat' | shop_category_name
+let sheetIngId = null;     // null = new ingredient
+
+// ── Filter pills ─────────────────────────────────────
+function renderFilterBar() {
+    const bar = document.getElementById('ing-filter-bar');
+    const usedCats = new Set(allIngredients.map(i => i.shop_category).filter(Boolean));
+    const hasStaple = allIngredients.some(i => i.is_staple);
+
+    const pills = [
+        { key: 'all', label: 'Alle' },
+        ...(hasStaple ? [{ key: 'vorrat', label: '● Vorrat' }] : []),
+        ...SHOP_CATS.filter(c => usedCats.has(c)).map(c => ({ key: c, label: c }))
+    ];
+
+    bar.innerHTML = pills.map(p => `
+        <button class="rm-cat-btn${activeFilter === p.key ? ' active' : ''}"
+            onclick="setFilter(${JSON.stringify(p.key)})">${p.label}</button>
+    `).join('');
 }
 
-function cancelIng(id) {
-    const li = document.getElementById('ing-' + id);
-    document.querySelector('#ing-' + id + ' .ing-name-field').value = li.dataset.origName;
-    document.querySelector('#ing-' + id + ' .ing-unit-field').value = li.dataset.origUnit;
-    document.querySelector('#ing-' + id + ' .ing-staple-field').checked = li.dataset.origStaple === 'true';
-    document.querySelector('#ing-' + id + ' .ing-category-field').value = li.dataset.origCat;
-    li.classList.remove('editing');
+function setFilter(key) {
+    activeFilter = key;
+    renderFilterBar();
+    render();
 }
-async function saveIng(id) {
-    const name = document.querySelector('#ing-' + id + ' .ing-name-field').value.trim();
-    const defaultUnit = document.querySelector('#ing-' + id + ' .ing-unit-field').value.trim();
-    const isStaple = document.querySelector('#ing-' + id + ' .ing-staple-field').checked;
-    const shopCategory = document.querySelector('#ing-' + id + ' .ing-category-field').value;
-    if (!name) return;
-    const res = await fetch('/api/ingredients/' + id, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, default_unit: defaultUnit, is_staple: isStaple, shop_category: shopCategory })
+
+// ── Filtering ─────────────────────────────────────────
+function getFiltered() {
+    const q = (document.getElementById('ing-search').value || '').toLowerCase().trim();
+    return allIngredients.filter(i => {
+        if (q && !i.name.toLowerCase().includes(q)) return false;
+        if (activeFilter === 'vorrat') return i.is_staple;
+        if (activeFilter !== 'all') return i.shop_category === activeFilter;
+        return true;
     });
-    if (res.ok) {
-        document.querySelector('#ing-' + id + ' span').textContent = name;
-        document.getElementById('ing-' + id).classList.remove('editing');
+}
+
+// ── Render list ───────────────────────────────────────
+function esc(s) {
+    return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function render() {
+    const filtered = getFiltered();
+    const countEl = document.getElementById('ing-count');
+    countEl.textContent = filtered.length === allIngredients.length
+        ? `${allIngredients.length} Zutaten`
+        : `${filtered.length} von ${allIngredients.length}`;
+
+    const container = document.getElementById('ing-list');
+    if (!filtered.length) {
+        container.innerHTML = '<div class="ing-empty">Keine Zutaten gefunden</div>';
+        return;
+    }
+
+    // Group alphabetically
+    const groups = {};
+    filtered.forEach(i => {
+        const letter = i.name[0].toUpperCase();
+        if (!groups[letter]) groups[letter] = [];
+        groups[letter].push(i);
+    });
+
+    let html = '';
+    Object.keys(groups).sort().forEach(letter => {
+        html += `<div class="ing-alpha-header">${letter}</div>`;
+        groups[letter].forEach(i => {
+            html += `
+            <div class="ing-row" id="ing-row-${i.id}">
+                <div class="ing-row-main">
+                    <div class="ing-row-name">${esc(i.name)}</div>
+                    <div class="ing-row-meta">
+                        ${i.default_unit ? `<span class="ing-chip">${esc(i.default_unit)}</span>` : ''}
+                        ${i.is_staple ? `<span class="ing-chip ing-chip-staple">Vorrat</span>` : ''}
+                        ${i.shop_category && i.shop_category !== 'Sonstiges' ? `<span class="ing-chip">${esc(i.shop_category)}</span>` : ''}
+                    </div>
+                </div>
+                <div class="ing-row-actions">
+                    <button class="ing-row-btn" title="Bearbeiten" onclick="openSheet(${i.id})">✏️</button>
+                    <button class="ing-row-btn delete" title="Löschen" onclick="deleteIng(${i.id}, ${JSON.stringify(i.name)})">🗑️</button>
+                </div>
+            </div>`;
+        });
+    });
+    container.innerHTML = html;
+}
+
+// ── Bottom sheet ──────────────────────────────────────
+function openSheet(id) {
+    sheetIngId = id;
+    const err = document.getElementById('ing-sheet-error');
+    err.style.display = 'none';
+
+    if (id === null) {
+        document.getElementById('ing-sheet-title').textContent = 'Neue Zutat';
+        document.getElementById('ing-sheet-name').value = '';
+        document.getElementById('ing-sheet-unit').value = '';
+        document.getElementById('ing-sheet-cat').value = 'Sonstiges';
+        document.getElementById('ing-sheet-staple').checked = false;
     } else {
-        alert('Fehler beim Speichern.');
+        const i = allIngredients.find(x => x.id === id);
+        if (!i) return;
+        document.getElementById('ing-sheet-title').textContent = 'Zutat bearbeiten';
+        document.getElementById('ing-sheet-name').value = i.name;
+        document.getElementById('ing-sheet-unit').value = i.default_unit;
+        document.getElementById('ing-sheet-cat').value = i.shop_category || 'Sonstiges';
+        document.getElementById('ing-sheet-staple').checked = i.is_staple;
+    }
+
+    document.getElementById('ing-backdrop').style.display = 'block';
+    document.getElementById('ing-sheet').style.display = 'block';
+    setTimeout(() => document.getElementById('ing-sheet-name').focus(), 80);
+}
+
+function closeSheet() {
+    document.getElementById('ing-backdrop').style.display = 'none';
+    document.getElementById('ing-sheet').style.display = 'none';
+    sheetIngId = null;
+}
+
+async function saveSheet() {
+    const name = document.getElementById('ing-sheet-name').value.trim();
+    const errEl = document.getElementById('ing-sheet-error');
+    errEl.style.display = 'none';
+    if (!name) { errEl.textContent = 'Bitte einen Namen eingeben.'; errEl.style.display = 'block'; return; }
+
+    const payload = {
+        name,
+        default_unit: document.getElementById('ing-sheet-unit').value.trim(),
+        shop_category: document.getElementById('ing-sheet-cat').value,
+        is_staple: document.getElementById('ing-sheet-staple').checked
+    };
+
+    try {
+        let res, data;
+        if (sheetIngId === null) {
+            // Create: first POST to /api/ingredients, then PUT to set all fields
+            res = await fetch('/api/ingredients', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name })
+            });
+            data = await res.json();
+            if (!res.ok) { errEl.textContent = data.error || 'Fehler'; errEl.style.display = 'block'; return; }
+            const newId = data.id;
+            res = await fetch(`/api/ingredients/${newId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            data = await res.json();
+            if (!res.ok) { errEl.textContent = data.error || 'Fehler'; errEl.style.display = 'block'; return; }
+            allIngredients.push({ id: newId, ...payload });
+            allIngredients.sort((a, b) => a.name.localeCompare(b.name));
+        } else {
+            res = await fetch(`/api/ingredients/${sheetIngId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            data = await res.json();
+            if (!res.ok) { errEl.textContent = data.error || 'Fehler'; errEl.style.display = 'block'; return; }
+            const idx = allIngredients.findIndex(x => x.id === sheetIngId);
+            if (idx !== -1) {
+                allIngredients[idx] = { id: sheetIngId, ...payload };
+                allIngredients.sort((a, b) => a.name.localeCompare(b.name));
+            }
+        }
+        closeSheet();
+        renderFilterBar();
+        render();
+    } catch (e) {
+        errEl.textContent = 'Netzwerkfehler: ' + e.message;
+        errEl.style.display = 'block';
     }
 }
+
 async function deleteIng(id, name) {
     if (!confirm(`"${name}" wirklich löschen?`)) return;
-    const res = await fetch('/api/ingredients/' + id, { method: 'DELETE' });
+    const res = await fetch(`/api/ingredients/${id}`, { method: 'DELETE' });
     const data = await res.json();
     if (res.ok) {
-        document.getElementById('ing-' + id).remove();
+        allIngredients = allIngredients.filter(i => i.id !== id);
+        renderFilterBar();
+        render();
     } else {
         alert(data.error || 'Fehler beim Löschen.');
     }
 }
-async function addIng() {
-    const name = document.getElementById('new-ing-name').value.trim();
-    const defaultUnit = document.getElementById('new-ing-unit').value.trim();
-    if (!name) return;
-    const res = await fetch('/api/ingredients', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name })
-    });
-    const data = await res.json();
-    if (res.ok) {
-        // Set default_unit if provided
-        if (defaultUnit) {
-            await fetch('/api/ingredients/' + data.id, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, default_unit: defaultUnit })
-            });
-        }
-        const li = document.createElement('li');
-        li.className = 'ing-manage-item';
-        li.id = 'ing-' + data.id;
-        li.innerHTML = `
-            <span>${name}</span>
-            <input type="text" class="ing-name-field" value="${name}" placeholder="Name">
-            <input type="text" class="ing-unit-field" value="${defaultUnit}" placeholder="Einheit">
-            <label class="ing-staple-label"><input type="checkbox" class="ing-staple-field"> Vorrat</label>
-            <select class="ing-category-field">${SHOP_CATS.map(c => `<option value="${c}">${c}</option>`).join('')}</select>
-            <button class="ing-small-btn ing-btn-edit" onclick="editIng(${data.id})">Bearbeiten</button>
-            <button class="ing-small-btn ing-btn-save" onclick="saveIng(${data.id})">Speichern</button>
-            <button class="ing-small-btn ing-btn-delete" onclick="deleteIng(${data.id}, '${name}')">Löschen</button>
-        `;
-        document.getElementById('ing-list').appendChild(li);
-        document.getElementById('new-ing-name').value = '';
-        document.getElementById('new-ing-unit').value = '';
-    } else {
-        alert('Fehler: ' + (data.error || 'Unbekannt'));
-    }
-}
-</script>
-<button id="back-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" style="display:none;position:fixed;bottom:86px;right:20px;z-index:600;width:48px;height:48px;border-radius:50%;border:none;background:#007BFF;color:#fff;font-size:1.4em;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.2);">↑</button>
-<script>
-window.addEventListener('scroll', () => {
-    document.getElementById('back-to-top').style.display = window.scrollY > 200 ? 'block' : 'none';
-});
+
+// Init
+renderFilterBar();
+render();
 </script>
 {% endblock %}
