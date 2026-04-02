@@ -572,12 +572,14 @@ function cartDelta(delta) {
 
 async function confirmAddToCart() {
     if (!cartRecipeId) return;
+    const id = cartRecipeId;
+    const servings = cartServings;
     closeCartSheet();
     try {
         const res = await fetch('/api/shopping-list/item', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: cartRecipeId, servings: cartServings })
+            body: JSON.stringify({ id, servings })
         });
         if (res.ok) showToast('Zur Einkaufsliste hinzugefügt ✓');
         else showToast('Fehler beim Hinzufügen');
