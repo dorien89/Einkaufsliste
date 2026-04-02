@@ -246,6 +246,17 @@
     color: #666;
 }
 
+.rm-ing-section-row td {
+    padding: 6px 10px;
+    font-size: 0.78em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--app-muted, #888);
+    background: var(--app-bg, #f8f8f8);
+    border-bottom: none;
+}
+
 .rm-ingredient-table td {
     padding: 10px;
     border-bottom: 1px solid #eee;

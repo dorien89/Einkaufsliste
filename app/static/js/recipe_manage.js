@@ -160,16 +160,10 @@ async function openRecipe(recipeId) {
         <table class="rm-ingredient-table">
             <thead><tr><th>Zutat</th><th>Menge <span class="rm-portion-hint">(${portionLabel(familySize)})</span></th><th>Einheit</th></tr></thead>
             <tbody>
-                ${recipe.ingredients.map(i => `
-                    <tr>
-                        <td>
-                            ${i.name}
-                            <button class="rm-ing-edit-btn" title="Zutat bearbeiten"
-                                onclick="openIngEdit(${i.ingredient_id}, '${escHtml(i.name)}', '${escHtml(i.default_unit)}', ${i.is_staple}, '${escHtml(i.shop_category)}')">✏️</button>
-                        </td>
-                        <td>${fmtAmt(i.amount * familySize)}</td>
-                        <td>${i.unit}</td>
-                    </tr>`).join('')}
+                ${renderIngredientRows(recipe.ingredients.filter(i => !i.is_staple))}
+                ${recipe.ingredients.some(i => i.is_staple) ? `
+                <tr class="rm-ing-section-row"><td colspan="3">Vorrat</td></tr>
+                ${renderIngredientRows(recipe.ingredients.filter(i => i.is_staple))}` : ''}
             </tbody>
         </table>
     `;
@@ -596,6 +590,19 @@ async function saveIngEdit() {
 
 function escHtml(str) {
     return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function renderIngredientRows(ingredients) {
+    return ingredients.map(i => `
+        <tr>
+            <td>
+                ${i.name}
+                <button class="rm-ing-edit-btn" title="Zutat bearbeiten"
+                    onclick="openIngEdit(${i.ingredient_id}, '${escHtml(i.name)}', '${escHtml(i.default_unit)}', ${i.is_staple}, '${escHtml(i.shop_category)}')">✏️</button>
+            </td>
+            <td>${fmtAmt(i.amount * familySize)}</td>
+            <td>${i.unit}</td>
+        </tr>`).join('');
 }
 
 function fmtAmt(n) {
