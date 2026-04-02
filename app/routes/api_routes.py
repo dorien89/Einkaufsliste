@@ -3,6 +3,7 @@ from flask import Blueprint, jsonify, request
 from app.models.recipe import Recipe, RecipeIngredient, Ingredient, Category
 from app.models.shopping_list import ShoppingList
 from app.models.week_plan import WeekPlan
+from app.models.settings import Settings
 from app.services.recipe_service import RecipeService
 import random
 from datetime import datetime, date as date_type, timedelta
@@ -527,6 +528,29 @@ def mark_items_bought():
 
         db.session.commit()
         return jsonify({'success': True, 'message': 'All items marked as bought'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+# ── App settings ──────────────────────────────────────────────────────────────
+
+@bp.route('/settings', methods=['GET'])
+def get_settings():
+    s = Settings.get()
+    return jsonify({'family_size': s.family_size})
+
+@bp.route('/settings', methods=['PUT'])
+def update_settings():
+    try:
+        data = request.get_json()
+        s = Settings.get()
+        if 'family_size' in data:
+            val = round(float(data['family_size']), 2)
+            if val <= 0:
+                return jsonify({'error': 'Familiengröße muss größer als 0 sein'}), 400
+            s.family_size = val
+        db.session.commit()
+        return jsonify({'family_size': s.family_size})
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500

@@ -602,6 +602,95 @@ h1 {
     color: var(--app-accent, #007BFF);
 }
 
+/* ── Daten page: tabs ────────────────────────────────── */
+.data-tabs {
+    display: flex;
+    max-width: 600px;
+    border-bottom: 2px solid var(--app-border, #eee);
+    margin-bottom: 20px;
+}
+
+.data-tab-btn {
+    flex: 1;
+    padding: 10px 12px;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--app-muted, #888);
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+    white-space: nowrap;
+}
+
+.data-tab-btn.active {
+    color: var(--app-accent, #007BFF);
+    border-bottom-color: var(--app-accent, #007BFF);
+}
+
+/* ── Daten page: setting rows ────────────────────────── */
+.setting-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--app-border, #eee);
+}
+
+.setting-row:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.setting-info {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    flex: 1;
+}
+
+.setting-info strong { font-size: 0.92rem; color: var(--app-text, #333); }
+.setting-info span   { font-size: 0.78rem; color: var(--app-muted, #888); }
+
+.setting-stepper {
+    display: flex;
+    align-items: stretch;
+    border: 1.5px solid var(--app-border, #ddd);
+    border-radius: 8px;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.setting-stepper button {
+    background: var(--app-bg, #f5f5f5);
+    border: none;
+    width: 38px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    cursor: pointer;
+    color: var(--app-accent, #333);
+    transition: background 0.1s;
+    line-height: 1;
+}
+
+.setting-stepper button:hover  { background: var(--app-border, #eee); }
+.setting-stepper button:active { background: var(--app-accent-light, #e8f0fe); }
+
+.setting-stepper-val {
+    min-width: 50px;
+    text-align: center;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--app-text, #333);
+    border-left: 1.5px solid var(--app-border, #ddd);
+    border-right: 1.5px solid var(--app-border, #ddd);
+    padding: 8px 4px;
+    background: var(--app-surface, #fff);
+}
+
 /* Larger screen adaptations */
 @media (min-width: 640px) {
     .shopping-list-container {

@@ -5,6 +5,7 @@ let activeCategory = null;
 let filterExpanded = window.innerWidth > 767; // collapsed by default on mobile
 let selectMode = false;
 let selectedIds = new Set();
+let familySize = 1.0;
 
 // ── Scroll progress ───────────────────────────────────
 function updateScrollProgress() {
@@ -18,8 +19,16 @@ function updateScrollProgress() {
 
 // ── Init ─────────────────────────────────────────────
 async function init() {
-    await loadCategories();
-    await loadRecipeList();
+    // Load settings and categories/recipes in parallel
+    const [settingsRes] = await Promise.all([
+        fetch('/api/settings'),
+        loadCategories(),
+        loadRecipeList(),
+    ]);
+    try {
+        const s = await settingsRes.json();
+        familySize = s.family_size || 1.0;
+    } catch {}
     document.getElementById('rm-list-items').addEventListener('scroll', updateScrollProgress);
 }
 
@@ -147,9 +156,9 @@ async function openRecipe(recipeId) {
             </div>
         </div>
         ${recipe.description ? `<p class="rm-detail-description">${recipe.description}</p>` : ''}
-        <div class="rm-portion-label">Mengen für 1 Portion</div>
+        <div class="rm-portion-label">${portionLabel(familySize)}</div>
         <table class="rm-ingredient-table">
-            <thead><tr><th>Zutat</th><th>Menge <span class="rm-portion-hint">(1&nbsp;Portion)</span></th><th>Einheit</th></tr></thead>
+            <thead><tr><th>Zutat</th><th>Menge <span class="rm-portion-hint">(${portionLabel(familySize)})</span></th><th>Einheit</th></tr></thead>
             <tbody>
                 ${recipe.ingredients.map(i => `
                     <tr>
@@ -158,7 +167,7 @@ async function openRecipe(recipeId) {
                             <button class="rm-ing-edit-btn" title="Zutat bearbeiten"
                                 onclick="openIngEdit(${i.ingredient_id}, '${escHtml(i.name)}', '${escHtml(i.default_unit)}', ${i.is_staple}, '${escHtml(i.shop_category)}')">✏️</button>
                         </td>
-                        <td>${i.amount}</td>
+                        <td>${fmtAmt(i.amount * familySize)}</td>
                         <td>${i.unit}</td>
                     </tr>`).join('')}
             </tbody>
@@ -587,6 +596,16 @@ async function saveIngEdit() {
 
 function escHtml(str) {
     return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function fmtAmt(n) {
+    // Up to 2 decimal places, no trailing zeros
+    return parseFloat(n.toFixed(2));
+}
+
+function portionLabel(n) {
+    const s = parseFloat(n.toFixed(2));
+    return `für ${s} ${s === 1 ? 'Person' : 'Personen'}`;
 }
 
 window.onload = init;
