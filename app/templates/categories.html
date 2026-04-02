@@ -14,13 +14,13 @@
 
 <div id="cat-list">
     {% for category in categories %}
-    <div class="ing-row cat-item" id="cat-{{ category.id }}">
+    <div class="ing-row cat-item" id="cat-{{ category.id }}" data-id="{{ category.id }}">
         <div class="ing-row-main">
             <div class="ing-row-name">{{ category.name }}</div>
         </div>
         <div class="ing-row-actions">
-            <button class="ing-row-btn" title="Bearbeiten" onclick="openSheet({{ category.id }}, {{ category.name | tojson }})">✏️</button>
-            <button class="ing-row-btn delete" title="Löschen" onclick="deleteCat({{ category.id }}, {{ category.name | tojson }})">🗑️</button>
+            <button class="ing-row-btn" title="Bearbeiten" onclick="openSheetFromRow(this)">✏️</button>
+            <button class="ing-row-btn delete" title="Löschen" onclick="deleteCatFromRow(this)">🗑️</button>
         </div>
     </div>
     {% endfor %}
@@ -62,6 +62,16 @@ function esc(s) {
 }
 
 let sheetCatId = null; // null = new category
+
+function openSheetFromRow(btn) {
+    const row = btn.closest('.cat-item');
+    openSheet(parseInt(row.dataset.id), row.querySelector('.ing-row-name').textContent);
+}
+
+function deleteCatFromRow(btn) {
+    const row = btn.closest('.cat-item');
+    deleteCat(parseInt(row.dataset.id), row.querySelector('.ing-row-name').textContent);
+}
 
 function openSheet(id, name) {
     sheetCatId = id;
@@ -105,13 +115,14 @@ async function saveSheet() {
             const div = document.createElement('div');
             div.className = 'ing-row cat-item';
             div.id = 'cat-' + data.id;
+            div.dataset.id = data.id;
             div.innerHTML = `
                 <div class="ing-row-main">
                     <div class="ing-row-name">${esc(name)}</div>
                 </div>
                 <div class="ing-row-actions">
-                    <button class="ing-row-btn" title="Bearbeiten" onclick="openSheet(${data.id}, ${JSON.stringify(name)})">✏️</button>
-                    <button class="ing-row-btn delete" title="Löschen" onclick="deleteCat(${data.id}, ${JSON.stringify(name)})">🗑️</button>
+                    <button class="ing-row-btn" title="Bearbeiten" onclick="openSheetFromRow(this)">✏️</button>
+                    <button class="ing-row-btn delete" title="Löschen" onclick="deleteCatFromRow(this)">🗑️</button>
                 </div>`;
             document.getElementById('cat-list').appendChild(div);
         } else {
@@ -126,10 +137,6 @@ async function saveSheet() {
             const row = document.getElementById('cat-' + sheetCatId);
             if (row) {
                 row.querySelector('.ing-row-name').textContent = name;
-                const editBtn = row.querySelector('.ing-row-btn');
-                editBtn.setAttribute('onclick', `openSheet(${sheetCatId}, ${JSON.stringify(name)})`);
-                const delBtn = row.querySelector('.ing-row-btn.delete');
-                delBtn.setAttribute('onclick', `deleteCat(${sheetCatId}, ${JSON.stringify(name)})`);
             }
         }
         closeSheet();
