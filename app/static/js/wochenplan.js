@@ -10,6 +10,7 @@ let activeDay = (() => {
 let plan = {}; // "dayIndex_slotIndex" -> { recipe_id, name }
 let allRecipes = [];
 let pickerTarget = null;
+let familySize = 1.0;
 
 function getMonday(d) {
     d = new Date(d);
@@ -101,9 +102,9 @@ function renderSlots() {
             ${entry ? `<button class="wp-slot-clear" data-day="${activeDay}" data-slot="${s}" title="Entfernen">✕</button>` : ''}
             ${entry && !past && !bought ? `
             <div class="wp-slot-servings">
-                <button class="wp-srv-btn" data-day="${activeDay}" data-slot="${s}" data-delta="-1">−</button>
-                <span class="wp-srv-count">${entry.servings} Pers.</span>
-                <button class="wp-srv-btn" data-day="${activeDay}" data-slot="${s}" data-delta="1">+</button>
+                <button class="wp-srv-btn" data-day="${activeDay}" data-slot="${s}" data-delta="-0.5">−</button>
+                <span class="wp-srv-count">${fmtSrv(entry.servings)}</span>
+                <button class="wp-srv-btn" data-day="${activeDay}" data-slot="${s}" data-delta="0.5">+</button>
             </div>` : ''}
         </div>`;
     }).join('');
@@ -133,7 +134,7 @@ document.getElementById('wp-slots').addEventListener('click', e => {
     if (recipe) { openPicker(parseInt(recipe.dataset.day), parseInt(recipe.dataset.slot)); return; }
 
     const srv = e.target.closest('.wp-srv-btn');
-    if (srv) { changeServings(parseInt(srv.dataset.day), parseInt(srv.dataset.slot), parseInt(srv.dataset.delta)); return; }
+    if (srv) { changeServings(parseInt(srv.dataset.day), parseInt(srv.dataset.slot), parseFloat(srv.dataset.delta)); return; }
 
     const clear = e.target.closest('.wp-slot-clear');
     if (clear) clearSlot(parseInt(clear.dataset.day), parseInt(clear.dataset.slot));
@@ -143,12 +144,12 @@ async function changeServings(day, slot, delta) {
     const key = `${day}_${slot}`;
     const entry = plan[key];
     if (!entry) return;
-    const newServings = Math.max(1, (entry.servings || 1) + delta);
+    const newServings = Math.max(0.5, Math.round(((entry.servings || familySize) + delta) * 10) / 10);
     entry.servings = newServings;
     // Update count display without full re-render
-    const countEl = document.querySelector(`.wp-srv-btn[data-day="${day}"][data-slot="${slot}"][data-delta="-1"]`)
+    const countEl = document.querySelector(`.wp-srv-btn[data-day="${day}"][data-slot="${slot}"][data-delta="-0.5"]`)
         ?.parentElement?.querySelector('.wp-srv-count');
-    if (countEl) countEl.textContent = newServings;
+    if (countEl) countEl.textContent = fmtSrv(newServings);
     try {
         await fetch(`/api/wochenplan/${weekStartStr()}/${day}/${slot}/servings`, {
             method: 'PATCH',
@@ -293,10 +294,10 @@ async function selectRecipe(id, name) {
         const r = await fetch(`/api/wochenplan/${weekStartStr()}/${day}/${slot}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ recipe_id: id })
+            body: JSON.stringify({ recipe_id: id, servings: familySize })
         });
         if (!r.ok) throw new Error();
-        plan[`${day}_${slot}`] = { recipe_id: id, name, servings: 1, is_bought: false, in_shopping_list: false };
+        plan[`${day}_${slot}`] = { recipe_id: id, name, servings: familySize, is_bought: false, in_shopping_list: false };
         renderDayTabs();
         renderSlots();
     } catch(e) {
@@ -428,8 +429,22 @@ function renderOverview() {
     });
 }
 
+function fmtSrv(n) {
+    // Show as integer if whole, otherwise 1 decimal (e.g. 2.5)
+    const v = Math.round(n * 10) / 10;
+    return (Number.isInteger(v) ? v : v.toFixed(1)) + ' Pers.';
+}
+
 window.onload = async () => {
-    await Promise.all([loadWeek(), loadRecipes()]);
+    // Load settings alongside week/recipes
+    const [, , settingsRes] = await Promise.all([
+        loadWeek(),
+        loadRecipes(),
+        fetch('/api/settings').catch(() => null)
+    ]);
+    if (settingsRes && settingsRes.ok) {
+        try { familySize = (await settingsRes.json()).family_size || 1.0; } catch {}
+    }
     render();
     updateNavButtons();
 };

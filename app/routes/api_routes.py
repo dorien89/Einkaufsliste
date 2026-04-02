@@ -348,12 +348,12 @@ def update_servings(recipe_id):
     try:
         data = request.get_json()
         servings = data.get('servings')
-        if not servings or servings <= 0:
+        if not servings or float(servings) <= 0:
             return jsonify({'error': 'Invalid servings'}), 400
         item = ShoppingList.query.filter_by(recipe_id=recipe_id, is_active=True).first()
         if not item:
             return jsonify({'error': 'Item not found'}), 404
-        item.servings = servings
+        item.servings = max(0.5, round(float(servings), 1))
         db.session.commit()
         return jsonify({'success': True})
     except Exception as e:
@@ -420,7 +420,7 @@ def set_week_slot(week_start, day_index, slot_index):
         return jsonify({'error': 'Invalid date'}), 400
     data = request.get_json()
     recipe_id = data.get('recipe_id')
-    servings = max(1, int(data.get('servings', 1)))
+    servings = max(0.5, round(float(data.get('servings', 1)), 1))
     entry = WeekPlan.query.filter_by(week_start=start, day_index=day_index, slot_index=slot_index).first()
     if entry:
         entry.recipe_id = recipe_id
@@ -440,7 +440,7 @@ def patch_week_slot_servings(week_start, day_index, slot_index):
         return jsonify({'error': 'Invalid date'}), 400
     entry = WeekPlan.query.filter_by(week_start=start, day_index=day_index, slot_index=slot_index).first_or_404()
     servings = request.get_json().get('servings', 1)
-    entry.servings = max(1, int(servings))
+    entry.servings = max(0.5, round(float(servings), 1))
     db.session.commit()
     return jsonify({'success': True, 'servings': entry.servings})
 

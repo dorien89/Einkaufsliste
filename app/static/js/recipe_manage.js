@@ -229,7 +229,7 @@ function renderForm(recipe) {
             <textarea id="f-description" placeholder="Kurze Beschreibung...">${isEdit ? recipe.description : ''}</textarea>
         </div>
         <div class="rm-form-group">
-            <label>Zutaten</label>
+            <label>Zutaten <span style="font-size:0.75rem;font-weight:normal;color:var(--app-muted,#888);">(Mengen für 1 Person)</span></label>
             <div class="rm-ingredient-rows" id="ingredient-rows"></div>
             <button class="rm-add-ingredient-btn" onclick="addIngredientRow()">+ Zutat hinzufügen</button>
         </div>
