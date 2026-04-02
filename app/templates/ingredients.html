@@ -6,9 +6,9 @@
 
 <div class="page-header-row" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
     <h1 style="margin:0;">Zutaten</h1>
-    <div style="display:flex;gap:8px;align-items:center;">
-        <button class="rm-btn rm-btn-save" onclick="openSheet(null)" style="min-height:0;padding:8px 14px;">＋ Neu</button>
-        <a href="{{ url_for('recipe.list_recipes') }}" class="rm-btn rm-btn-cancel" style="text-decoration:none;padding:8px 14px;min-height:0;">← Rezepte</a>
+    <div style="display:flex;gap:8px;align-items:center;flex-shrink:0;">
+        <button onclick="openSheet(null)" style="padding:8px 14px;background:var(--app-accent,#28a745);color:#fff;border:none;border-radius:8px;font-size:1rem;font-weight:700;cursor:pointer;white-space:nowrap;">＋ Neu</button>
+        <a href="{{ url_for('recipe.list_recipes') }}" style="text-decoration:none;padding:8px 14px;background:var(--app-muted,#aaa);color:#fff;border-radius:8px;font-size:1rem;white-space:nowrap;">← Rezepte</a>
     </div>
 </div>
 
