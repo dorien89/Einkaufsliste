@@ -313,18 +313,8 @@ def get_shopping_list():
                     v['manual_id'] = mi.id   # attach for delete button
                     matched = True
                     break
-            if not matched:
-                mkey = f"manual_{mi.id}"
-                consolidated[mkey] = {
-                    'id': None,
-                    'name': mi.name,
-                    'amount': mi.amount or 0,
-                    'unit': mi.unit or '',
-                    'is_staple': False,
-                    'shop_category': 'Sonstiges',
-                    'is_manual': True,
-                    'manual_id': mi.id
-                }
+            # Unmatched manual items are served separately via the manual_items
+            # template variable — don't add them to consolidated to avoid duplication.
 
         return jsonify({'success': True, 'ingredients': list(consolidated.values())})
     except Exception as e:
