@@ -354,6 +354,18 @@ async function changeServings(entryId, delta) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ servings: newServings })
         });
+
+        // Keep shopping list in sync: sum all plan entries for this recipe
+        if (entry.in_shopping_list) {
+            const total = Object.values(plan).flat()
+                .filter(e => e.recipe_id === entry.recipe_id)
+                .reduce((sum, e) => sum + e.servings, 0);
+            await fetch(`/api/shopping-list/item/${entry.recipe_id}/servings`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ servings: Math.max(0.5, total) })
+            });
+        }
     } catch(e) {}
 }
 
