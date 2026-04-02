@@ -213,7 +213,7 @@
 <script>
 const buyItems    = {{ (ingredients | selectattr('is_staple', 'equalto', false) | list) | tojson if ingredients else '[]' }};
 const stapleItems = {{ (ingredients | selectattr('is_staple', 'equalto', true)  | list) | tojson if ingredients else '[]' }};
-const manualItems = {{ manual_items | map(attribute='id') | list | tojson if manual_items else '[]' }};
+const manualItemsData = [{% for mi in manual_items %}{ id: {{ mi.id }}, name: {{ mi.name | tojson }}, amount: {{ mi.amount if mi.amount is not none else 'null' }}, unit: {{ (mi.unit or '') | tojson }} }{% if not loop.last %},{% endif %}{% endfor %}];
 const CATEGORIES  = ['Obst & Gemüse','Fleisch & Fisch','Milch & Käse','Brot & Backwaren','Tiefkühl','Konserven & Fertiggerichte','Nudeln, Reis & Hülsenfrüchte','Öle & Gewürze','Getränke','Sonstiges'];
 
 // ── At-home state (localStorage) ─────────────────────
@@ -258,14 +258,35 @@ function _itemRow(i, cat, isStaple, isAtHome) {
     </div>`;
 }
 
+function _manualItemRow(mi, isAtHome) {
+    const key = `manual_${mi.id}`;
+    const aStr = mi.amount ? (Number.isInteger(mi.amount) ? mi.amount : parseFloat(mi.amount).toFixed(1)) : '';
+    const amountStr = [aStr, mi.unit].filter(Boolean).join(' ');
+    const cls = ['shopping-list-item', 'sl-checkable', isAtHome ? 'at-home' : ''].filter(Boolean).join(' ');
+    return `<div class="${cls}" data-key="${esc(key)}" data-cat="__manual__" onclick="toggleAtHome(this)">
+        <span class="sl-check-icon">${isAtHome ? '✓' : '○'}</span>
+        <span class="item-name">${esc(mi.name)}</span>
+        <span class="item-amount" style="display:flex;align-items:center;gap:6px;">
+            ${esc(amountStr)}
+            <button class="sl-manual-delete" data-id="${mi.id}" data-name="${esc(mi.name)}"
+                onclick="deleteManualItem(parseInt(this.dataset.id), this.dataset.name, event)" title="Entfernen">✕</button>
+        </span>
+    </div>`;
+}
+
 function applyAtHome() {
     const container = document.querySelector('.shopping-list-items');
-    if (!container || (buyItems.length === 0 && stapleItems.length === 0)) return;
+    if (!container) return;
+
+    const hasRecipeItems = buyItems.length > 0 || stapleItems.length > 0;
+    if (!hasRecipeItems && !manualItemsData.length) return;
 
     const atHome = getAtHome();
     const activeRegular = buyItems.filter(i => !atHome.has(`${i.name}::${i.unit}`));
     const activeStaple  = stapleItems.filter(i => !atHome.has(`${i.name}::${i.unit}`));
     const atHomeAll     = [...buyItems, ...stapleItems].filter(i => atHome.has(`${i.name}::${i.unit}`));
+    const activeManual  = manualItemsData.filter(i => !atHome.has(`manual_${i.id}`));
+    const atHomeManual  = manualItemsData.filter(i => atHome.has(`manual_${i.id}`));
 
     let html = '';
 
@@ -281,12 +302,18 @@ function applyAtHome() {
         activeStaple.forEach(i => { html += _itemRow(i, '__staple__', true, false); });
     }
 
-    if (atHomeAll.length) {
+    if (activeManual.length) {
+        html += `<div class="staple-separator" style="color:var(--app-accent,#28a745);">Zusätzlich</div>`;
+        activeManual.forEach(i => { html += _manualItemRow(i, false); });
+    }
+
+    if (atHomeAll.length || atHomeManual.length) {
         html += `<div class="staple-separator" style="color:#16a34a;background:#f0fff4;border-color:#bbf7d0;">✓ Bereits zu Hause</div>`;
         atHomeAll.forEach(i => {
             const cat = i.is_staple ? '__staple__' : (i.shop_category || 'Sonstiges');
             html += _itemRow(i, cat, i.is_staple, true);
         });
+        atHomeManual.forEach(i => { html += _manualItemRow(i, true); });
     }
 
     container.innerHTML = html;
