@@ -165,7 +165,7 @@ async function openRecipe(recipeId) {
     `;
     const footer = document.getElementById('rm-detail-footer');
     footer.innerHTML = `
-        <button class="rm-btn rm-btn-save" style="flex:1" onclick="openCartSheet(${recipe.id}, ${JSON.stringify(recipe.name)})">🛒</button>
+        <button class="rm-btn rm-btn-save" style="flex:1" data-rid="${recipe.id}" data-rname="${escHtml(recipe.name)}" onclick="openCartSheet(parseInt(this.dataset.rid), this.dataset.rname)">🛒</button>
         <button class="rm-btn rm-btn-edit" style="flex:1" onclick="openEditForm(${recipe.id})">Bearbeiten</button>
         <button class="rm-btn rm-btn-delete" style="flex:1" onclick="deleteRecipe(${recipe.id})">Löschen</button>
     `;
